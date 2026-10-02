@@ -1,7 +1,9 @@
-
 """
 Tests for the About dialog and its wiring in the main window.
 """
+
+import tomllib
+from pathlib import Path
 
 import pytest
 from PySide6.QtGui import QAction
@@ -9,10 +11,13 @@ from PySide6.QtWidgets import QLabel
 from pytestqt.qtbot import QtBot
 
 from companion4soloplayer import __version__
+from companion4soloplayer.build_info import BUILD_NUMBER
 from companion4soloplayer.ui.dialogs.about_dialog import (
     DESCRIPTION,
     LOGO_SIZE,
     AboutDialog,
+    _read_build_version,
+    build_version,
 )
 from companion4soloplayer.ui.main_window import MainWindow
 
@@ -29,7 +34,10 @@ def test_about_dialog_shows(qtbot: QtBot) -> None:
     assert any("Companion4SoloPlayer" in text for text in texts)
     assert DESCRIPTION in texts
     assert any(
-        text.startswith("<b>Version:</b>") and __version__ in text for text in texts
+        text.startswith("<b>Version:</b>")
+        and __version__ in text
+        and f"build {build_version}" in text
+        for text in texts
     )
     assert any(text.startswith("<b>Compiled at:</b>") for text in texts)
 
@@ -55,9 +63,7 @@ def test_close_button_closes_dialog(qtbot: QtBot) -> None:
     assert not dialog.isVisible()
 
 
-def test_about_action_opens_dialog(
-    qtbot: QtBot, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_about_action_opens_dialog(qtbot: QtBot, monkeypatch: pytest.MonkeyPatch) -> None:
     """The Help > About menu action opens the About dialog."""
     window = MainWindow()
     qtbot.addWidget(window)
@@ -67,10 +73,21 @@ def test_about_action_opens_dialog(
     calls: list[int] = []
     monkeypatch.setattr(AboutDialog, "exec", lambda self: calls.append(1))
 
-    about_actions = [
-        action for action in window.findChildren(QAction) if action.text() == "&About"
-    ]
+    about_actions = [action for action in window.findChildren(QAction) if action.text() == "&About"]
     assert len(about_actions) == 1
     about_actions[0].trigger()
 
     assert calls == [1]
+
+
+def test_build_version_matches_pyproject() -> None:
+    """The build number comes from pyproject.toml's build counter."""
+    pyproject_path = Path(__file__).resolve().parents[2] / "pyproject.toml"
+    data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+
+    assert build_version == data["tool"]["companion4soloplayer"]["build"]
+
+
+def test_build_version_falls_back_when_pyproject_is_missing(tmp_path: Path) -> None:
+    """Without pyproject.toml, the stamped build number is used instead."""
+    assert _read_build_version(tmp_path / "pyproject.toml") == BUILD_NUMBER

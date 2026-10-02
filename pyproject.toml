@@ -137,4 +137,4 @@ addopts = "-v --cov=companion4soloplayer.core --cov=companion4soloplayer.plugins
 # Kept in a [tool.*] table on purpose: PEP 621 reserves the keys of
 # [project], and setuptools rejects any custom entry found there.
 [tool.companion4soloplayer]
-build = 1
+build = 2
