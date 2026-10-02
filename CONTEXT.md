@@ -237,6 +237,7 @@ metadata:
 - `license`: License (MIT recommended)
 - `compatible_games`: List of compatible games (descriptive information)
 - `disclaimer`: Legal disclaimer
+- `features`: Multi-line free-form description of the features covered by the plugin
 - `dependencies`: Dependencies on the core
 
 ### 3. Data management

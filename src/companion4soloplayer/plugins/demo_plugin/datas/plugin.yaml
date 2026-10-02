@@ -15,5 +15,22 @@ compatible_games:
 disclaimer: >-
   This plugin is neither affiliated with nor endorsed by DR Games.
 
+# Free-form multi-line description of the features covered by the
+# plugin. Literal block scalar: newlines and tabs are preserved.
+features: |-
+  - Features (A somewhat more detailed description of the plugin's features)
+  	- Core Features
+  		- Dungeon Rolling: Use the dice roll buttons at the top of the page to define room shape, contents, encounters, and treasure
+  		- Dungeon Grid: A digital representation of your dungeon layout to track your exploration
+  		- Dungeon Generation: Use the "Generate" button in the Dungeon Map section to automatically create a random dungeon layout with rooms and corridors
+  		- Character Management: Keep track of your heroes, including their stats, equipment, and spells
+  		- Encounter Tracking: Manage and track various encounters throughout your adventure
+  		- Adventure Logging: Keep track of your adventures with short log entries
+  		- Storage: Your dungeon, characters, and encounters are saved across game sessions
+  		- Save/Load Functionality
+  	- Additional Features
+  		- Dark Mode: Toggle between light and dark mode using the theme button in the top right corner
+  		- Character Migration: Characters can be migrated from previous dungeons to new adventures - look for the migration button in edit mode when creating a new character
+
 dependencies:
   core_version: ">=0.1.0"

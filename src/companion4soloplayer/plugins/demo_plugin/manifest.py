@@ -15,4 +15,5 @@ class PluginMetadata(BaseModel):
     license: str | None = None
     compatible_games: list[str] = Field(default_factory=list)
     disclaimer: str = ""
+    features: str = ""
     dependencies: dict[str, str] = Field(default_factory=dict)

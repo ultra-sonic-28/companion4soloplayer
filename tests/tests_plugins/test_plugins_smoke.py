@@ -9,6 +9,8 @@ import pytest
 from companion4soloplayer.core.plugin_loader import PluginLoader
 from companion4soloplayer.core.rule_engine import RULE_KINDS
 from companion4soloplayer.core.rules import OracleRule
+from companion4soloplayer.core.yaml_loader import load_yaml_file
+from companion4soloplayer.plugins.demo_plugin import PluginMetadata
 
 PLUGINS_SRC = Path(__file__).resolve().parents[2] / "src" / "companion4soloplayer" / "plugins"
 EXPECTED_PLUGINS = {"demo"}
@@ -32,6 +34,23 @@ def test_load_plugin_from_source(loader: PluginLoader) -> None:
     assert plugin.version
     assert plugin.description
     assert loader.get_plugin("demo") is plugin
+
+
+def test_manifest_metadata_stores_multi_line_features() -> None:
+    """The plugin.yaml 'features' metadata is stored in PluginMetadata."""
+    manifest_path = PLUGINS_SRC / "demo_plugin" / "datas" / "plugin.yaml"
+    metadata = PluginMetadata(**load_yaml_file(manifest_path))
+
+    assert metadata.features.strip().startswith("- Features")
+    assert "\n" in metadata.features
+    assert "\t- Core Features" in metadata.features
+    assert "Dungeon Rolling" in metadata.features
+
+
+def test_manifest_features_defaults_to_empty() -> None:
+    """Plugins that do not declare 'features' get an empty description."""
+    metadata = PluginMetadata(name="Demo", version="1.0.0", description="Demo plugin")
+    assert metadata.features == ""
 
 
 def test_load_unknown_plugin_returns_none(loader: PluginLoader) -> None:
@@ -271,4 +290,3 @@ def test_oracle_is_shared_by_every_plugin(loader: PluginLoader) -> None:
         assert plugin is not None
         oracle_classes.add(type(plugin.create_component("oracle")))
     assert oracle_classes == {OracleRule}
-
