@@ -1,0 +1,44 @@
+# Items and equipment --------------------------------------------------
+# Prices are in coins; quest items may be priceless (price 0).
+
+- name: Iron Mace
+  description: A sturdy blunt weapon
+  type: weapon
+  damage: 2
+  price: 35
+
+- name: Studded Leather
+  description: Leather armor reinforced with metal studs
+  type: armor
+  defense: 1
+  price: 45
+
+- name: Map Fragment
+  description: A torn piece of an old dungeon map
+  type: quest
+  effect: reveal_room   # uncovers one room on the current level
+  price: 0
+
+- name: Short Sword
+  description: A simple but effective blade
+  type: weapon
+  damage: 1
+  price: 25
+
+- name: Leather Armor
+  description: Basic protection made of hardened leather
+  type: armor
+  defense: 1
+  price: 30
+
+- name: Health Potion
+  description: A magical potion that restores vitality
+  type: consumable
+  effect: heal_4     # restores 4 HP when consumed
+  price: 50
+
+- name: Torch
+  description: Provides light in dark places
+  type: tool
+  duration: 10      # rounds of light
+  price: 5

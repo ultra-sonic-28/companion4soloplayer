@@ -1,0 +1,37 @@
+# Monsters -------------------------------------------------------------
+# Original descriptions; generic dungeon fauna and constructs.
+
+- name: Dungeon Crawler
+  description: A small skittering creature lurking in shadows
+  stats:
+    combat: 1
+    hp: 3
+
+- name: Stone Golem
+  description: An ancient construct of animated stone
+  stats:
+    combat: 4
+    hp: 12
+
+- name: Cave Bat Swarm
+  description: A cloud of screeching bats filling the corridor
+  stats:
+    combat: 2
+    hp: 6
+
+- name: Goblin
+  description: A small but cunning creature
+  stats:
+    hp: 3
+    combat: 2
+  abilities:
+    - Sneak Attack
+
+- name: Orc
+  description: A brutal warrior of the wastes
+  stats:
+    hp: 5
+    combat: 3
+  abilities:
+    - Berserker Rage
+

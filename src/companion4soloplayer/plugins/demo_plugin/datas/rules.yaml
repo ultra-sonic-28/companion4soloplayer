@@ -1,0 +1,83 @@
+# Rewritten rules ------------------------------------------------------
+# The mechanics are re-expressed in our own words (see README.md for the
+# legal disclaimer). Declarative data stays pure YAML; Python rule
+# elements are bound through custom tags.
+
+# Rule element implementations (hybrid YAML/Python architecture).
+# `local:` references resolve inside this plugin's own package (classes
+# re-exported by its `__init__.py`), keeping the names valid in
+# development and in the compiled (.pyd) build. The oracle is a shared
+# core rule element referenced through its absolute path.
+# Parsing never imports anything: the core RuleEngine resolves and
+# instantiates the classes on demand, enforcing a module allow-list.
+implementations:
+  character_creation: !pyclass local:CharacterCreationRule
+  combat: !pyclass
+    path: local:CombatRule
+    params:
+      attack_dice: !dice 2d6        # the classic 2d6 contest roll
+      defense_dice: null            # the defender's stat is static
+      attack_stat: [combat]
+      defense_stat: [combat]
+      base_damage: 1
+      max_damage: 3
+  loot: !pyclass
+    path: local:LootRule
+    params:
+      rolls: 1                      # items drawn per loot action
+  magic: !pyclass
+    path: local:MagicRule
+    params:
+      dice: !dice 1d6
+      difficulty: 4                 # target total for a casting check
+      mana_cost: 1
+  oracle: !pyclass companion4soloplayer.core.rules:OracleRule
+
+# Dungeons are mapped on graph paper while they are explored.
+cartography:
+  description: Dungeons are mapped on a grid as they are explored.
+  rules:
+    - Roll 2d6 to determine room type
+    - Draw room on grid paper
+    - Mark doors, corridors, and features
+    - Continue exploring until dungeon is complete
+
+# Room type table: roll 2d6 and look up the range.
+room_types:
+  - roll: "2-3"
+    type: corridor
+    description: A narrow passage
+  - roll: "4-6"
+    type: small_room
+    description: A small chamber
+  - roll: "7-9"
+    type: large_room
+    description: A spacious hall
+  - roll: "10-11"
+    type: special_room
+    description: A unique room
+  - roll: "12"
+    type: stairs
+    description: Stairs to next level
+
+# Combat: roll 2d6, add the combat stat, compare to the monster's
+# combat value; equal or higher means the monster is defeated.
+combat:
+  description: Roll 2d6 and add combat stat. Compare to monster combat value.
+  attack_dice: !dice 2d6
+  steps:
+    - Roll 2d6
+    - Add combat stat
+    - Compare to monster combat value
+    - If equal or higher, monster is defeated
+
+# Characters move a number of spaces equal to their movement each turn.
+movement:
+  description: Characters can move a number of spaces equal to their movement stat per turn.
+  base_movement: 10
+
+# Searching a room takes time and may reveal treasure or secret doors.
+search:
+  description: Characters can search rooms for treasure and secret doors.
+  search_time: 1
+

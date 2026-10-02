@@ -1,0 +1,113 @@
+# Companion4SoloPlayer documentation configuration
+site_name: Companion4SoloPlayer
+site_description: Companion4SoloPlayer Technical Documentation
+site_author: ultra-sonic-28
+
+docs_dir: docs
+site_dir: site
+dev_addr: 127.0.0.1:8001
+
+theme:
+  name: material
+  language: fr
+  logo: assets/logo-64x64.png
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+  palette:
+    scheme: default
+    primary: deep orange
+    accent: deep orange
+
+extra_css:
+  - assets/custom.css
+
+extra_javascript:
+  - assets/custom.js
+
+plugins:
+  - search
+  - mermaid2:
+      version: 10.9.0
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [".", "scripts", "src/companion4soloplayer"]
+          options:
+            filters: []
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_category_heading: true
+            show_if_no_docstring: true
+            show_docstring_attributes: true
+            show_docstring_functions: true
+            show_docstring_classes: true
+            show_docstring_type_aliases: true
+            show_docstring_modules: true
+            show_docstring_description: true
+            show_docstring_examples: true
+            show_docstring_other_parameters: true
+            show_docstring_parameters: true
+            show_docstring_raises: true
+            show_docstring_returns: true
+            show_docstring_type_parameters: true
+            show_docstring_warns: true
+            show_docstring_yields: true
+            annotations_path: brief
+            modernize_annotations: true
+            line_length: 60
+            separate_signature: true
+            show_signature_annotations: true
+            show_signature_type_parameters: false
+            show_attribute_values: true
+            show_overloads: true
+            show_inheritance_diagram: true
+            inheritance_diagram_direction: TD
+
+markdown_extensions:
+  - admonition
+  - footnotes
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+nav:
+  - Accueil: index.md
+  - 'User Guide':
+    - Features: 'features.md'
+    - 'Build Toolchain' : 'noxfile.md'
+    - Scripts:
+      - 'Plugins Compilation': 'scripts/compile_plugins.md'
+      - 'Icon Generation': 'scripts/make_icon.md'
+      - 'Logo Resize': 'scripts/resize_logo.md'
+  - Companion4SoloPlayer:
+    - companion4soloplayer: 'companion4soloplayer/companion4soloplayer.md'
+    - main:
+      - main: 'companion4soloplayer/main.md'
+    - Core:
+      - 'Character Tracker': 'companion4soloplayer/core/character_tracker.md'
+      - 'Combat Resolver': 'companion4soloplayer/core/combat_resolver.md'
+      - 'Dice Roller': 'companion4soloplayer/core/dice_roller.md'
+      - 'Plugin Loader': 'companion4soloplayer/core/plugin_loader.md'
+      - 'Procedural Generator': 'companion4soloplayer/core/procedural_generator.md'
+      - 'Quest Manager': 'companion4soloplayer/core/quest_manager.md'
+      - 'YAML Loader': 'companion4soloplayer/core/yaml_loader.md'
+      - 'Rule Engine': 'companion4soloplayer/core/rule_engine.md'
+      - 'Oracle Rule': 'companion4soloplayer/core/rules/oracle_rule.md'
+    - Plugins:
+      - 'Demo': 'companion4soloplayer/plugins/demo_plugin/plugin.md'
+    - UI:
+        - 'MainWindow': 'companion4soloplayer/ui/main_window.md'
+        - Dialogs:
+            - 'AboutDialog': 'companion4soloplayer/ui/dialogs/about_dialog.md'
+            - 'SettingsDialog': 'companion4soloplayer/ui/dialogs/settings_dialog.md'
+            - 'QuestWizard': 'companion4soloplayer/ui/dialogs/quest_wizard.md'

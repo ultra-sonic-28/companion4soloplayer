@@ -1,0 +1,140 @@
+# Definition of the build, metadata, and dependency management for the Companion4SoloPlayer application.
+[build-system]
+requires = ["setuptools>=84.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "companion4soloplayer"
+version = "0.1.0"
+description = "Open-source companion application for dungeon crawler style board games and other role-playing games"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "ultra-sonic-28", email = "your.email@example.com"}
+]
+maintainers = [
+    {name = "ultra-sonic-28", email = "your.email@example.com"}
+]
+keywords = [
+    "board-game",
+    "dungeon-crawler",
+    "companion-app",
+    "tabletop",
+    "rpg",
+    "role-playing",
+    "solo-rpg"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Games/Entertainment :: Board Games",
+    "Topic :: Games/Entertainment :: Role-Playing",
+]
+requires-python = ">=3.13"
+dependencies = [
+    "PySide6>=6.11.2",
+    "types-PySide6>=6.10.3.0",
+    "pydantic>=2.13.5",
+    "pillow>=12.3.0",
+    "PyYAML>=6.0.3",
+]
+
+[project.optional-dependencies]
+# Development dependencies (for contributors)
+dev = [
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pytest-qt>=4.5.0",
+    "black>=26.5.1",
+    "ruff>=0.16.10",
+    "mypy>=2.4.0",
+    "types-PyYAML>=6.0.12",
+]
+
+# Lint dependencies
+lint = [
+    "black>=26.5.1",
+    "ruff>=0.16.10",
+    "mypy>=2.4.0",
+    "types-PyYAML>=6.0.12",
+]
+
+# Test dependencies
+test = [
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pytest-qt>=4.5.0",
+]
+
+# Release build dependencies
+build = [
+    "pyinstaller>=6.22.3",
+    "nuitka>=4.2.2",
+]
+
+# Documentation build dependencies
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.7.7",
+    "mkdocstrings-python>=2.0.8",
+    "mkdocs-mermaid2-plugin>=1.2.3",
+    "pymdown-extensions>=12.1",
+    "black>=26.5.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/ultra-sonic-28/companion4soloplayer"
+Documentation = "https://github.com/ultra-sonic-28/companion4soloplayer/wiki"
+Repository = "https://github.com/ultra-sonic-28/companion4soloplayer"
+Issues = "https://github.com/ultra-sonic-28/companion4soloplayer/issues"
+
+[project.scripts]
+c4sp = "companion4soloplayer.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["companion4soloplayer*"]
+
+[tool.setuptools.package-data]
+"companion4soloplayer.plugins" = ["**/*.json", "**/*.yaml", "**/*.yml", "**/*.md"]
+
+[tool.black]
+line-length = 100
+target-version = ["py313"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "PT", "RET", "SIM"]
+ignore = ["S101", "S311", "E501", "RET504"]
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+mypy_path = "src"
+files = ["src/companion4soloplayer", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=companion4soloplayer.core --cov=companion4soloplayer.plugins --cov-report=term-missing --cov-report=html"
+
+# Numeric counter incremented by nox release session on every
+# generated executable; displayed in the CLI banner after the
+# version (e.g. "companion4soloplayer v0.1.0 build 12").
+#
+# Kept in a [tool.*] table on purpose: PEP 621 reserves the keys of
+# [project], and setuptools rejects any custom entry found there.
+[tool.companion4soloplayer]
+build = 1

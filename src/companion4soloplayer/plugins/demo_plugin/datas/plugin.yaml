@@ -1,0 +1,19 @@
+# Plugin manifest ------------------------------------------------------
+# Read by the plugin loader; all fields are original wording (nominative
+# fair use only when naming compatible games, see README.md disclaimer).
+
+name: Demo Plugin
+version: "1.0.0"          # semver
+description: Plugin provided as a generic example
+author: ultra-sonic-28
+license: MIT
+
+# Descriptive compatibility information only, never an endorsement.
+compatible_games:
+  - None or All :)
+
+disclaimer: >-
+  This plugin is neither affiliated with nor endorsed by DR Games.
+
+dependencies:
+  core_version: ">=0.1.0"

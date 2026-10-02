@@ -1,0 +1,61 @@
+# Character classes ----------------------------------------------------
+# Original descriptions built on generic fantasy archetypes only.
+
+- name: Adventurer
+  description: A generic adventurer exploring the dungeon
+  base_stats:
+    combat: 3
+    exploration: 3
+    survival: 3
+  abilities:
+    - Basic Attack
+    - Search
+
+- name: Scout
+  description: A keen-eyed explorer with cartographic skills
+  base_stats:
+    combat: 2
+    exploration: 5
+    survival: 3
+  abilities:
+    - Mapping
+    - Detect Trap
+
+- name: Bruiser
+  description: A heavy-hitting warrior built for front lines
+  base_stats:
+    combat: 5
+    exploration: 2
+    survival: 3
+  abilities:
+    - Heavy Strike
+    - Intimidate
+
+- name: Scholar
+  description: A learned individual versed in ancient lore
+  base_stats:
+    combat: 2
+    exploration: 4
+    survival: 4
+  abilities:
+    - Identify
+    - Decipher
+
+- name: Wizard
+  description: A master of the arcane arts
+  base_stats:
+    body: 4
+    mind: 6
+  special_abilities:
+    - Fireball
+    - Heal
+    - Teleport
+
+- name: Archer
+  description: A graceful archer from the forests
+  base_stats:
+    body: 5
+    mind: 5
+  special_abilities:
+    - Precision Shot
+    - Archery's Expert
