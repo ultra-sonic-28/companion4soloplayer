@@ -579,7 +579,7 @@ def stats(session: nox.Session) -> None:
         '--skip-uniqueness',
         '--quiet',
         '--exclude-ext=.pyc,".py,cover"',
-        '--not-match-d=(.pytest_cache)',
+        '--not-match-d=(.pytest_cache|.mypy_cache|companion4soloplayer.egg-info)',
         '--skip-archive=(zip|tar(.(gz|Z|bz2|xz|7z))?)',
         f'--report-file={report_file}',
         '--found=./.tmp/found.txt',
