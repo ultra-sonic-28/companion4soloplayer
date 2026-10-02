@@ -1,0 +1,1 @@
+::: ui.dialogs.plugin_metadata_dialog

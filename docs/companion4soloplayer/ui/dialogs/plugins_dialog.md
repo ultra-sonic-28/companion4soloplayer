@@ -1,0 +1,1 @@
+::: ui.dialogs.plugins_dialog

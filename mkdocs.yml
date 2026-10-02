@@ -106,8 +106,12 @@ nav:
     - Plugins:
       - 'Demo': 'companion4soloplayer/plugins/demo_plugin/plugin.md'
     - UI:
-        - 'MainWindow': 'companion4soloplayer/ui/main_window.md'
+        - Windows:
+          - 'MainWindow': 'companion4soloplayer/ui/main_window.md'
+          - 'SplashScreen': 'companion4soloplayer/ui/splash_window.md'
         - Dialogs:
             - 'AboutDialog': 'companion4soloplayer/ui/dialogs/about_dialog.md'
-            - 'SettingsDialog': 'companion4soloplayer/ui/dialogs/settings_dialog.md'
+            - 'PluginMetadataDialog': 'companion4soloplayer/ui/dialogs/plugins_metadata_dialog.md'
+            - 'PluginsDialog': 'companion4soloplayer/ui/dialogs/plugins_dialog.md'
             - 'QuestWizard': 'companion4soloplayer/ui/dialogs/quest_wizard.md'
+            - 'SettingsDialog': 'companion4soloplayer/ui/dialogs/settings_dialog.md'

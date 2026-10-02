@@ -1,0 +1,1 @@
+::: ui.splash_window
