@@ -272,7 +272,7 @@ The `MainWindow` centralizes session management across three intuitive functiona
 - Real-time display of dimensions, descriptions, and danger ratings.
 
 ### Plugin Manager Panel
-- The `PluginsDialog`, opened from the **Manage > Plugins** menu entry, discovers installed plugins and renders them in a list with their load status.
+- The `PluginsDialog`, opened from the **Manage > Plugins** menu entry, renders every discovered plugin in a scrollable multi-column table (name, description, version, license, author, compatible games, loaded status) read from its `datas/plugin.yaml` manifest.
 - Loading or unloading a plugin with its row button toggles its rules and content in real-time without restarting the desktop application.
 
 ### Settings Dialog

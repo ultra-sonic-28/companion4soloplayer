@@ -1,28 +1,99 @@
 """
 Plugins dialog for Companion4SoloPlayer.
 
-Replacement for the former Plugins tab of the main window: lists the
-discovered game plugins and lets the user load/unload them dynamically.
-Opened from the Plugins entry of the Manage menu.
+Replacement for the former Plugins tab of the main window: shows every
+discovered game plugin in a scrollable multi-column table (metadata read
+from each plugin's ``datas/plugin.yaml`` manifest) and lets the user
+load/unload them dynamically. Opened from the Plugins entry of the
+Manage menu.
 """
+
+from typing import Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QDialog,
-    QHBoxLayout,
+    QHeaderView,
     QLabel,
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
 
-from companion4soloplayer.core.plugin_loader import PluginLoader
+from companion4soloplayer.core.plugin_loader import MANIFEST_NAMES, PluginLoader
+from companion4soloplayer.core.yaml_loader import YamlLoadError, YamlTagError, load_yaml_file
+
+# Column layout of the plugin table.
+COLUMN_HEADERS = [
+    "Name",
+    "Description",
+    "Version",
+    "License",
+    "Author",
+    "Compatible Games",
+    "Loaded",
+    "Action",
+]
+DESCRIPTION_COLUMN = 1
+LOADED_COLUMN = 6
+ACTION_COLUMN = 7
+
+
+def _format_compatible_games(value: Any) -> str:
+    """Format the manifest ``compatible_games`` entry as comma-separated text.
+
+    Args:
+        value: Raw manifest value (list of game systems, plain string...).
+
+    Returns:
+        The comma-separated rendering, empty when the entry is absent.
+    """
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        return ", ".join(str(game) for game in value)
+    return ""
+
+
+def _read_manifest(plugin_loader: PluginLoader, plugin_name: str) -> dict[str, Any]:
+    """Read the ``plugin.yaml`` manifest of a discovered plugin.
+
+    The manifest lives in the plugin data directory:
+    ``<plugins_dir>/<name>_plugin/datas/plugin.yaml`` in development,
+    or ``<plugins_dir>/<name>/datas/plugin.yaml`` for a frozen build.
+
+    Args:
+        plugin_loader: Loader providing the plugins directory.
+        plugin_name: Canonical plugin name (e.g. ``demo``).
+
+    Returns:
+        The manifest fields, or an empty mapping when the manifest is
+        missing or cannot be parsed (display-only fallback).
+    """
+    plugins_dir = plugin_loader.plugins_dir
+    if not plugins_dir.is_dir():
+        return {}
+    for directory in plugins_dir.iterdir():
+        if not directory.is_dir() or directory.name.removesuffix("_plugin") != plugin_name:
+            continue
+        for manifest_name in MANIFEST_NAMES:
+            manifest_path = directory / manifest_name
+            if manifest_path.is_file():
+                try:
+                    data = load_yaml_file(manifest_path)
+                except (OSError, YamlLoadError, YamlTagError):
+                    return {}
+                return data if isinstance(data, dict) else {}
+    return {}
 
 
 class PluginsDialog(QDialog):
-    """Plugins dialog: one row per discovered plugin with load controls."""
+    """Plugins dialog: scrollable table of plugins with load controls."""
 
     def __init__(
         self,
@@ -39,15 +110,15 @@ class PluginsDialog(QDialog):
         """
         super().__init__(parent)
         self.setWindowTitle("Plugins")
-        self.setMinimumSize(480, 300)
+        self.setMinimumSize(900, 400)
 
         self._plugin_loader = plugin_loader if plugin_loader is not None else PluginLoader()
-        self._plugin_rows: dict[str, tuple[QPushButton, QLabel]] = {}
+        self._plugin_rows: dict[str, tuple[QPushButton, QTableWidgetItem]] = {}
 
         self._setup_ui()
 
     def _setup_ui(self) -> None:
-        """Set up the plugin list and the centered Close button."""
+        """Set up the scrollable plugin table and the Close button."""
         layout = QVBoxLayout(self)
 
         label = QLabel("Plugins")
@@ -60,40 +131,59 @@ class PluginsDialog(QDialog):
         info.setWordWrap(True)
         layout.addWidget(info)
 
-        # One row per discovered plugin with a Load/Unload button and a
-        # status label showing the plugin version once loaded. The rows
+        # Scrollable table: one row per discovered plugin with its
+        # manifest metadata (name, description, version, license, author,
+        # compatible games), load status and Load/Unload button. The rows
         # mirror the loader state, so a plugin loaded during a previous
         # dialog opening is still reported as loaded.
-        for plugin_name in self._plugin_loader.discover_plugins():
-            loaded = self._plugin_loader.get_plugin(plugin_name)
+        plugin_names = self._plugin_loader.discover_plugins()
+        self.table = QTableWidget(len(plugin_names), len(COLUMN_HEADERS))
+        self.table.setHorizontalHeaderLabels(COLUMN_HEADERS)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.table.setWordWrap(False)
+        self.table.verticalHeader().setVisible(False)
 
-            row = QHBoxLayout()
-            name_label = QLabel(plugin_name)
-            row.addWidget(name_label, stretch=1)
+        header = self.table.horizontalHeader()
+        for column in range(len(COLUMN_HEADERS)):
+            header.setSectionResizeMode(column, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(DESCRIPTION_COLUMN, QHeaderView.ResizeMode.Stretch)
 
-            status_label = QLabel(f"v{loaded.version} loaded" if loaded else "Not loaded")
-            row.addWidget(status_label)
+        for row, plugin_name in enumerate(plugin_names):
+            manifest = _read_manifest(self._plugin_loader, plugin_name)
+            values = [
+                str(manifest.get("name") or plugin_name),
+                str(manifest.get("description") or ""),
+                str(manifest.get("version") or ""),
+                str(manifest.get("license") or ""),
+                str(manifest.get("author") or ""),
+                _format_compatible_games(manifest.get("compatible_games")),
+            ]
+            for column, value in enumerate(values):
+                self.table.setItem(row, column, QTableWidgetItem(value))
+
+            loaded = self._plugin_loader.get_plugin(plugin_name) is not None
+            loaded_item = QTableWidgetItem("Yes" if loaded else "No")
+            self.table.setItem(row, LOADED_COLUMN, loaded_item)
 
             button = QPushButton("Unload" if loaded else "Load")
             button.clicked.connect(
-                lambda checked=False, name=plugin_name, btn=button, status=status_label: self._toggle_plugin(
-                    name, btn, status
-                )
+                lambda checked=False, name=plugin_name: self._toggle_plugin(name)
             )
-            row.addWidget(button)
+            self.table.setCellWidget(row, ACTION_COLUMN, button)
 
-            layout.addLayout(row)
-            self._plugin_rows[plugin_name] = (button, status_label)
+            self._plugin_rows[plugin_name] = (button, loaded_item)
 
-        layout.addStretch()
+        layout.addWidget(self.table)
 
-        # Close button centered below the list
+        # Close button centered below the table
         self.close_button = QPushButton("Close")
         self.close_button.clicked.connect(self.accept)
         layout.addWidget(self.close_button, 0, Qt.AlignmentFlag.AlignHCenter)
 
-    def _toggle_plugin(self, plugin_name: str, button: QPushButton, status_label: QLabel) -> None:
-        """Load or unload a plugin on demand from the plugin list."""
+    def _toggle_plugin(self, plugin_name: str) -> None:
+        """Load or unload a plugin on demand from the plugin table."""
         plugin = self._plugin_loader.get_plugin(plugin_name)
         if plugin is None:
             plugin = self._plugin_loader.load_plugin(plugin_name)
@@ -110,14 +200,18 @@ class PluginsDialog(QDialog):
                     message,
                 )
                 return
-            status_label.setText(f"v{plugin.version} loaded")
-            button.setText("Unload")
+            self._set_loaded_state(plugin_name, True)
             self._report_status(f"Plugin '{plugin_name}' loaded")
         else:
             self._plugin_loader.unload_plugin(plugin_name)
-            status_label.setText("Not loaded")
-            button.setText("Load")
+            self._set_loaded_state(plugin_name, False)
             self._report_status(f"Plugin '{plugin_name}' unloaded")
+
+    def _set_loaded_state(self, plugin_name: str, loaded: bool) -> None:
+        """Refresh the Loaded cell and the action button of a plugin row."""
+        button, loaded_item = self._plugin_rows[plugin_name]
+        loaded_item.setText("Yes" if loaded else "No")
+        button.setText("Unload" if loaded else "Load")
 
     def _report_status(self, message: str) -> None:
         """Report an action in the parent window status bar when present."""

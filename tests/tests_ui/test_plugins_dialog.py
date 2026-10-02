@@ -12,23 +12,59 @@ from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.main_window import MainWindow
 
 
+def _cell_text(dialog: PluginsDialog, row: int, column: int) -> str:
+    """Return the text of a table cell."""
+    item = dialog.table.item(row, column)
+    assert item is not None
+    return item.text()
+
+
+def _header_texts(dialog: PluginsDialog) -> list[str]:
+    """Return the column header labels of the plugin table."""
+    texts: list[str] = []
+    for column in range(dialog.table.columnCount()):
+        header_item = dialog.table.horizontalHeaderItem(column)
+        assert header_item is not None
+        texts.append(header_item.text())
+    return texts
+
+
 def test_plugins_dialog_lists_plugins(qtbot: QtBot) -> None:
-    """The dialog lists every discovered plugin with a Load button."""
+    """The table shows each plugin with its manifest metadata."""
     dialog = PluginsDialog()
     qtbot.addWidget(dialog)
     dialog.show()
     qtbot.waitExposed(dialog)
 
+    assert _header_texts(dialog) == [
+        "Name",
+        "Description",
+        "Version",
+        "License",
+        "Author",
+        "Compatible Games",
+        "Loaded",
+        "Action",
+    ]
+
     plugin_names = dialog._plugin_loader.discover_plugins()
     assert plugin_names
+    assert dialog.table.rowCount() == len(plugin_names)
 
     texts = [label.text() for label in dialog.findChildren(QLabel) if label.text()]
     assert "Plugins" in texts
-    for plugin_name in plugin_names:
-        assert plugin_name in texts
-        button, status = dialog._plugin_rows[plugin_name]
-        assert button.text() == "Load"
-        assert status.text() == "Not loaded"
+
+    # Manifest metadata of the demo plugin (plugins/demo_plugin/datas/plugin.yaml).
+    button, loaded_item = dialog._plugin_rows["demo"]
+    row = loaded_item.row()
+    assert _cell_text(dialog, row, 0) == "Demo Plugin"
+    assert _cell_text(dialog, row, 1) == "Plugin provided as a generic example"
+    assert _cell_text(dialog, row, 2) == "1.0.0"
+    assert _cell_text(dialog, row, 3) == "MIT"
+    assert _cell_text(dialog, row, 4) == "ultra-sonic-28"
+    assert _cell_text(dialog, row, 5) == "None or All :)"
+    assert _cell_text(dialog, row, 6) == "No"
+    assert button.text() == "Load"
 
     assert dialog.close_button.text() == "Close"
 
@@ -41,17 +77,16 @@ def test_plugins_dialog_loads_and_unloads(qtbot: QtBot) -> None:
     qtbot.waitExposed(dialog)
 
     plugin_name = dialog._plugin_loader.discover_plugins()[0]
-    button, status = dialog._plugin_rows[plugin_name]
+    button, loaded_item = dialog._plugin_rows[plugin_name]
 
     button.click()
     assert button.text() == "Unload"
-    assert status.text().startswith("v")
-    assert status.text().endswith(" loaded")
+    assert loaded_item.text() == "Yes"
     assert dialog._plugin_loader.get_plugin(plugin_name) is not None
 
     button.click()
     assert button.text() == "Load"
-    assert status.text() == "Not loaded"
+    assert loaded_item.text() == "No"
     assert dialog._plugin_loader.get_plugin(plugin_name) is None
 
 
@@ -66,9 +101,9 @@ def test_plugins_dialog_reflects_already_loaded_plugin(qtbot: QtBot) -> None:
     dialog.show()
     qtbot.waitExposed(dialog)
 
-    button, status = dialog._plugin_rows[plugin_name]
+    button, loaded_item = dialog._plugin_rows[plugin_name]
     assert button.text() == "Unload"
-    assert status.text().endswith(" loaded")
+    assert loaded_item.text() == "Yes"
 
     assert loader.unload_plugin(plugin_name)
 
@@ -81,7 +116,7 @@ def test_plugins_dialog_reports_status_in_parent_window(qtbot: QtBot) -> None:
     dialog = PluginsDialog(window, window._plugin_loader)
     plugin_name = dialog._plugin_loader.discover_plugins()[0]
 
-    button, _status = dialog._plugin_rows[plugin_name]
+    button, _loaded_item = dialog._plugin_rows[plugin_name]
 
     button.click()
     assert window.status_bar.currentMessage() == f"Plugin '{plugin_name}' loaded"
