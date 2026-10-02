@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 LOGO_PATH = Path("assets") / "icons" / "logo-512x512.png"
+SPLASH_IMAGE_PATH = Path("assets") / "images" / "splashscreen-1024.png"
 
 
 def resolve_asset_path(relative_path: Path) -> Path:

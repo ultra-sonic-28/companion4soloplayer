@@ -40,6 +40,9 @@ class _StubApplication:
         """Record the application version (Qt naming convention kept)."""
         self.application_version = version
 
+    def processEvents(self) -> None:  # noqa: N802
+        """Flush pending events; a no-op is enough for the launch flow."""
+
     def exec(self) -> int:
         """Return immediately, as if the event loop exited normally."""
         return 0
