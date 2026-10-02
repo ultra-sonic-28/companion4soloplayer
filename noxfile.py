@@ -589,6 +589,10 @@ def stats(session: nox.Session) -> None:
         './tests/',
         './scripts/',
         './docs/',
+        './noxfile.py',
+        './*.md',
+        './*.toml',
+        './mkdocs.yml',
         env=utf8_env,
     )
 
