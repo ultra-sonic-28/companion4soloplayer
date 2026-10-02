@@ -6,11 +6,8 @@ Contains the primary application window.
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
-    QHBoxLayout,
     QLabel,
     QMainWindow,
-    QMessageBox,
-    QPushButton,
     QStatusBar,
     QTabWidget,
     QVBoxLayout,
@@ -20,6 +17,7 @@ from PySide6.QtWidgets import (
 from companion4soloplayer.core.plugin_loader import PluginLoader
 from companion4soloplayer.ui.asset_utils import LOGO_PATH, resolve_asset_path
 from companion4soloplayer.ui.dialogs.about_dialog import AboutDialog
+from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.dialogs.quest_wizard import QuestWizard
 from companion4soloplayer.ui.dialogs.settings_dialog import SettingsDialog
 
@@ -35,7 +33,6 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(str(resolve_asset_path(LOGO_PATH))))
 
         self._plugin_loader = PluginLoader()
-        self._plugin_rows: dict[str, tuple[QPushButton, QLabel]] = {}
         self._setup_ui()
         self._setup_menu_bar()
         self._setup_status_bar()
@@ -61,7 +58,6 @@ class MainWindow(QMainWindow):
         self._add_character_tab()
         self._add_quest_tab()
         self._add_dungeon_tab()
-        self._add_plugins_tab()
 
     def _setup_menu_bar(self) -> None:
         """Set up the menu bar."""
@@ -98,6 +94,7 @@ class MainWindow(QMainWindow):
         manage_menu = menu_bar.addMenu("&Manage")
 
         plugin_action = QAction("&Plugins", self)
+        plugin_action.triggered.connect(self._show_plugin)
         manage_menu.addAction(plugin_action)
 
         quest_action = QAction("&Quests", self)
@@ -180,74 +177,6 @@ class MainWindow(QMainWindow):
 
         self.tab_widget.addTab(tab, "Dungeon")
 
-    def _add_plugins_tab(self) -> None:
-        """Add the plugins management tab."""
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
-
-        label = QLabel("Plugins")
-        label.setStyleSheet("font-size: 18px; font-weight: bold;")
-        layout.addWidget(label)
-
-        info = QLabel(
-            "Manage game plugins here.\n"
-            "Load a plugin on demand to make its content available."
-        )
-        info.setWordWrap(True)
-        layout.addWidget(info)
-
-        # One row per discovered plugin with a Load/Unload button and a
-        # status label showing the plugin version once loaded.
-        for plugin_name in self._plugin_loader.discover_plugins():
-            row = QHBoxLayout()
-            name_label = QLabel(plugin_name)
-            row.addWidget(name_label, stretch=1)
-
-            status_label = QLabel("Not loaded")
-            row.addWidget(status_label)
-
-            button = QPushButton("Load")
-            button.clicked.connect(
-                lambda checked=False, name=plugin_name, btn=button, status=status_label: self._toggle_plugin(
-                    name, btn, status
-                )
-            )
-            row.addWidget(button)
-
-            layout.addLayout(row)
-            self._plugin_rows[plugin_name] = (button, status_label)
-
-        layout.addStretch()
-
-        self.tab_widget.addTab(tab, "Plugins")
-
-    def _toggle_plugin(self, plugin_name: str, button: QPushButton, status_label: QLabel) -> None:
-        """Load or unload a plugin on demand from the Plugins tab."""
-        plugin = self._plugin_loader.get_plugin(plugin_name)
-        if plugin is None:
-            plugin = self._plugin_loader.load_plugin(plugin_name)
-            if plugin is None:
-                # Surface the underlying error: the released app has no
-                # console, so prints from the loader are invisible.
-                message = f"Failed to load plugin '{plugin_name}'."
-                reason = self._plugin_loader.last_errors.get(plugin_name)
-                if reason:
-                    message = f"{message} {reason}"
-                QMessageBox.warning(
-                    self,
-                    "Plugins",
-                    message,
-                )
-                return
-            status_label.setText(f"v{plugin.version} loaded")
-            button.setText("Unload")
-            self.status_bar.showMessage(f"Plugin '{plugin_name}' loaded")
-        else:
-            self._plugin_loader.unload_plugin(plugin_name)
-            status_label.setText("Not loaded")
-            button.setText("Load")
-            self.status_bar.showMessage(f"Plugin '{plugin_name}' unloaded")
-
     def _setup_status_bar(self) -> None:
         """Set up the status bar."""
         self.status_bar = QStatusBar()
@@ -260,7 +189,7 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def _show_settings(self) -> None:
-        """Show the Settings wizard."""
+        """Show the Settings dialog."""
         dialog = SettingsDialog(self)
         dialog.exec()
 
@@ -269,3 +198,7 @@ class MainWindow(QMainWindow):
         dialog = QuestWizard(self)
         dialog.exec()
 
+    def _show_plugin(self) -> None:
+        """Show the Plugin dialog."""
+        dialog = PluginsDialog(self, self._plugin_loader)
+        dialog.exec()

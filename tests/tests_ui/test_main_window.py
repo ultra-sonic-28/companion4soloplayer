@@ -1,4 +1,3 @@
-
 """
 Smoke tests for the Qt GUI.
 
@@ -56,8 +55,8 @@ def test_main_window_launches(qtbot: QtBot) -> None:
     assert window.isVisible()
     assert window.windowTitle() == "Companion4SoloPlayer"
     assert not window.windowIcon().isNull()
-    # The four expected tabs are present: Characters, Quests, Dungeon, Plugins
-    assert window.tab_widget.count() == 4
+    # The three expected tabs are present: Characters, Quests, Dungeon
+    assert window.tab_widget.count() == 3
     assert window.status_bar.currentMessage() == "Ready"
 
 
@@ -84,20 +83,14 @@ def test_exit_action_closes_application(qtbot: QtBot) -> None:
 
     # The Exit action was created with the window as parent, so it is
     # reachable among the window's child actions (Qt naming: "E&xit").
-    exit_actions = [
-        action
-        for action in window.findChildren(QAction)
-        if action.text() == "E&xit"
-    ]
+    exit_actions = [action for action in window.findChildren(QAction) if action.text() == "E&xit"]
     assert len(exit_actions) == 1
 
     exit_actions[0].trigger()
     assert not window.isVisible()
 
 
-def test_main_entry_point_launches_and_exits(
-    qtbot: QtBot, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_main_entry_point_launches_and_exits(qtbot: QtBot, monkeypatch: pytest.MonkeyPatch) -> None:
     """
     The main() entry point starts the application and exits cleanly.
 
@@ -124,4 +117,3 @@ def test_main_entry_point_launches_and_exits(
     assert len(created) == 1
     assert created[0].application_name == "Companion4SoloPlayer"
     assert created[0].application_version == __version__
-

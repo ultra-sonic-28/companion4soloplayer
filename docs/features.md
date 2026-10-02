@@ -251,12 +251,11 @@ Companion4SoloPlayer includes one example plugin:
 Companion4SoloPlayer features a desktop user interface built with **PySide6** (`src/companion4soloplayer/ui/`).
 
 ### Multi-Tab Desktop Experience
-The `MainWindow` centralizes session management across four intuitive functional tabs:
+The `MainWindow` centralizes session management across three intuitive functional tabs:
 
 1. **Characters Tab**: Inspect the active adventuring party, view current health gauges, review inventories, and create or recruit new characters.
 2. **Quests Tab**: Browse active objectives, track completion milestones, and initiate new adventures.
 3. **Dungeon Tab**: Procedurally roll and visualize new rooms, track corridors, and manage dungeon levels.
-4. **Plugins Tab**: View all installed game system plugins, toggle plugins on/off dynamically at runtime, and check system versions.
 
 ### Interactive Character Panel
 - Live hit point modification buttons (+ / - damage).
@@ -273,8 +272,8 @@ The `MainWindow` centralizes session management across four intuitive functional
 - Real-time display of dimensions, descriptions, and danger ratings.
 
 ### Plugin Manager Panel
-- Discovers installed plugins and renders them in a list with checkboxes.
-- Toggling a plugin enables or disables its rules and content in real-time without restarting the desktop application.
+- The `PluginsDialog`, opened from the **Manage > Plugins** menu entry, discovers installed plugins and renders them in a list with their load status.
+- Loading or unloading a plugin with its row button toggles its rules and content in real-time without restarting the desktop application.
 
 ### Settings Dialog
 The `SettingsDialog` lets players personalize their desktop experience:
