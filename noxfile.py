@@ -588,6 +588,7 @@ def stats(session: nox.Session) -> None:
         './src/',
         './tests/',
         './scripts/',
+        './docs/',
         env=utf8_env,
     )
 
