@@ -4,11 +4,12 @@ Tests for the Plugins dialog (replacement of the former Plugins tab).
 
 import pytest
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QLabel
+from PySide6.QtWidgets import QLabel, QPushButton
 from pytestqt.qtbot import QtBot
 
 from companion4soloplayer.core.plugin_loader import PluginLoader
-from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
+from companion4soloplayer.ui.dialogs.plugin_metadata_dialog import PluginMetadataDialog
+from companion4soloplayer.ui.dialogs.plugins_dialog import DETAILS_COLUMN, PluginsDialog
 from companion4soloplayer.ui.main_window import MainWindow
 
 
@@ -45,6 +46,7 @@ def test_plugins_dialog_lists_plugins(qtbot: QtBot) -> None:
         "Compatible Games",
         "Loaded",
         "Action",
+        "Details",
     ]
 
     plugin_names = dialog._plugin_loader.discover_plugins()
@@ -142,3 +144,27 @@ def test_plugins_action_opens_dialog(qtbot: QtBot, monkeypatch: pytest.MonkeyPat
     plugin_actions[0].trigger()
 
     assert calls == [1]
+
+
+def test_plugins_dialog_eye_button_opens_metadata(
+    qtbot: QtBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The eye button of a row opens the plugin metadata dialog."""
+    dialog = PluginsDialog()
+    qtbot.addWidget(dialog)
+    dialog.show()
+    qtbot.waitExposed(dialog)
+
+    row = dialog._plugin_rows["demo"][1].row()
+    eye_button = dialog.table.cellWidget(row, DETAILS_COLUMN)
+    assert isinstance(eye_button, QPushButton)
+    assert not eye_button.icon().isNull()
+
+    captured: list[PluginMetadataDialog] = []
+    monkeypatch.setattr(PluginMetadataDialog, "exec", lambda self: captured.append(self))
+    eye_button.click()
+
+    assert len(captured) == 1
+    labels = [label.text() for label in captured[0].findChildren(QLabel) if label.text()]
+    assert "Demo Plugin" in labels
+    assert "Loaded: No" in labels

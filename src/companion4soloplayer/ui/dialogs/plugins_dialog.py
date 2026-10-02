@@ -10,7 +10,8 @@ Manage menu.
 
 from typing import Any
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QRectF, Qt
+from PySide6.QtGui import QBrush, QColor, QIcon, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QDialog,
@@ -27,6 +28,7 @@ from PySide6.QtWidgets import (
 
 from companion4soloplayer.core.plugin_loader import MANIFEST_NAMES, PluginLoader
 from companion4soloplayer.core.yaml_loader import YamlLoadError, YamlTagError, load_yaml_file
+from companion4soloplayer.ui.dialogs.plugin_metadata_dialog import PluginMetadataDialog
 
 # Column layout of the plugin table.
 COLUMN_HEADERS = [
@@ -38,10 +40,12 @@ COLUMN_HEADERS = [
     "Compatible Games",
     "Loaded",
     "Action",
+    "Details",
 ]
 DESCRIPTION_COLUMN = 1
 LOADED_COLUMN = 6
 ACTION_COLUMN = 7
+DETAILS_COLUMN = 8
 
 
 def _format_compatible_games(value: Any) -> str:
@@ -90,6 +94,24 @@ def _read_manifest(plugin_loader: PluginLoader, plugin_name: str) -> dict[str, A
                     return {}
                 return data if isinstance(data, dict) else {}
     return {}
+
+
+def _eye_icon() -> QIcon:
+    """Build the eye pictogram used by the metadata (details) buttons."""
+    pixmap = QPixmap(18, 18)
+    pixmap.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    outline = QPen(QColor("#555555"))
+    outline.setWidthF(1.4)
+    painter.setPen(outline)
+    painter.setBrush(QBrush(QColor("#ffffff")))
+    painter.drawEllipse(QRectF(1.5, 4.5, 15.0, 9.0))
+    painter.setBrush(QBrush(QColor("#555555")))
+    painter.drawEllipse(QRectF(6.0, 6.0, 6.0, 6.0))
+    painter.end()
+    return QIcon(pixmap)
 
 
 class PluginsDialog(QDialog):
@@ -173,6 +195,15 @@ class PluginsDialog(QDialog):
             )
             self.table.setCellWidget(row, ACTION_COLUMN, button)
 
+            # Eye button opening the metadata dialog of the plugin.
+            eye_button = QPushButton()
+            eye_button.setIcon(_eye_icon())
+            eye_button.setToolTip("Show plugin metadata")
+            eye_button.clicked.connect(
+                lambda checked=False, name=plugin_name: self._show_metadata(name)
+            )
+            self.table.setCellWidget(row, DETAILS_COLUMN, eye_button)
+
             self._plugin_rows[plugin_name] = (button, loaded_item)
 
         layout.addWidget(self.table)
@@ -212,6 +243,13 @@ class PluginsDialog(QDialog):
         button, loaded_item = self._plugin_rows[plugin_name]
         loaded_item.setText("Yes" if loaded else "No")
         button.setText("Unload" if loaded else "Load")
+
+    def _show_metadata(self, plugin_name: str) -> None:
+        """Show the metadata dialog of a plugin."""
+        manifest = _read_manifest(self._plugin_loader, plugin_name)
+        loaded = self._plugin_loader.get_plugin(plugin_name) is not None
+        dialog = PluginMetadataDialog(manifest, loaded, self)
+        dialog.exec()
 
     def _report_status(self, message: str) -> None:
         """Report an action in the parent window status bar when present."""

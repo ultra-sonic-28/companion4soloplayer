@@ -274,6 +274,7 @@ The `MainWindow` centralizes session management across three intuitive functiona
 ### Plugin Manager Panel
 - The `PluginsDialog`, opened from the **Manage > Plugins** menu entry, renders every discovered plugin in a scrollable multi-column table (name, description, version, license, author, compatible games, loaded status) read from its `datas/plugin.yaml` manifest.
 - Loading or unloading a plugin with its row button toggles its rules and content in real-time without restarting the desktop application.
+- An eye button on each row opens the `PluginMetadataDialog` (title, loaded badge, name/version, author/license, compatible games tags, description, features, disclaimer and dependencies) rendered from the same manifest.
 
 ### Settings Dialog
 The `SettingsDialog` lets players personalize their desktop experience:

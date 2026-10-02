@@ -43,7 +43,9 @@ def test_manifest_metadata_stores_multi_line_features() -> None:
 
     assert metadata.features.strip().startswith("- Features")
     assert "\n" in metadata.features
-    assert "\t- Core Features" in metadata.features
+    # Nested section, whatever the indentation style (spaces or tabs).
+    core_line = next(line for line in metadata.features.splitlines() if "Core Features" in line)
+    assert core_line.startswith((" ", "\t"))
     assert "Dungeon Rolling" in metadata.features
 
 
