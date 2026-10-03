@@ -115,3 +115,5 @@ nav:
             - 'PluginsDialog': 'companion4soloplayer/ui/dialogs/plugins_dialog.md'
             - 'QuestWizard': 'companion4soloplayer/ui/dialogs/quest_wizard.md'
             - 'SettingsDialog': 'companion4soloplayer/ui/dialogs/settings_dialog.md'
+    - Utils:
+      - 'Resource Manager': 'companion4soloplayer/utils/resource_manager.md'

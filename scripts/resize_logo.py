@@ -1,6 +1,7 @@
 # Companion4SoloPlayer (C4SP) - Logo Resizer script
 # scripts/resize_logo.py
 from pathlib import Path
+
 from PIL import Image
 
 SRC = Path("./assets/icons/logo-512x512.png")

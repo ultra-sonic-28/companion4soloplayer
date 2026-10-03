@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
 )
 
 from companion4soloplayer import __version__
-from companion4soloplayer.ui.asset_utils import LOGO_PATH, resolve_asset_path
+from companion4soloplayer.utils.resource_manager import ResourceManager
 
 try:
     from companion4soloplayer.build_info import BUILD_DATETIME, BUILD_NUMBER
@@ -83,7 +83,8 @@ class AboutDialog(QDialog):
         """
         super().__init__(parent)
         self.setWindowTitle("About " + APP_NAME)
-        self.setWindowIcon(QIcon(str(resolve_asset_path(LOGO_PATH))))
+        rm = ResourceManager.instance()
+        self.setWindowIcon(QIcon(str(rm.get_icon("logo-512x512.png"))))
 
         self._setup_ui()
 
@@ -97,7 +98,8 @@ class AboutDialog(QDialog):
 
         # Left column: application logo scaled to 128x128 pixels
         self.logo_label = QLabel()
-        pixmap = QPixmap(str(resolve_asset_path(LOGO_PATH)))
+        rm = ResourceManager.instance()
+        pixmap = QPixmap(str(rm.get_icon("logo-512x512.png")))
         if not pixmap.isNull():
             pixmap = pixmap.scaled(
                 LOGO_SIZE,

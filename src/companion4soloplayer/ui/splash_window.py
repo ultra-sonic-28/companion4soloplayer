@@ -1,11 +1,16 @@
+from pathlib import Path
+
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import QSplashScreen
 
-from companion4soloplayer.ui.asset_utils import SPLASH_IMAGE_PATH, resolve_asset_path
+from companion4soloplayer.utils.resource_manager import ResourceManager, ResourceNotFoundError
 
 # Constant for the display duration (in milliseconds)
 SPLASH_DURATION_MS = 3000  # 3 seconds
+
+# Splash image resource, resolved through the resource manager
+SPLASH_IMAGE_NAME = "splashscreen-1024.png"
 
 # Fallback panel used when the splash image cannot be loaded
 FALLBACK_WIDTH = 400
@@ -23,9 +28,18 @@ def _build_splash_pixmap() -> QPixmap:
     Returns:
         The pixmap to display (never null).
     """
-    pixmap = QPixmap(str(resolve_asset_path(SPLASH_IMAGE_PATH)))
-    if not pixmap.isNull():
-        return pixmap
+    # The resource manager raises when the image is missing: keep the
+    # fallback panel usable instead of crashing the splash screen.
+    image_path: Path | None
+    try:
+        image_path = ResourceManager.instance().get_image(SPLASH_IMAGE_NAME)
+    except ResourceNotFoundError:
+        image_path = None
+
+    if image_path is not None:
+        pixmap = QPixmap(str(image_path))
+        if not pixmap.isNull():
+            return pixmap
 
     fallback = QPixmap(FALLBACK_WIDTH, FALLBACK_HEIGHT)
     fallback.fill(Qt.GlobalColor.darkBlue)

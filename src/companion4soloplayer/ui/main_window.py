@@ -15,11 +15,11 @@ from PySide6.QtWidgets import (
 )
 
 from companion4soloplayer.core.plugin_loader import PluginLoader
-from companion4soloplayer.ui.asset_utils import LOGO_PATH, resolve_asset_path
 from companion4soloplayer.ui.dialogs.about_dialog import AboutDialog
 from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.dialogs.quest_wizard import QuestWizard
 from companion4soloplayer.ui.dialogs.settings_dialog import SettingsDialog
+from companion4soloplayer.utils.resource_manager import ResourceManager
 
 
 class MainWindow(QMainWindow):
@@ -30,7 +30,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Companion4SoloPlayer")
         self.setMinimumSize(1200, 800)
-        self.setWindowIcon(QIcon(str(resolve_asset_path(LOGO_PATH))))
+        rm = ResourceManager.instance()
+        self.setWindowIcon(QIcon(str(rm.get_icon("logo-512x512.png"))))
 
         self._plugin_loader = PluginLoader()
         self._setup_ui()

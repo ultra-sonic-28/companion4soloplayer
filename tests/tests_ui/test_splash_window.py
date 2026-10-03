@@ -9,11 +9,15 @@ from PySide6.QtCore import QSize
 from PySide6.QtGui import QPixmap
 from pytestqt.qtbot import QtBot
 
-from companion4soloplayer.ui.asset_utils import SPLASH_IMAGE_PATH, resolve_asset_path
 from companion4soloplayer.ui.splash_window import (
     FALLBACK_HEIGHT,
     FALLBACK_WIDTH,
+    SPLASH_IMAGE_NAME,
     SplashScreen,
+)
+from companion4soloplayer.utils.resource_manager import (
+    ResourceManager,
+    ResourceNotFoundError,
 )
 
 # Long duration so the auto-close timer never fires during the tests
@@ -22,7 +26,7 @@ TEST_DURATION_MS = 60_000
 
 def test_splash_pixmap_follows_image_size(qtbot: QtBot) -> None:
     """The splash pixmap is the splash image, so its size follows the image."""
-    image_path = resolve_asset_path(SPLASH_IMAGE_PATH)
+    image_path = ResourceManager.instance().get_image(SPLASH_IMAGE_NAME)
     assert image_path.is_file()
 
     expected = QPixmap(str(image_path))
@@ -42,10 +46,11 @@ def test_splash_falls_back_to_dark_blue_panel(
     qtbot: QtBot, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A missing splash image still yields a usable dark blue pixmap."""
-    monkeypatch.setattr(
-        "companion4soloplayer.ui.splash_window.resolve_asset_path",
-        lambda relative_path: Path("does-not-exist.png"),
-    )
+
+    def _missing_image(self: ResourceManager, name: str) -> Path:
+        raise ResourceNotFoundError(f"Resource not found: {name}")
+
+    monkeypatch.setattr(ResourceManager, "get_image", _missing_image)
 
     splash = SplashScreen(duration_ms=TEST_DURATION_MS)
     qtbot.addWidget(splash)
