@@ -9,7 +9,7 @@ import sys
 from PySide6.QtCore import QTimer
 
 from companion4soloplayer import __version__
-from companion4soloplayer.application import CompanionApplication
+from companion4soloplayer.app.application import CompanionApplication
 from companion4soloplayer.ui.main_window import MainWindow
 from companion4soloplayer.ui.splash_window import SPLASH_DURATION_MS, SplashScreen
 from companion4soloplayer.utils.config_manager import ConfigManager

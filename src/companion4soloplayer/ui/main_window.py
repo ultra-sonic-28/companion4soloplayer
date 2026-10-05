@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from companion4soloplayer.application import application_config
+from companion4soloplayer.app.application import application_config
 from companion4soloplayer.core.plugin_loader import PluginLoader
 from companion4soloplayer.ui.dialogs.about_dialog import AboutDialog
 from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog

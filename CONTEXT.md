@@ -77,6 +77,8 @@ The complete disclaimer is available in the main README.md file.
     companion4soloplayer/
     ├── src/companion4soloplayer/                # Python sources (importable package)
     │   ├── main.py
+    │   ├── app/                                 # Qt application
+    │   │   └── application.py                   # CompanionApplication + config
     │   ├── core/                                # Generic engine
     │   │   ├── __init__.py
     │   │   ├── character_tracker.py             # HP, stats, inventory management

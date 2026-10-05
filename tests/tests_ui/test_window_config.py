@@ -8,7 +8,7 @@ from pathlib import Path
 from PySide6.QtCore import QRect
 from pytestqt.qtbot import QtBot
 
-from companion4soloplayer.application import application_config
+from companion4soloplayer.app.application import application_config
 from companion4soloplayer.ui.main_window import MainWindow
 from companion4soloplayer.utils.config_manager import ConfigManager
 
