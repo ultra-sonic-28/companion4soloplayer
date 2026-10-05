@@ -68,3 +68,14 @@ def test_reload_keeps_default_values_for_missing_keys(tmp_path: Path) -> None:
     assert window["width"] == 1280
     assert window["height"] == 720
     assert window["maximized"] is True
+
+
+def test_default_logging_settings(tmp_path: Path) -> None:
+    """The [logging] section is created with its documented defaults."""
+    config = ConfigManager(tmp_path / "config.toml")
+    settings = config.logging()
+
+    assert settings["enabled"] is True
+    assert settings["level"] == "DEBUG"
+    assert settings["file"] == "./companion4soloplayer.log"
+    assert settings["mode"] == "write"

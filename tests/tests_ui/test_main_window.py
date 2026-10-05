@@ -6,6 +6,7 @@ cleanly. More advanced interaction tests will be added later.
 """
 
 import sys
+from pathlib import Path
 
 import pytest
 from PySide6.QtGui import QAction
@@ -14,6 +15,7 @@ from pytestqt.qtbot import QtBot
 from companion4soloplayer import __version__
 from companion4soloplayer import main as main_module
 from companion4soloplayer.ui.main_window import MainWindow
+from companion4soloplayer.utils.config_manager import ConfigManager
 
 
 class _StubApplication:
@@ -26,9 +28,10 @@ class _StubApplication:
     existing event-loop-less test context.
     """
 
-    def __init__(self, argv: list[str]) -> None:
-        """Store the arguments and default attributes."""
+    def __init__(self, argv: list[str], config: ConfigManager | None = None) -> None:
+        """Store the arguments, the configuration and default attributes."""
         self.argv = argv
+        self.config = config
         self.application_name: str | None = None
         self.application_version: str | None = None
 
@@ -93,22 +96,32 @@ def test_exit_action_closes_application(qtbot: QtBot) -> None:
     assert not window.isVisible()
 
 
-def test_main_entry_point_launches_and_exits(qtbot: QtBot, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_entry_point_launches_and_exits(
+    qtbot: QtBot, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """
     The main() entry point starts the application and exits cleanly.
 
-    The application class (QApplication subclass) is replaced by a stub
-    because pytest-qt already created the real singleton. The stub's
-    exec() returns immediately, simulating a normal application exit.
+    The configuration is read first and drives the logging setup before the
+    application class (QApplication subclass) is built: both receive the
+    very same configuration instance. The application class is replaced by
+    a stub because pytest-qt already created the real singleton, and the
+    stub's exec() returns immediately, simulating a normal exit.
     """
+    config = ConfigManager(tmp_path / "config.toml")
     created: list[_StubApplication] = []
+    setup_calls: list[ConfigManager] = []
 
-    def application_factory(argv: list[str]) -> _StubApplication:
+    def application_factory(
+        argv: list[str], config: ConfigManager | None = None
+    ) -> _StubApplication:
         """Build a stub application and keep track of it."""
-        app = _StubApplication(argv)
+        app = _StubApplication(argv, config)
         created.append(app)
         return app
 
+    monkeypatch.setattr(main_module, "ConfigManager", lambda: config)
+    monkeypatch.setattr(main_module, "setup_logging", setup_calls.append)
     monkeypatch.setattr(main_module, "CompanionApplication", application_factory)
     monkeypatch.setattr(sys, "exit", lambda code=0: (_ for _ in ()).throw(SystemExit(code)))
 
@@ -120,3 +133,7 @@ def test_main_entry_point_launches_and_exits(qtbot: QtBot, monkeypatch: pytest.M
     assert len(created) == 1
     assert created[0].application_name == "Companion4SoloPlayer"
     assert created[0].application_version == __version__
+    # Logging is configured from the configuration, as early as possible...
+    assert setup_calls == [config]
+    # ...and the application shares that same configuration.
+    assert created[0].config is config

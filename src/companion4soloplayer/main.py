@@ -11,12 +11,19 @@ from companion4soloplayer import __version__
 from companion4soloplayer.application import CompanionApplication
 from companion4soloplayer.ui.main_window import MainWindow
 from companion4soloplayer.ui.splash_window import SPLASH_DURATION_MS, SplashScreen
+from companion4soloplayer.utils.config_manager import ConfigManager
+from companion4soloplayer.utils.logger import setup_logging
 
 
 def main() -> None:
     """Main application entry point."""
-    # Reads data/config/config.toml and keeps it available app-wide.
-    app = CompanionApplication(sys.argv)
+    # The configuration drives both the logger and the application: it is
+    # read first, so that everything happening afterwards can be logged.
+    config = ConfigManager()
+    setup_logging(config)
+
+    # The same configuration instance is shared application-wide.
+    app = CompanionApplication(sys.argv, config=config)
 
     splash = SplashScreen(duration_ms=SPLASH_DURATION_MS)
     splash.show()

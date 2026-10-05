@@ -55,6 +55,14 @@ class ConfigManager:
             "height": 720,
             "maximized": True,
         }
+        self.data["logging"] = {
+            "enabled": True,
+            # Standard logging level name (DEBUG, INFO, WARNING, ...).
+            "level": "DEBUG",
+            "file": "./companion4soloplayer.log",
+            # "write" -> recreate the file, "append" -> keep its content.
+            "mode": "write",
+        }
 
         # Load or create the file
         if self.filename.exists():
