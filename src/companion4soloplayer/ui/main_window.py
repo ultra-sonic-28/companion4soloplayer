@@ -3,8 +3,8 @@ Main window module.
 Contains the primary application window.
 """
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtCore import QRect, Qt
+from PySide6.QtGui import QAction, QCloseEvent, QGuiApplication, QIcon
 from PySide6.QtWidgets import (
     QLabel,
     QMainWindow,
@@ -14,24 +14,35 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from companion4soloplayer.application import application_config
 from companion4soloplayer.core.plugin_loader import PluginLoader
 from companion4soloplayer.ui.dialogs.about_dialog import AboutDialog
 from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.dialogs.quest_wizard import QuestWizard
 from companion4soloplayer.ui.dialogs.settings_dialog import SettingsDialog
+from companion4soloplayer.utils.config_manager import ConfigManager
 from companion4soloplayer.utils.resource_manager import ResourceManager
 
 
 class MainWindow(QMainWindow):
     """Main application window."""
 
-    def __init__(self) -> None:
-        """Initialize the main window."""
+    def __init__(self, config: ConfigManager | None = None) -> None:
+        """Initialize the main window.
+
+        Args:
+            config: Configuration holding the window settings. Defaults to the
+                configuration attached to the running application.
+        """
         super().__init__()
         self.setWindowTitle("Companion4SoloPlayer")
         self.setMinimumSize(1200, 800)
         rm = ResourceManager.instance()
         self.setWindowIcon(QIcon(str(rm.get_icon("logo-512x512.png"))))
+
+        self._config: ConfigManager | None = config if config is not None else application_config()
+        self._start_maximized = False
+        self._restore_window_settings()
 
         self._plugin_loader = PluginLoader()
         self._setup_ui()
@@ -183,6 +194,70 @@ class MainWindow(QMainWindow):
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage("Ready")
+
+    # ------------------------------------------------------------------ #
+    # Window settings (geometry / maximized state)                        #
+    # ------------------------------------------------------------------ #
+
+    def show(self) -> None:
+        """Display the main window, maximized when the configuration asks for it."""
+        super().show()
+        if self._start_maximized:
+            self.showMaximized()
+
+    def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802
+        """Save the window settings to the configuration before closing.
+
+        Args:
+            event: Close event.
+        """
+        self._save_window_settings()
+        super().closeEvent(event)
+
+    def _restore_window_settings(self) -> None:
+        """Apply the geometry and maximized state stored in the configuration."""
+        if self._config is None:
+            return
+
+        try:
+            saved = self._config.window()
+            rect = QRect(
+                int(saved["x"]),
+                int(saved["y"]),
+                int(saved["width"]),
+                int(saved["height"]),
+            )
+            maximized = bool(saved["maximized"])
+        except (KeyError, TypeError, ValueError):
+            # Incomplete or malformed section: keep the default geometry.
+            return
+
+        # A saved position can be off-screen (display unplugged, resolution
+        # changed): restoring it would leave the window out of reach.
+        if any(screen.availableGeometry().intersects(rect) for screen in QGuiApplication.screens()):
+            self.setGeometry(rect)
+
+        self._start_maximized = maximized
+
+    def _save_window_settings(self) -> None:
+        """Store the current geometry and maximized state in the configuration."""
+        if self._config is None:
+            return
+
+        # While maximized, remember the geometry restored when leaving the
+        # maximized mode instead of the full-screen rectangle.
+        geometry = self.normalGeometry() if self.isMaximized() else self.geometry()
+        if geometry.width() <= 0 or geometry.height() <= 0:
+            # The window was never shown: there is nothing meaningful to save.
+            return
+
+        window = self._config.window()
+        window["x"] = geometry.x()
+        window["y"] = geometry.y()
+        window["width"] = geometry.width()
+        window["height"] = geometry.height()
+        window["maximized"] = self.isMaximized()
+        self._config.save()
 
     def _show_about(self) -> None:
         """Show the About dialog."""

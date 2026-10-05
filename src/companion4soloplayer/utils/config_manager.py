@@ -1,14 +1,50 @@
-import os
+import sys
 from collections.abc import Mapping, MutableMapping
+from pathlib import Path
 from typing import Any, cast
 
 import tomlkit
 from tomlkit.items import Table
 
+# Location of the configuration file, relative to the project root (source
+# checkout) or to the executable directory (frozen build).
+CONFIG_SUBDIR = Path("data") / "config"
+CONFIG_FILENAME = "config.toml"
+
+
+def default_config_path() -> Path:
+    """Resolve the path of the configuration file.
+
+    Resolution order:
+
+    1. Frozen (PyInstaller) build: ``<executable_dir>/data/config/config.toml``,
+       matching the portable layout where ``data`` sits next to the executable.
+    2. Development: walk up from this module until a directory holding a
+       ``data`` folder is found (the project root in a source checkout).
+    3. Fallback: the current working directory.
+
+    Returns:
+        Absolute path of the configuration file (parent folders are not created).
+    """
+    if getattr(sys, "frozen", False):
+        base = Path(sys.executable).resolve().parent
+    else:
+        here = Path(__file__).resolve().parent
+        base = next((d for d in (here, *here.parents) if (d / "data").is_dir()), Path.cwd())
+    return base / CONFIG_SUBDIR / CONFIG_FILENAME
+
 
 class ConfigManager:
-    def __init__(self, filename: str = "config.toml") -> None:
-        self.filename = filename
+    """Reads and writes the TOML configuration file shared by the application."""
+
+    def __init__(self, filename: str | Path | None = None) -> None:
+        """Load the configuration file, or create it with default values.
+
+        Args:
+            filename: Path of the TOML file. Defaults to
+                :func:`default_config_path` (``data/config/config.toml``).
+        """
+        self.filename = Path(filename) if filename is not None else default_config_path()
 
         # Default values
         self.data = tomlkit.table()
@@ -21,7 +57,7 @@ class ConfigManager:
         }
 
         # Load or create the file
-        if os.path.exists(self.filename):
+        if self.filename.exists():
             self.load()
         else:
             self.save()  # ← creates the TOML file with default values
@@ -38,6 +74,8 @@ class ConfigManager:
 
     def save(self) -> None:
         """Write the TOML to the file."""
+        # The data/config folders may not exist yet (first launch).
+        self.filename.parent.mkdir(parents=True, exist_ok=True)
         with open(self.filename, "w", encoding="utf-8") as f:
             f.write(tomlkit.dumps(self.data))
 

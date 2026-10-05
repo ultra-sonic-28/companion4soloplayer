@@ -69,6 +69,7 @@ Desktop.ini
 .env
 .env.*
 companion4soloplayer.log
+data/config/config.toml
 
 # Others
 .bintools/

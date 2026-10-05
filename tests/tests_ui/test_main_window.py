@@ -18,10 +18,10 @@ from companion4soloplayer.ui.main_window import MainWindow
 
 class _StubApplication:
     """
-    Minimal stand-in for QApplication used to test the main() entry point.
+    Minimal stand-in for CompanionApplication used to test the main() entry point.
 
     pytest-qt already owns the real QApplication singleton, and PySide6
-    forbids creating a second one. Substituting the QApplication symbol in
+    forbids creating a second one. Substituting the application class in
     the main module lets main() run its launch/exit flow against the
     existing event-loop-less test context.
     """
@@ -97,9 +97,9 @@ def test_main_entry_point_launches_and_exits(qtbot: QtBot, monkeypatch: pytest.M
     """
     The main() entry point starts the application and exits cleanly.
 
-    QApplication is replaced by a stub because pytest-qt already created
-    the real singleton. The stub's exec() returns immediately, simulating
-    a normal application exit.
+    The application class (QApplication subclass) is replaced by a stub
+    because pytest-qt already created the real singleton. The stub's
+    exec() returns immediately, simulating a normal application exit.
     """
     created: list[_StubApplication] = []
 
@@ -109,7 +109,7 @@ def test_main_entry_point_launches_and_exits(qtbot: QtBot, monkeypatch: pytest.M
         created.append(app)
         return app
 
-    monkeypatch.setattr(main_module, "QApplication", application_factory)
+    monkeypatch.setattr(main_module, "CompanionApplication", application_factory)
     monkeypatch.setattr(sys, "exit", lambda code=0: (_ for _ in ()).throw(SystemExit(code)))
 
     with pytest.raises(SystemExit) as excinfo:
