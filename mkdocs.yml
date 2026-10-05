@@ -93,6 +93,8 @@ nav:
     - companion4soloplayer: 'companion4soloplayer/companion4soloplayer.md'
     - main:
       - main: 'companion4soloplayer/main.md'
+    - Application:
+      - 'Application': 'companion4soloplayer/app/application.md'
     - Core:
       - 'Character Tracker': 'companion4soloplayer/core/character_tracker.md'
       - 'Combat Resolver': 'companion4soloplayer/core/combat_resolver.md'
