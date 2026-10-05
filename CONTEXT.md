@@ -76,7 +76,7 @@ The complete disclaimer is available in the main README.md file.
 
     companion4soloplayer/
     ├── src/companion4soloplayer/                # Python sources (importable package)
-    │   ├── main.py
+    │   ├── main.py                              # Entry point: config, logging, Qt
     │   ├── app/                                 # Qt application
     │   │   └── application.py                   # CompanionApplication + config
     │   ├── core/                                # Generic engine
@@ -116,6 +116,12 @@ The complete disclaimer is available in the main README.md file.
     │   │       │   └── rules.yaml
     │   │       └── README.md
     │   │
+    │   ├── utils/                               # Shared helpers
+    │   │   ├── __init__.py
+    │   │   ├── resource_manager.py              # Centralized resource access
+    │   │   ├── config_manager.py                # TOML configuration file
+    │   │   └── logger.py                        # Logging setup
+    │   │
     │   └── ui/                                  # User interface
     │       ├── __init__.py
     │       ├── main_window.py                   # Main window
@@ -134,11 +140,12 @@ The complete disclaimer is available in the main README.md file.
     ├── data/                                    # User data
     │   ├── saves/                               # Game saves
     │   ├── custom_quests/                       # Custom quests
-    │   └── config/                              # User configuration
+    │   └── config/                              # config.toml (window, logging)
     │
     ├── tests/                                   # Tests
     │   ├── tests_core/                          # Core unit tests
     │   ├── tests_plugins/                       # Plugins tests
+    │   ├── tests_utils/                         # Utils tests (config, logger, resources)
     │   └── tests_ui/                            # Core UI tests
     │
     ├── docs/                                    # Documentation
@@ -180,7 +187,7 @@ The complete disclaimer is available in the main README.md file.
 #### 2.3 Data management
 - **Format**: YAML (with comments) for plugin/rule data, loaded through a
   hardened `yaml.SafeLoader` subclass with custom tags (`!pyclass`, `!dice`);
-  JSON for saves and user configuration
+  JSON for saves, TOML for the user configuration (`data/config/config.toml`)
 - **Validation**: Pydantic for plugin manifest validation
 - **Serialization**: Standard JSON for saves (no pickle for security reasons)
 
@@ -198,6 +205,91 @@ The complete disclaimer is available in the main README.md file.
 - **Format**: Markdown
 - **Generation**: MkDocs for technical documentation
 - **API docs**: Sphinx or pdoc for automatic documentation
+
+### 3. Application runtime: configuration, logging and shared state
+
+Three modules cooperate at startup, in a strict order: the logger needs the
+configuration, and both must be ready before any Qt object is built.
+
+    main()
+      ├──> ConfigManager()                read/creates data/config/config.toml
+      ├──> setup_logging(config)          applies the [logging] table
+      ├──> CompanionApplication(...)      carries the config application-wide
+      ├──> MainWindow()                   applies the [window] table
+      └──> app.exec()                     logs the last message on return
+
+#### 3.1 utils/config_manager.py — TOML configuration
+
+- **File location** (`default_config_path()`), in priority order:
+  1. Frozen (PyInstaller) build: `<executable_dir>/data/config/config.toml`,
+     matching the portable layout (`data/` sits next to the executable);
+  2. Source checkout: walk up from this module until a directory holding a
+     `data/` folder is found (the project root);
+  3. Fallback: the current working directory.
+- **Creation**: when the file is missing, `ConfigManager.__init__` creates it
+  with the default tables, and `save()` creates the missing parent folders.
+  The file is local configuration: it is listed in `.gitignore`.
+- **Loading**: the file is merged *over* the defaults, table by table
+  (`[window]`, `[logging]`). A partial or hand-edited file keeps the default
+  values for the keys it does not define; a corrupted file is rewritten with
+  the defaults.
+- **Access**: `window()` and `logging()` return live tomlkit tables. Writing
+  a key updates the in-memory configuration, `save()` persists it. This is
+  how `MainWindow` stores the geometry when the application closes.
+- A **single** instance is created in `main()` and shared application-wide
+  through `CompanionApplication` (see 3.3).
+
+Default file:
+
+    [window]
+    x = 0
+    y = 0
+    width = 1280
+    height = 720
+    maximized = true
+
+    [logging]
+    enabled = true
+    level = "DEBUG"
+    file = "./companion4soloplayer.log"
+    mode = "write"      # write -> overwrite, append -> keep previous content
+
+#### 3.2 utils/logger.py — logging
+
+- `setup_logging(config)` runs in `main()` right after the configuration is
+  read and **before** any Qt object exists, so the whole startup can be logged.
+- `[logging]` settings:
+  - `enabled = false`: no handler is installed and every record is blocked
+    through `logging.disable()`;
+  - `level`: standard `logging` names (`DEBUG`, `INFO`, `WARNING`, ...),
+    resolved with `logging.getLevelNamesMapping()`; an unknown name falls
+    back to `INFO` and is reported in the log;
+  - `file`: UTF-8 file handler **and** console handler; a relative path is
+    resolved against the working directory;
+  - `mode`: `LogMode` enum — `write` (overwrite, default) or `append`; an
+    unknown value falls back to `write` and is reported in the log.
+- **Idempotent**: the handlers installed by a previous call are removed
+  first, so calling it twice never stacks duplicate handlers.
+- Application records use the `companion4soloplayer` logger
+  (`APP_LOGGER_NAME`). `main()` writes the last message of the session
+  (`Application exiting with code <n>`) when the event loop returns.
+
+#### 3.3 app/application.py — shared application state
+
+- `CompanionApplication(QApplication)` holds the `ConfigManager` as a member
+  (`app.config`): the configuration is read once and stays reachable from
+  anywhere through `application_config()`, which returns `None` when the
+  process was not started through `main()` (tests, stubs).
+- `MainWindow(config=None)` uses the given configuration, or falls back to
+  `application_config()`. It restores the geometry and the maximized state at
+  startup — a position outside every connected screen is ignored so the
+  window cannot be lost off-screen — and saves them in `closeEvent()`.
+- Tests inject their own `ConfigManager` (temporary folder) instead of
+  relying on the global state.
+
+Tests: `tests/tests_utils/test_config_manager.py`,
+`tests/tests_utils/test_logger.py`, `tests/tests_ui/test_window_config.py`
+and the `main()` wiring test in `tests/tests_ui/test_main_window.py`.
 
 ---
 
@@ -246,7 +338,7 @@ metadata:
 
 #### 3.1 Important rules
 - **No pickle**: Plugin data is read through the safe YAML loader, saves
-  and configuration through JSON, for security reasons
+  through JSON and the configuration through TOML, for security reasons
 - **UTF-8 encoding**: Mandatory for all data files
 - **Strict validation**: Any non-compliant data must raise an explicit exception
 - **Informative logs**: Log the file path and error type on failure
@@ -427,5 +519,5 @@ For any legal or technical question:
 
 ---
 
-**Last updated**: 2026-10-01
-**Document version**: 1.0.0
+**Last updated**: 2026-10-05
+**Document version**: 1.1.0
