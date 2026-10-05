@@ -5,6 +5,7 @@ Verifies that the application launches (main window shown) and exits
 cleanly. More advanced interaction tests will be added later.
 """
 
+import logging
 import sys
 from pathlib import Path
 
@@ -16,6 +17,7 @@ from companion4soloplayer import __version__
 from companion4soloplayer import main as main_module
 from companion4soloplayer.ui.main_window import MainWindow
 from companion4soloplayer.utils.config_manager import ConfigManager
+from companion4soloplayer.utils.logger import APP_LOGGER_NAME
 
 
 class _StubApplication:
@@ -97,7 +99,10 @@ def test_exit_action_closes_application(qtbot: QtBot) -> None:
 
 
 def test_main_entry_point_launches_and_exits(
-    qtbot: QtBot, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    qtbot: QtBot,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """
     The main() entry point starts the application and exits cleanly.
@@ -106,7 +111,8 @@ def test_main_entry_point_launches_and_exits(
     application class (QApplication subclass) is built: both receive the
     very same configuration instance. The application class is replaced by
     a stub because pytest-qt already created the real singleton, and the
-    stub's exec() returns immediately, simulating a normal exit.
+    stub's exec() returns immediately, simulating a normal exit. Leaving
+    the event loop must be logged before the process ends.
     """
     config = ConfigManager(tmp_path / "config.toml")
     created: list[_StubApplication] = []
@@ -125,7 +131,10 @@ def test_main_entry_point_launches_and_exits(
     monkeypatch.setattr(main_module, "CompanionApplication", application_factory)
     monkeypatch.setattr(sys, "exit", lambda code=0: (_ for _ in ()).throw(SystemExit(code)))
 
-    with pytest.raises(SystemExit) as excinfo:
+    with (
+        caplog.at_level(logging.INFO, logger=APP_LOGGER_NAME),
+        pytest.raises(SystemExit) as excinfo,
+    ):
         main_module.main()
 
     # Normal exit code, application name/version applied, window shown
@@ -137,3 +146,5 @@ def test_main_entry_point_launches_and_exits(
     assert setup_calls == [config]
     # ...and the application shares that same configuration.
     assert created[0].config is config
+    # The session is closed with a logged message.
+    assert "Application exiting with code 0" in caplog.text

@@ -3,6 +3,7 @@
 Main entry point for Companion4SoloPlayer.
 """
 
+import logging
 import sys
 
 from PySide6.QtCore import QTimer
@@ -12,7 +13,7 @@ from companion4soloplayer.application import CompanionApplication
 from companion4soloplayer.ui.main_window import MainWindow
 from companion4soloplayer.ui.splash_window import SPLASH_DURATION_MS, SplashScreen
 from companion4soloplayer.utils.config_manager import ConfigManager
-from companion4soloplayer.utils.logger import setup_logging
+from companion4soloplayer.utils.logger import APP_LOGGER_NAME, setup_logging
 
 
 def main() -> None:
@@ -37,7 +38,11 @@ def main() -> None:
 
     QTimer.singleShot(SPLASH_DURATION_MS, window.show)
 
-    sys.exit(app.exec())
+    exit_code = app.exec()
+    # Every way of leaving the application goes through this point, so it is
+    # the place for the last message of the session.
+    logging.getLogger(APP_LOGGER_NAME).info("Application exiting with code %d", exit_code)
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":
