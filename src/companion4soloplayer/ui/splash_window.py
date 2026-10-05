@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import QSplashScreen
 
+from companion4soloplayer import APPLICATION_NAME
 from companion4soloplayer.utils.resource_manager import ResourceManager, ResourceNotFoundError
 
 # Constant for the display duration (in milliseconds)
@@ -71,7 +72,7 @@ class SplashScreen(QSplashScreen):
         """Configure the interface of the splash screen."""
         # Adding a message
         self.showMessage(
-            "Loading the application...",
+            f"Loading {APPLICATION_NAME}...",
             alignment=Qt.AlignmentFlag.AlignCenter,
             color=Qt.GlobalColor.white,
         )
