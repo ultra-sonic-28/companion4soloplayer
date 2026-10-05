@@ -10,6 +10,8 @@ import logging
 from enum import StrEnum
 from pathlib import Path
 
+from companion4soloplayer import __version__
+from companion4soloplayer.build_info import BUILD_NUMBER
 from companion4soloplayer.utils.config_manager import ConfigManager
 
 # Namespace of the application loggers: logging.getLogger(APP_LOGGER_NAME)
@@ -148,6 +150,10 @@ def setup_logging(config: ConfigManager) -> None:
     logging.basicConfig(level=level_value, format=LOG_FORMAT, handlers=handlers)
 
     logger = logging.getLogger(APP_LOGGER_NAME)
+
+    # Log application name and version, so that the log file can be identified even when it is
+    logger.info("Application started")
+    logger.info("Companion4SoloPlayer v%s build %s", __version__, BUILD_NUMBER)
 
     # Invalid values are reported once the handlers are in place, so the
     # warning reaches both the log file and the console.
