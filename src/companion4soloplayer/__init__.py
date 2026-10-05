@@ -4,6 +4,9 @@ Companion4SoloPlayer - companion application for tabletop board games.
 
 from importlib.metadata import PackageNotFoundError, version
 
+APPLICATION_NAME = "Companion4SoloPlayer"
+ORGANIZATION_NAME = ""
+
 try:
     __version__ = version("companion4soloplayer")
 except PackageNotFoundError:

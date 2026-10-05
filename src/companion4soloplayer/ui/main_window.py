@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from companion4soloplayer import APPLICATION_NAME
 from companion4soloplayer.app.application import application_config
 from companion4soloplayer.core.plugin_loader import PluginLoader
 from companion4soloplayer.ui.dialogs.about_dialog import AboutDialog
@@ -35,10 +36,10 @@ class MainWindow(QMainWindow):
                 configuration attached to the running application.
         """
         super().__init__()
-        self.setWindowTitle("Companion4SoloPlayer")
+        self.setWindowTitle(APPLICATION_NAME)
         self.setMinimumSize(1200, 800)
         rm = ResourceManager.instance()
-        self.setWindowIcon(QIcon(str(rm.get_icon("logo-512x512.png"))))
+        self.setWindowIcon(QIcon(str(rm.get_icon("icon.ico"))))
 
         self._config: ConfigManager | None = config if config is not None else application_config()
         self._start_maximized = False
