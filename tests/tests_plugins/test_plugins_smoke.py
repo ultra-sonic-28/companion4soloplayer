@@ -1,39 +1,32 @@
-"""Tests for the dynamic plugin loader."""
+"""Tests for the built-in game plugins.
+
+Covers the plugin data (manifest, YAML catalogs), the hybrid rule
+elements and the conformance of the plugin facade with the core
+:class:`~companion4soloplayer.core.interface.game_plugin.GamePlugin`
+contract. The loader mechanics themselves are tested in
+``tests/tests_utils/test_plugin_loader.py``.
+"""
 
 import ast
-import shutil
 from pathlib import Path
+from typing import get_protocol_members
 
 import pytest
 
-from companion4soloplayer.core.plugin_loader import PluginLoader
+from companion4soloplayer.core.interface.game_plugin import GamePlugin
 from companion4soloplayer.core.rule_engine import RULE_KINDS
 from companion4soloplayer.core.rules import OracleRule
 from companion4soloplayer.plugins.demo_plugin import PluginMetadata
+from companion4soloplayer.utils.plugin_loader import PluginLoader
 from companion4soloplayer.utils.yaml_loader import load_yaml_file
 
 PLUGINS_SRC = Path(__file__).resolve().parents[2] / "src" / "companion4soloplayer" / "plugins"
-EXPECTED_PLUGINS = {"demo"}
 
 
 @pytest.fixture
 def loader() -> PluginLoader:
     """Return a plugin loader pointing at the source plugins."""
     return PluginLoader(plugins_dir=str(PLUGINS_SRC))
-
-
-def test_discover_plugins_finds_all_source_plugins(loader: PluginLoader) -> None:
-    names = set(loader.discover_plugins())
-    assert names >= EXPECTED_PLUGINS
-
-
-def test_load_plugin_from_source(loader: PluginLoader) -> None:
-    plugin = loader.load_plugin("demo")
-    assert plugin is not None
-    assert plugin.name
-    assert plugin.version
-    assert plugin.description
-    assert loader.get_plugin("demo") is plugin
 
 
 def test_manifest_metadata_stores_multi_line_features() -> None:
@@ -55,111 +48,19 @@ def test_manifest_features_defaults_to_empty() -> None:
     assert metadata.features == ""
 
 
-def test_load_unknown_plugin_returns_none(loader: PluginLoader) -> None:
-    assert loader.load_plugin("does_not_exist") is None
-
-
-def test_last_error_records_the_failure_reason(loader: PluginLoader) -> None:
-    """A failed load stores a readable reason (releases have no console)."""
-    assert loader.load_plugin("does_not_exist") is None
-    reason = loader.last_errors["does_not_exist"]
-    assert "not found" in reason
-
-
-def test_last_error_is_dropped_after_a_successful_load(loader: PluginLoader) -> None:
-    """A successful load clears any stale error recorded for the plugin."""
-    assert loader.load_plugin("does_not_exist") is None
-    assert "does_not_exist" in loader.last_errors
-    plugin = loader.load_plugin("demo")
-    assert plugin is not None
-    assert "demo" not in loader.last_errors
-
-
-def test_load_plugin_is_cached(loader: PluginLoader) -> None:
-    first = loader.load_plugin("demo")
-    second = loader.load_plugin("demo")
-    assert first is second
-
-
-def test_unload_plugin(loader: PluginLoader) -> None:
-    loader.load_plugin("demo")
-    assert loader.unload_plugin("demo") is True
-    assert loader.get_plugin("demo") is None
-    assert loader.unload_plugin("demo") is False
-
-
 def test_plugin_exposes_gameplugin_api(loader: PluginLoader) -> None:
+    """The demo facade satisfies the whole core GamePlugin contract."""
     plugin = loader.load_plugin("demo")
     assert plugin is not None
+    missing = [
+        member for member in get_protocol_members(GamePlugin) if not hasattr(plugin, member)
+    ]
+    assert missing == []
     assert isinstance(plugin.get_classes(), list)
     assert isinstance(plugin.get_monsters(), list)
     assert isinstance(plugin.get_items(), list)
     assert isinstance(plugin.get_rules(), dict)
     assert plugin.generate_dungeon({"size": 5})["config"] == {"size": 5}
-
-
-def test_load_compiled_plugin_extension(tmp_path: Path) -> None:
-    """A compiled .pyd placed next to a plugin data dir is loaded directly."""
-    import importlib.machinery
-
-    pytest.importorskip("setuptools")
-    suffix = importlib.machinery.EXTENSION_SUFFIXES[0]
-    plugins_dir = tmp_path / "plugins"
-    plugins_dir.mkdir()
-
-    # Compile a tiny standalone extension module exposing Plugin.
-    ext_src = tmp_path / "fake_plugin.c"
-    ext_src.write_text(
-        """
-#include <Python.h>
-
-static PyObject *Plugin_get_name(PyObject *self, PyObject *args) {
-    return PyUnicode_FromString("fake");
-}
-
-static PyMethodDef plugin_methods[] = {
-    {"get_name", Plugin_get_name, METH_NOARGS, NULL},
-    {NULL, NULL, 0, NULL}
-};
-
-static struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT, "fake", NULL, -1, plugin_methods
-};
-
-PyMODINIT_FUNC PyInit_fake(void) {
-    return PyModule_Create(&moduledef);
-}
-""",
-        encoding="utf-8",
-    )
-    from setuptools import Extension, setup
-    from setuptools._distutils.errors import CompileError, DistutilsError  # type: ignore
-
-    try:
-        setup(
-            name="fake",
-            ext_modules=[Extension("fake", [str(ext_src)])],
-            script_args=[
-                "build_ext",
-                f"--build-lib={tmp_path / 'lib'}",
-                f"--build-temp={tmp_path / 'tmp'}",
-            ],
-        )
-    except (CompileError, DistutilsError, OSError, SystemExit):
-        pytest.skip("No C compiler available on this machine")
-    built = next((tmp_path / "lib").rglob(f"fake_plugin{suffix}"))
-
-    plugin_dir = plugins_dir / "fake"
-    plugin_dir.mkdir()
-    (plugin_dir / "plugin.yaml").write_text("name: fake\n", encoding="utf-8")
-    shutil.copy2(built, plugins_dir / f"fake{suffix}")
-
-    loader = PluginLoader(plugins_dir=str(plugins_dir))
-    assert loader.discover_plugins() == ["fake"]
-
-    plugin = loader.load_plugin("fake")
-    assert plugin is not None
-    assert loader.get_plugin("fake") is plugin
 
 
 # ----------------------------------------------------------------------

@@ -26,8 +26,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from companion4soloplayer.core.plugin_loader import MANIFEST_NAMES, PluginLoader
 from companion4soloplayer.ui.dialogs.plugin_metadata_dialog import PluginMetadataDialog
+from companion4soloplayer.utils.plugin_loader import MANIFEST_NAMES, PluginLoader
 from companion4soloplayer.utils.yaml_loader import YamlLoadError, YamlTagError, load_yaml_file
 
 # Column layout of the plugin table.

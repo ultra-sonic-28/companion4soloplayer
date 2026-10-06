@@ -131,7 +131,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=companion4soloplayer.core --cov=companion4soloplayer.plugins --cov-report=term-missing --cov-report=html"
+addopts = "-v --cov=companion4soloplayer.core --cov=companion4soloplayer.plugins --cov=companion4soloplayer.utils --cov-report=term-missing --cov-report=html"
 
 # Numeric counter incremented by nox release session on every
 # generated executable; displayed in the CLI banner after the

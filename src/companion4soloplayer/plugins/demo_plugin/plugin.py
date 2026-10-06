@@ -1,8 +1,10 @@
-"""Plugin facade: the ``Plugin`` class loaded by the core plugin loader.
+"""Plugin facade: the ``Plugin`` class loaded by the plugin loader.
 
-The facade exposes the :class:`GamePlugin` protocol API, serves the
-YAML data documents from the ``datas/`` directory and binds the hybrid
-rule engine (declarative ``rules.yaml`` + Python rule elements).
+The facade exposes the
+:class:`~companion4soloplayer.core.interface.game_plugin.GamePlugin`
+protocol API, serves the YAML data documents from the ``datas/``
+directory and binds the hybrid rule engine (declarative ``rules.yaml``
++ Python rule elements).
 """
 
 from __future__ import annotations

@@ -52,7 +52,7 @@ The `core` package contains pure-Python game mechanics, completely independent o
 - **[Combat Resolver](companion4soloplayer/core/combat_resolver.md)**: Attack calculations, strength modifiers, armor mitigation, and automated health updates (`CombatResolver`).
 - **[Dice Roller](companion4soloplayer/core/dice_roller.md)**: Polyhedral dice rolling engine (`DiceRoller`), supporting single dice, multi-dice pools, and static modifiers.
 - **[Dice Expression](companion4soloplayer/core/dice_expression.md)**: Dice notation parsing and evaluation value (`DiceExpression`) shared by rule elements and plugins (`2d6`, `1d20+3`, `d6-1`, ...).
-- **[Plugin Loader](companion4soloplayer/core/plugin_loader.md)**: Dynamic plugin discovery, abstract contract definition (`GamePlugin`), compiled extension loading (`.pyd`), and fallback source loading.
+- **[Game Plugin](companion4soloplayer/core/interface/game_plugin.md)**: The abstract `GamePlugin` contract implemented by every plugin (structural protocol shared by the engine and the plugins).
 - **[Procedural Generator](companion4soloplayer/core/procedural_generator.md)**: Seeded random generation for dungeon layouts, room dimensions, corridors, intersections, and level-scaled difficulty (`ProceduralGenerator`).
 - **[Quest Manager](companion4soloplayer/core/quest_manager.md)**: Quest definition, multi-step objective tracking, completion states, and reward distribution (`QuestManager`, `Quest`, `Objective`, `QuestStatus`).
 - **[Oracle Rule](companion4soloplayer/core/rules/oracle_rule.md)**: Shared yes/no oracle rule element (`OracleRule`) used by every plugin through an absolute `!pyclass` reference.
@@ -76,6 +76,7 @@ Framework-agnostic helpers shared by every layer of the application:
 
 - **[Config Manager](companion4soloplayer/utils/config_manager.md)**: TOML user configuration (`config.toml`) creation, loading, live access, and persistence.
 - **[Logger](companion4soloplayer/utils/logger.md)**: Centralized logging setup driven by the `[logging]` configuration table.
+- **[Plugin Loader](companion4soloplayer/utils/plugin_loader.md)**: Dynamic plugin discovery, compiled extension loading (`.pyd`), and fallback source loading.
 - **[Resource Manager](companion4soloplayer/utils/resource_manager.md)**: Centralized access to shared assets (icons, fonts, sounds).
 - **[YAML Loader](companion4soloplayer/utils/yaml_loader.md)**: Hardened `yaml.SafeLoader` subclass with the custom tags (`!pyclass`, `!dice`) used to read plugin and rule data files safely.
 

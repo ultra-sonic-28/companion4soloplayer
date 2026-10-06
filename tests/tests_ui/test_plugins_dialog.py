@@ -7,10 +7,10 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QLabel, QPushButton
 from pytestqt.qtbot import QtBot
 
-from companion4soloplayer.core.plugin_loader import PluginLoader
 from companion4soloplayer.ui.dialogs.plugin_metadata_dialog import PluginMetadataDialog
 from companion4soloplayer.ui.dialogs.plugins_dialog import DETAILS_COLUMN, PluginsDialog
 from companion4soloplayer.ui.main_window import MainWindow
+from companion4soloplayer.utils.plugin_loader import PluginLoader
 
 
 def _cell_text(dialog: PluginsDialog, row: int, column: int) -> str:

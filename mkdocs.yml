@@ -100,7 +100,7 @@ nav:
       - 'Combat Resolver': 'companion4soloplayer/core/combat_resolver.md'
       - 'Dice Roller': 'companion4soloplayer/core/dice_roller.md'
       - 'Dice Expression': 'companion4soloplayer/core/dice_expression.md'
-      - 'Plugin Loader': 'companion4soloplayer/core/plugin_loader.md'
+      - 'Game Plugin': 'companion4soloplayer/core/interface/game_plugin.md'
       - 'Procedural Generator': 'companion4soloplayer/core/procedural_generator.md'
       - 'Quest Manager': 'companion4soloplayer/core/quest_manager.md'
       - 'Rule Engine': 'companion4soloplayer/core/rule_engine.md'
@@ -120,5 +120,6 @@ nav:
     - Utils:
       - 'Config Manager': 'companion4soloplayer/utils/config_manager.md'
       - 'Logger': 'companion4soloplayer/utils/logger.md'
+      - 'Plugin Loader': 'companion4soloplayer/utils/plugin_loader.md'
       - 'Resource Manager': 'companion4soloplayer/utils/resource_manager.md'
       - 'YAML Loader': 'companion4soloplayer/utils/yaml_loader.md'

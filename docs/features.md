@@ -211,7 +211,7 @@ The procedural layout engine (`companion4soloplayer.core.procedural_generator`) 
 
 ## Plugin Architecture and Multi-Game Systems
 
-The modular core uses `companion4soloplayer.core.plugin_loader` to support different board game systems without touching the core codebase.
+The modular core uses `companion4soloplayer.utils.plugin_loader` to support different board game systems without touching the core codebase.
 
 ### Dynamic Plugin Discovery and Loading
 - Scans user directories, application directories, and built-in folders for compatible game extensions.
@@ -223,7 +223,7 @@ The modular core uses `companion4soloplayer.core.plugin_loader` to support diffe
 - Graceful development fallback: loads standard Python source packages (`*_plugin`) when running in development environments.
 
 ### Standardized GamePlugin Contract
-Every plugin adheres to the abstract `GamePlugin` interface:
+Every plugin adheres to the abstract `GamePlugin` interface defined in `companion4soloplayer.core.interface.game_plugin`:
 
 - **`name` / `version` / `description`**: Metadata properties describing the game system.
 - **`get_classes()`**: Returns character classes available in the game, including starting attributes, starting equipment, and archetype traits.

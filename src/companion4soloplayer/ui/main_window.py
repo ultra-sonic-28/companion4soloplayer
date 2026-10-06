@@ -16,12 +16,12 @@ from PySide6.QtWidgets import (
 
 from companion4soloplayer import APPLICATION_NAME
 from companion4soloplayer.app.application import application_config
-from companion4soloplayer.core.plugin_loader import PluginLoader
 from companion4soloplayer.ui.dialogs.about_dialog import AboutDialog
 from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.dialogs.quest_wizard import QuestWizard
 from companion4soloplayer.ui.dialogs.settings_dialog import SettingsDialog
 from companion4soloplayer.utils.config_manager import ConfigManager
+from companion4soloplayer.utils.plugin_loader import PluginLoader
 from companion4soloplayer.utils.resource_manager import ResourceManager
 
 

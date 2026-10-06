@@ -88,10 +88,12 @@ The complete disclaimer is available in the main README.md file.
     │   │   ├── combat_resolver.py               # Combat resolution
     │   │   ├── quest_manager.py                 # Objective and step tracking
     │   │   ├── rule_engine.py                   # Hybrid YAML/Python rule engine
-    │   │   ├── rules/                           # Shared rule elements
+    │   │   ├── interface/                       # Generic game interfaces
     │   │   │   ├── __init__.py
-    │   │   │   └── oracle_rule.py               # OracleRule (shared by all plugins)
-    │   │   └── plugin_loader.py                 # Dynamic plugin loading
+    │   │   │   └── game_plugin.py               # GamePlugin contract (every plugin)
+    │   │   └── rules/                           # Shared rule elements
+    │   │       ├── __init__.py
+    │   │       └── oracle_rule.py               # OracleRule (shared by all plugins)
     │   │
     │   ├── plugins/                             # Game-specific modules
     │   │   │                                    # Every plugin shares the same layout:
@@ -121,6 +123,7 @@ The complete disclaimer is available in the main README.md file.
     │   │   ├── resource_manager.py              # Centralized resource access
     │   │   ├── config_manager.py                # TOML configuration file
     │   │   ├── logger.py                        # Logging setup
+    │   │   ├── plugin_loader.py                 # Discovery and safe loading of plugins
     │   │   └── yaml_loader.py                   # Safe YAML loader (custom tags)
     │   │
     │   └── ui/                                  # User interface
@@ -146,7 +149,7 @@ The complete disclaimer is available in the main README.md file.
     ├── tests/                                   # Tests
     │   ├── tests_core/                          # Core unit tests
     │   ├── tests_plugins/                       # Plugins tests
-    │   ├── tests_utils/                         # Utils tests (config, logger, resources, yaml)
+    │   ├── tests_utils/                         # Utils tests (config, logger, plugin loader, resources, yaml)
     │   └── tests_ui/                            # Core UI tests
     │
     ├── docs/                                    # Documentation
@@ -319,7 +322,10 @@ and the `main()` wiring test in `tests/tests_ui/test_main_window.py`.
 
 #### 2.1 Plugin interface
 
-Each plugin must implement the `GamePlugin` interface defined in `core/plugin_loader.py`.
+Each plugin must implement the `GamePlugin` interface defined in
+`core/interface/game_plugin.py` (a generic contract of the engine). The
+`PluginLoader` utility that discovers and safely loads the plugins lives
+in `utils/plugin_loader.py`.
 
 #### 2.2 plugin.yaml file
 
@@ -521,5 +527,5 @@ For any legal or technical question:
 
 ---
 
-**Last updated**: 2026-10-05
-**Document version**: 1.2.0
+**Last updated**: 2026-10-06
+**Document version**: 1.3.0

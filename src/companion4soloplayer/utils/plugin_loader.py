@@ -1,6 +1,11 @@
 """
-Plugin loader module.
-Handles dynamic loading of game plugins.
+Plugin loader utility.
+
+Handles the discovery and safe loading of game plugins. This module is
+a utility (``companion4soloplayer.utils``), not part of the generic
+engine: the contract implemented by the plugins it returns is the
+:class:`companion4soloplayer.core.interface.game_plugin.GamePlugin`
+protocol.
 
 Two operating modes are supported:
 
@@ -13,7 +18,8 @@ Two operating modes are supported:
   loaded dynamically through importlib.
 
 Both kinds of plugin expose a ``Plugin`` class compatible with the
-:class:`GamePlugin` protocol. Plugin data (manifest, classes, rules...)
+:class:`~companion4soloplayer.core.interface.game_plugin.GamePlugin`
+protocol. Plugin data (manifest, classes, rules...)
 ships as commented YAML files (``plugin.yaml``, ``rules.yaml``, ...)
 loaded through :mod:`companion4soloplayer.utils.yaml_loader`, and rule
 elements are bound to Python classes through the hybrid
@@ -25,9 +31,9 @@ import importlib.machinery
 import importlib.util
 import sys
 from pathlib import Path
-from typing import Any, Protocol, cast
+from typing import cast
 
-from companion4soloplayer.core.rule_engine import RuleEngine
+from companion4soloplayer.core.interface.game_plugin import GamePlugin
 
 
 def _default_plugins_dir() -> Path:
@@ -70,53 +76,6 @@ def _has_manifest(directory: Path) -> bool:
         True if ``plugin.yaml`` is present.
     """
     return any((directory / name).is_file() for name in MANIFEST_NAMES)
-
-
-class GamePlugin(Protocol):
-    """Interface for game plugins."""
-
-    @property
-    def name(self) -> str:
-        """Plugin name (generic, no trademarked names)."""
-        ...
-
-    @property
-    def version(self) -> str:
-        """Plugin version."""
-        ...
-
-    @property
-    def description(self) -> str:
-        """Plugin description."""
-        ...
-
-    def get_classes(self) -> list[dict]:
-        """Get character classes."""
-        ...
-
-    def get_monsters(self) -> list[dict]:
-        """Get monsters."""
-        ...
-
-    def get_items(self) -> list[dict]:
-        """Get items."""
-        ...
-
-    def get_rules(self) -> dict:
-        """Get game rules."""
-        ...
-
-    def generate_dungeon(self, config: dict) -> dict:
-        """Generate a dungeon."""
-        ...
-
-    def get_rule_engine(self) -> RuleEngine:
-        """Get the hybrid (YAML data + Python classes) rule engine."""
-        ...
-
-    def create_component(self, kind: str) -> Any:
-        """Instantiate a rule component declared in ``rules.yaml``."""
-        ...
 
 
 class PluginLoader:
@@ -193,10 +152,7 @@ class PluginLoader:
         """Load a compiled plugin library and instantiate its Plugin class."""
         spec = importlib.util.spec_from_file_location(
             f"companion4soloplayer.plugins.{plugin_name}",
-            library_path,
-            loader=importlib.machinery.ExtensionFileLoader(
-                f"companion4soloplayer.plugins.{plugin_name}", str(library_path)
-            ),
+            str(library_path),
         )
         if spec is None or spec.loader is None:
             raise ImportError(f"Cannot create import spec for {library_path}")
@@ -287,3 +243,6 @@ class PluginLoader:
             sys.modules.pop(f"companion4soloplayer.plugins.{plugin_name}", None)
             return True
         return False
+
+
+
