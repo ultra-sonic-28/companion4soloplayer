@@ -15,7 +15,7 @@ Two operating modes are supported:
 Both kinds of plugin expose a ``Plugin`` class compatible with the
 :class:`GamePlugin` protocol. Plugin data (manifest, classes, rules...)
 ships as commented YAML files (``plugin.yaml``, ``rules.yaml``, ...)
-loaded through :mod:`companion4soloplayer.core.yaml_loader`, and rule
+loaded through :mod:`companion4soloplayer.utils.yaml_loader`, and rule
 elements are bound to Python classes through the hybrid
 :class:`companion4soloplayer.core.rule_engine.RuleEngine`.
 """

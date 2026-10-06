@@ -1,14 +1,14 @@
-"""Tests for the core YAML loader and its custom tags."""
+"""Tests for the safe YAML loader and its custom tags (``utils.yaml_loader``)."""
 
 from pathlib import Path
 
 import pytest
 import yaml
 
+from companion4soloplayer.core.dice_expression import DiceExpression
 from companion4soloplayer.core.dice_roller import DiceRoller
-from companion4soloplayer.core.yaml_loader import (
+from companion4soloplayer.utils.yaml_loader import (
     C4SPSafeLoader,
-    DiceExpression,
     PyClassRef,
     YamlLoadError,
     YamlTagError,
@@ -77,33 +77,20 @@ def test_pyclass_rejects_invalid_reference() -> None:
         load_yaml("impl: !pyclass not_a_reference")
 
 
-@pytest.mark.parametrize(
-    ("text", "expected"),
-    [
-        ("2d6", DiceExpression(2, 6, 0)),
-        ("1d20+3", DiceExpression(1, 20, 3)),
-        ("d6-1", DiceExpression(1, 6, -1)),
-    ],
-)
-def test_dice_parse_notations(text: str, expected: DiceExpression) -> None:
-    """Dice notations are parsed into typed values."""
-    assert DiceExpression.parse(text) == expected
-
-
-def test_dice_parse_rejects_invalid_notation() -> None:
-    """Invalid dice notations raise an explicit error."""
-    with pytest.raises(YamlTagError):
-        DiceExpression.parse("2x6")
-
-
-def test_dice_tag_and_roll() -> None:
-    """The !dice tag yields a rollable expression."""
+def test_dice_tag_yields_a_rollable_expression() -> None:
+    """The !dice tag yields a rollable DiceExpression value."""
     expr = load_yaml("pool: !dice 2d6")["pool"]
     assert isinstance(expr, DiceExpression)
+    assert expr.notation == "2d6"
     results, total = expr.roll_detail(DiceRoller())
     assert len(results) == 2
     assert sum(results) == total
-    assert expr.notation == "2d6"
+
+
+def test_dice_tag_rejects_invalid_notation() -> None:
+    """An invalid !dice payload is reported as a YamlTagError."""
+    with pytest.raises(YamlTagError, match="Invalid dice notation"):
+        load_yaml("pool: !dice 2x6")
 
 
 def test_unsafe_python_tags_are_rejected() -> None:

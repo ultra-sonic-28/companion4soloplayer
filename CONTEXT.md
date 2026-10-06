@@ -83,11 +83,11 @@ The complete disclaimer is available in the main README.md file.
     │   │   ├── __init__.py
     │   │   ├── character_tracker.py             # HP, stats, inventory management
     │   │   ├── dice_roller.py                   # Dice rolls (d6, d10, d100, custom)
+    │   │   ├── dice_expression.py               # Dice notation value (2d6, 1d20+3)
     │   │   ├── procedural_generator.py          # Procedural dungeon generation
     │   │   ├── combat_resolver.py               # Combat resolution
     │   │   ├── quest_manager.py                 # Objective and step tracking
     │   │   ├── rule_engine.py                   # Hybrid YAML/Python rule engine
-    │   │   ├── yaml_loader.py                   # Safe YAML loader (custom tags)
     │   │   ├── rules/                           # Shared rule elements
     │   │   │   ├── __init__.py
     │   │   │   └── oracle_rule.py               # OracleRule (shared by all plugins)
@@ -120,7 +120,8 @@ The complete disclaimer is available in the main README.md file.
     │   │   ├── __init__.py
     │   │   ├── resource_manager.py              # Centralized resource access
     │   │   ├── config_manager.py                # TOML configuration file
-    │   │   └── logger.py                        # Logging setup
+    │   │   ├── logger.py                        # Logging setup
+    │   │   └── yaml_loader.py                   # Safe YAML loader (custom tags)
     │   │
     │   └── ui/                                  # User interface
     │       ├── __init__.py
@@ -145,7 +146,7 @@ The complete disclaimer is available in the main README.md file.
     ├── tests/                                   # Tests
     │   ├── tests_core/                          # Core unit tests
     │   ├── tests_plugins/                       # Plugins tests
-    │   ├── tests_utils/                         # Utils tests (config, logger, resources)
+    │   ├── tests_utils/                         # Utils tests (config, logger, resources, yaml)
     │   └── tests_ui/                            # Core UI tests
     │
     ├── docs/                                    # Documentation
@@ -350,6 +351,7 @@ metadata:
 Tests must be organized as follows:
 - `tests/tests_core/`: Tests for the generic engine
 - `tests/tests_plugins/`: Tests for the plugins
+- `tests/tests_utils/`: Tests for the shared utilities
 - `tests/tests_ui/`: Tests for the user interface
 
 #### 4.2 Requirements
@@ -520,4 +522,4 @@ For any legal or technical question:
 ---
 
 **Last updated**: 2026-10-05
-**Document version**: 1.1.0
+**Document version**: 1.2.0

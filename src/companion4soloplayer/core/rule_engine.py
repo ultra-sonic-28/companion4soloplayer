@@ -13,7 +13,7 @@ worlds:
 Security model:
 
 - parsing never imports anything (see
-  :mod:`companion4soloplayer.core.yaml_loader`);
+  :mod:`companion4soloplayer.utils.yaml_loader`);
 - absolute imports are restricted to an allow-list of module prefixes
   (:data:`DEFAULT_ALLOWED_MODULES`);
 - ``local:`` references resolve inside the module that declared the rules
@@ -29,7 +29,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from companion4soloplayer.core.yaml_loader import PyClassRef, load_yaml_file
+from companion4soloplayer.utils.yaml_loader import PyClassRef, load_yaml_file
 
 #: Standard rule element kinds understood by the application.
 RULE_KINDS: tuple[str, ...] = (

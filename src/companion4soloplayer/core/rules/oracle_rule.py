@@ -10,8 +10,8 @@ and is referenced from each plugin ``rules.yaml`` with::
 
 from __future__ import annotations
 
+from companion4soloplayer.core.dice_expression import DiceExpression
 from companion4soloplayer.core.dice_roller import DiceRoller
-from companion4soloplayer.core.yaml_loader import DiceExpression
 
 
 class OracleRule:

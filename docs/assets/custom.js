@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mkdocstrings
                 </a>
             </div>
-            <span class="md-copyright c-white">Companion4SoloPlayer <i>v0.1.0 build 5</i></span>
+            <span class="md-copyright c-white">Companion4SoloPlayer <i>v0.1.0 build 6</i></span>
         </div>
     </div>
 `;

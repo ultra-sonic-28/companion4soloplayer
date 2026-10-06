@@ -5,8 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from companion4soloplayer.core.dice_expression import DiceExpression
 from companion4soloplayer.core.dice_roller import DiceRoller
-from companion4soloplayer.core.yaml_loader import DiceExpression
 
 from ..data import get_stat
 

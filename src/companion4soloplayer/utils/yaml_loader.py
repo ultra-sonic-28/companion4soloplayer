@@ -1,5 +1,5 @@
 """
-YAML data loading module for plugin and rule data.
+Safe YAML loading utility for plugin and rule data.
 
 The loader builds on :class:`yaml.SafeLoader`, so only plain YAML data
 (mappings, sequences and scalars) can be constructed: arbitrary Python
@@ -11,7 +11,8 @@ values on purpose:
   YAML/Python rule architecture). It is parsed into a :class:`PyClassRef`
   value; **no import happens during parsing**.
 - ``!dice`` declares a dice expression (``2d6``, ``1d20+3``, ``d6-1``...)
-  and is parsed into a :class:`DiceExpression` value.
+  and is parsed into a
+  :class:`~companion4soloplayer.core.dice_expression.DiceExpression` value.
 
 Additional tags can be registered with :func:`register_tag` before any
 document is loaded, which lets plugins extend the vocabulary without
@@ -20,7 +21,6 @@ touching the core loader.
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -29,7 +29,7 @@ from typing import Any
 import yaml
 from yaml.nodes import MappingNode, Node, ScalarNode
 
-from companion4soloplayer.core.dice_roller import DiceRoller
+from companion4soloplayer.core.dice_expression import DiceExpression, DiceExpressionError
 
 
 class YamlLoadError(ValueError):
@@ -38,89 +38,6 @@ class YamlLoadError(ValueError):
 
 class YamlTagError(ValueError):
     """Raised when the payload of a custom tag is invalid."""
-
-
-# Accepts "2d6", "d20", "1d20+3", "4d6-2" (case-insensitive).
-_DICE_PATTERN = re.compile(r"^(?P<count>\d*)[dD](?P<sides>\d+)(?P<modifier>[+-]\d+)?$")
-
-
-@dataclass(frozen=True)
-class DiceExpression:
-    """A parsed dice expression such as ``2d6`` or ``1d20+3``.
-
-    Attributes:
-        count: Number of dice to roll (at least 1).
-        sides: Number of sides per die (at least 2).
-        modifier: Value added to (or subtracted from) the dice total.
-    """
-
-    count: int
-    sides: int
-    modifier: int = 0
-
-    @classmethod
-    def parse(cls, value: DiceExpression | str) -> DiceExpression:
-        """Parse a dice notation string (already-parsed values pass through).
-
-        Args:
-            value: Dice notation such as ``2d6``, ``d20``, ``1d20+3``.
-
-        Returns:
-            The parsed :class:`DiceExpression`.
-
-        Raises:
-            YamlTagError: If the notation is invalid.
-        """
-        if isinstance(value, DiceExpression):
-            return value
-        match = _DICE_PATTERN.match(value.strip())
-        if match is None:
-            raise YamlTagError(
-                f"Invalid dice notation {value!r}: expected '<count>d<sides>[+/-<modifier>]'"
-            )
-        count = int(match.group("count")) if match.group("count") else 1
-        sides = int(match.group("sides"))
-        if count < 1 or sides < 2:
-            raise YamlTagError(
-                f"Invalid dice notation {value!r}: count >= 1 and sides >= 2 required"
-            )
-        modifier = int(match.group("modifier")) if match.group("modifier") else 0
-        return cls(count=count, sides=sides, modifier=modifier)
-
-    @property
-    def notation(self) -> str:
-        """Return the canonical notation (``2d6+1``)."""
-        modifier = f"{self.modifier:+d}" if self.modifier else ""
-        return f"{self.count}d{self.sides}{modifier}"
-
-    def __str__(self) -> str:
-        """Return the canonical notation."""
-        return self.notation
-
-    def roll(self, roller: DiceRoller | None = None) -> int:
-        """Roll the expression and return the total, modifier included.
-
-        Args:
-            roller: Optional dice roller; a fresh one is created when omitted.
-
-        Returns:
-            Sum of the dice results plus the modifier.
-        """
-        _, total = self.roll_detail(roller)
-        return total
-
-    def roll_detail(self, roller: DiceRoller | None = None) -> tuple[list[int], int]:
-        """Roll the expression and return both the dice results and the total.
-
-        Args:
-            roller: Optional dice roller; a fresh one is created when omitted.
-
-        Returns:
-            Tuple ``(dice results, total including modifier)``.
-        """
-        roller = roller or DiceRoller()
-        results = roller.roll_dice(self.count, self.sides)
-        return results, sum(results) + self.modifier
 
 
 # --------------------------------------------------------------------------
@@ -227,10 +144,19 @@ def _construct_pyclass(loader: C4SPSafeLoader, node: Node) -> PyClassRef:
 
 
 def _construct_dice(loader: C4SPSafeLoader, node: Node) -> DiceExpression:
-    """Construct a ``!dice`` scalar node."""
+    """Construct a ``!dice`` scalar node.
+
+    Raises:
+        YamlTagError: If the node is not a scalar or the dice notation is
+            invalid.
+    """
     if not isinstance(node, ScalarNode):
         raise YamlTagError("!dice expects a scalar notation such as '2d6'")
-    return DiceExpression.parse(str(loader.construct_scalar(node)))
+    try:
+        return DiceExpression.parse(str(loader.construct_scalar(node)))
+    except DiceExpressionError as exc:
+        # The YAML layer reports every invalid tag payload the same way.
+        raise YamlTagError(str(exc)) from exc
 
 
 C4SPSafeLoader.add_constructor("!pyclass", _construct_pyclass)

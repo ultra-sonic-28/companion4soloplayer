@@ -14,7 +14,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from companion4soloplayer.core.yaml_loader import load_yaml_file
+from companion4soloplayer.utils.yaml_loader import load_yaml_file
 
 # Data files (plugin.yaml, classes.yaml, ...) location.
 DATA_DIR = Path(__file__).parent / "datas"

@@ -13,7 +13,7 @@ from companion4soloplayer.core.rule_engine import (
     RuleEngineError,
     UnknownRuleKindError,
 )
-from companion4soloplayer.core.yaml_loader import PyClassRef, load_yaml
+from companion4soloplayer.utils.yaml_loader import PyClassRef, load_yaml
 
 
 class Widget:

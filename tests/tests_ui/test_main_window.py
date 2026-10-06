@@ -10,10 +10,10 @@ import sys
 from pathlib import Path
 
 import pytest
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 from pytestqt.qtbot import QtBot
 
-from companion4soloplayer import __version__
+from companion4soloplayer import APPLICATION_NAME, ORGANIZATION_NAME, __version__
 from companion4soloplayer import main as main_module
 from companion4soloplayer.ui.main_window import MainWindow
 from companion4soloplayer.utils.config_manager import ConfigManager
@@ -35,15 +35,30 @@ class _StubApplication:
         self.argv = argv
         self.config = config
         self.application_name: str | None = None
+        self.application_display_name: str | None = None
         self.application_version: str | None = None
+        self.organization_name: str | None = None
+        self.window_icon: QIcon | None = None
 
     def setApplicationName(self, name: str) -> None:  # noqa: N802
         """Record the application name (Qt naming convention kept)."""
         self.application_name = name
 
+    def setApplicationDisplayName(self, name: str) -> None:  # noqa: N802
+        """Record the application display name (Qt naming convention kept)."""
+        self.application_display_name = name
+
     def setApplicationVersion(self, version: str) -> None:  # noqa: N802
         """Record the application version (Qt naming convention kept)."""
         self.application_version = version
+
+    def setOrganizationName(self, name: str) -> None:  # noqa: N802
+        """Record the organization name (Qt naming convention kept)."""
+        self.organization_name = name
+
+    def setWindowIcon(self, icon: QIcon) -> None:  # noqa: N802
+        """Record the window icon (Qt naming convention kept)."""
+        self.window_icon = icon
 
     def processEvents(self) -> None:  # noqa: N802
         """Flush pending events; a no-op is enough for the launch flow."""
@@ -137,11 +152,14 @@ def test_main_entry_point_launches_and_exits(
     ):
         main_module.main()
 
-    # Normal exit code, application name/version applied, window shown
+    # Normal exit code, application identity applied, window shown
     assert excinfo.value.code == 0
     assert len(created) == 1
     assert created[0].application_name == "Companion4SoloPlayer"
+    assert created[0].application_display_name == APPLICATION_NAME
     assert created[0].application_version == __version__
+    assert created[0].organization_name == ORGANIZATION_NAME
+    assert created[0].window_icon is not None
     # Logging is configured from the configuration, as early as possible...
     assert setup_calls == [config]
     # ...and the application shares that same configuration.

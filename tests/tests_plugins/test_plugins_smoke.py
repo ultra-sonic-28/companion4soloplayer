@@ -9,8 +9,8 @@ import pytest
 from companion4soloplayer.core.plugin_loader import PluginLoader
 from companion4soloplayer.core.rule_engine import RULE_KINDS
 from companion4soloplayer.core.rules import OracleRule
-from companion4soloplayer.core.yaml_loader import load_yaml_file
 from companion4soloplayer.plugins.demo_plugin import PluginMetadata
+from companion4soloplayer.utils.yaml_loader import load_yaml_file
 
 PLUGINS_SRC = Path(__file__).resolve().parents[2] / "src" / "companion4soloplayer" / "plugins"
 EXPECTED_PLUGINS = {"demo"}

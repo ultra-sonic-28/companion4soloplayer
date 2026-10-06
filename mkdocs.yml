@@ -99,10 +99,10 @@ nav:
       - 'Character Tracker': 'companion4soloplayer/core/character_tracker.md'
       - 'Combat Resolver': 'companion4soloplayer/core/combat_resolver.md'
       - 'Dice Roller': 'companion4soloplayer/core/dice_roller.md'
+      - 'Dice Expression': 'companion4soloplayer/core/dice_expression.md'
       - 'Plugin Loader': 'companion4soloplayer/core/plugin_loader.md'
       - 'Procedural Generator': 'companion4soloplayer/core/procedural_generator.md'
       - 'Quest Manager': 'companion4soloplayer/core/quest_manager.md'
-      - 'YAML Loader': 'companion4soloplayer/core/yaml_loader.md'
       - 'Rule Engine': 'companion4soloplayer/core/rule_engine.md'
       - 'Oracle Rule': 'companion4soloplayer/core/rules/oracle_rule.md'
     - Plugins:
@@ -121,3 +121,4 @@ nav:
       - 'Config Manager': 'companion4soloplayer/utils/config_manager.md'
       - 'Logger': 'companion4soloplayer/utils/logger.md'
       - 'Resource Manager': 'companion4soloplayer/utils/resource_manager.md'
+      - 'YAML Loader': 'companion4soloplayer/utils/yaml_loader.md'

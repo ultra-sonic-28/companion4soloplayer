@@ -51,6 +51,7 @@ The `core` package contains pure-Python game mechanics, completely independent o
 - **[Character Tracker](companion4soloplayer/core/character_tracker.md)**: Pydantic-based data models (`Character`) and multi-member party tracking logic (`CharacterTracker`).
 - **[Combat Resolver](companion4soloplayer/core/combat_resolver.md)**: Attack calculations, strength modifiers, armor mitigation, and automated health updates (`CombatResolver`).
 - **[Dice Roller](companion4soloplayer/core/dice_roller.md)**: Polyhedral dice rolling engine (`DiceRoller`), supporting single dice, multi-dice pools, and static modifiers.
+- **[Dice Expression](companion4soloplayer/core/dice_expression.md)**: Dice notation parsing and evaluation value (`DiceExpression`) shared by rule elements and plugins (`2d6`, `1d20+3`, `d6-1`, ...).
 - **[Plugin Loader](companion4soloplayer/core/plugin_loader.md)**: Dynamic plugin discovery, abstract contract definition (`GamePlugin`), compiled extension loading (`.pyd`), and fallback source loading.
 - **[Procedural Generator](companion4soloplayer/core/procedural_generator.md)**: Seeded random generation for dungeon layouts, room dimensions, corridors, intersections, and level-scaled difficulty (`ProceduralGenerator`).
 - **[Quest Manager](companion4soloplayer/core/quest_manager.md)**: Quest definition, multi-step objective tracking, completion states, and reward distribution (`QuestManager`, `Quest`, `Objective`, `QuestStatus`).
@@ -69,6 +70,14 @@ Desktop front-end built on **PySide6 (Qt for Python)**:
 	- **[About Dialog](companion4soloplayer/ui/dialogs/about_dialog.md)**: Application branding, version information, compilation timestamp, and legal notices.
 	- **[Settings Dialog](companion4soloplayer/ui/dialogs/settings_dialog.md)**: Preferences for UI themes (Light/Dark/System), font sizing, auto-save, sound effects, and animations.
 	- **[Quest Wizard](companion4soloplayer/ui/dialogs/quest_wizard.md)**: Interactive modal dialog guiding users through creating customized quests with room counts and difficulty levels.
+
+### 6. Shared Utilities (`utils`)
+Framework-agnostic helpers shared by every layer of the application:
+
+- **[Config Manager](companion4soloplayer/utils/config_manager.md)**: TOML user configuration (`config.toml`) creation, loading, live access, and persistence.
+- **[Logger](companion4soloplayer/utils/logger.md)**: Centralized logging setup driven by the `[logging]` configuration table.
+- **[Resource Manager](companion4soloplayer/utils/resource_manager.md)**: Centralized access to shared assets (icons, fonts, sounds).
+- **[YAML Loader](companion4soloplayer/utils/yaml_loader.md)**: Hardened `yaml.SafeLoader` subclass with the custom tags (`!pyclass`, `!dice`) used to read plugin and rule data files safely.
 
 ---
 
