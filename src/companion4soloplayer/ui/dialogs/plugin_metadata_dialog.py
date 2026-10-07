@@ -95,7 +95,7 @@ class PluginMetadataDialog(QDialog):
         """
         super().__init__(parent)
         self.setWindowTitle("Plugin metadata")
-        self.setMinimumSize(560, 640)
+        self.setMinimumSize(860, 640)
         self.setStyleSheet("QDialog { background-color: #ffffff; }")
 
         self._manifest = manifest
