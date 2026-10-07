@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+    "yaml.customTags": [
+      "tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format scalar",
+      "!pyclass scalar",
+      "!pyclass mapping",
+      "!dice scalar"
+    ]
+  }
+}
