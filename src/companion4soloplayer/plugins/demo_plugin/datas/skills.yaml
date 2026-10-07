@@ -1,0 +1,32 @@
+# Skills ----------------------------------------------------------------
+# Generic fantasy skill names, usable by every class.
+
+- name: Athletics
+  description: Running, climbing, swimming and wrestling.
+
+- name: Stealth
+  description: Moving unseen and picking locks without a sound.
+
+- name: Perception
+  description: Spotting hidden details and listening carefully.
+
+- name: Arcane Lore
+  description: Knowledge of spells, runes and magical traditions.
+
+- name: Nature Lore
+  description: Knowledge of plants, beasts and wild places.
+
+- name: Medicine
+  description: Treating wounds and spotting afflictions.
+
+- name: Diplomacy
+  description: Persuading, deceiving and reading intentions.
+
+- name: Survival
+  description: Foraging, tracking and enduring the wilderness.
+
+- name: Thievery
+  description: Picking pockets and disarming simple traps.
+
+- name: Stonewise
+  description: A racial knack for stonework, caves and craftsmanship.

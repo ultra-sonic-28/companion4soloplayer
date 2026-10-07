@@ -2,6 +2,7 @@
 
 from typing import Any, Protocol
 
+from companion4soloplayer.core.creation import CharacterCreationPipeline
 from companion4soloplayer.core.rule_engine import RuleEngine
 
 
@@ -55,4 +56,13 @@ class GamePlugin(Protocol):
 
     def create_component(self, kind: str) -> Any:
         """Instantiate a rule component declared in ``rules.yaml``."""
+        ...
+
+    def create_character_creation(self) -> CharacterCreationPipeline:
+        """Get the character creation workflow of the game system.
+
+        The pipeline (step order, rules, catalogs and strategies) is
+        declared by the plugin; the returned object is reusable and
+        stateless, callers create one context per character.
+        """
         ...

@@ -84,6 +84,7 @@ nav:
   - Accueil: index.md
   - 'User Guide':
     - Features: 'features.md'
+    - 'Character Creation': 'character_creation.md'
     - 'Build Toolchain' : 'noxfile.md'
     - Scripts:
       - 'Plugins Compilation': 'scripts/compile_plugins.md'
@@ -105,8 +106,23 @@ nav:
       - 'Quest Manager': 'companion4soloplayer/core/quest_manager.md'
       - 'Rule Engine': 'companion4soloplayer/core/rule_engine.md'
       - 'Oracle Rule': 'companion4soloplayer/core/rules/oracle_rule.md'
+      - Character Creation:
+        - 'Context': 'companion4soloplayer/core/creation/context.md'
+        - 'Inputs': 'companion4soloplayer/core/creation/inputs.md'
+        - 'Rules': 'companion4soloplayer/core/creation/rules.md'
+        - 'Strategies': 'companion4soloplayer/core/creation/strategies.md'
+        - 'Pipeline': 'companion4soloplayer/core/creation/pipeline.md'
+        - 'Workflow': 'companion4soloplayer/core/creation/workflow.md'
+        - Steps:
+          - 'Base': 'companion4soloplayer/core/creation/steps/base.md'
+          - 'Identity': 'companion4soloplayer/core/creation/steps/identity.md'
+          - 'Selection': 'companion4soloplayer/core/creation/steps/selection.md'
+          - 'Attributes': 'companion4soloplayer/core/creation/steps/attributes.md'
+          - 'Skills': 'companion4soloplayer/core/creation/steps/skills.md'
+          - 'Spells': 'companion4soloplayer/core/creation/steps/spells.md'
     - Plugins:
       - 'Demo': 'companion4soloplayer/plugins/demo_plugin/plugin.md'
+      - 'Demo Character Creation': 'companion4soloplayer/plugins/demo_plugin/creation.md'
     - UI:
         - Windows:
           - 'MainWindow': 'companion4soloplayer/ui/main_window.md'

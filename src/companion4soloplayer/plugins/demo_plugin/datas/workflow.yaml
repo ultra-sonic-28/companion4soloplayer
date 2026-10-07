@@ -1,0 +1,61 @@
+# Character creation workflow ------------------------------------------
+# The ORDER of this list is the order of the creation steps for this
+# game system: reorder, add or remove entries to match another system.
+# Every step is a !pyclass reference: absolute references point at the
+# generic core steps, while 'local:' references resolve inside this
+# plugin package (development and compiled builds alike).
+
+steps:
+  - !pyclass
+    path: companion4soloplayer.core.creation:IdentityStep
+    params:
+      step_id: identity
+      name_prompt: Character name
+      background_prompt: Background (origin and motivation)
+
+  - !pyclass
+    path: companion4soloplayer.core.creation:SelectionStep
+    params:
+      step_id: race
+      target: choices.race
+      catalog: races
+      prompt: Choose a race
+      optional: true                    # a race may be left undefined
+
+  - !pyclass
+    path: companion4soloplayer.core.creation:SelectionStep
+    params:
+      step_id: class
+      target: choices.class
+      catalog: classes
+      prompt: Choose a class
+      optional: true                    # a class may be left undefined
+
+  - !pyclass
+    path: companion4soloplayer.core.creation:AttributeGenerationStep
+    params:
+      step_id: attributes
+      mode: random                      # random | manual | mixed
+      strategy: classic_4d6             # named in the system data
+      min_value: 3
+      max_value: 18
+
+  - !pyclass
+    path: companion4soloplayer.core.creation:SkillSelectionStep
+    params:
+      step_id: skills
+      mode: free                        # free | inherited | none
+      catalog: skills
+      prompt: Choose 2 to 4 skills
+      min_count: 2
+      max_count: 4
+
+  - !pyclass
+    path: companion4soloplayer.core.creation:SpellSelectionStep
+    params:
+      step_id: spells
+      mode: choice                      # choice | auto | none
+      catalog: spells
+      prompt: Choose up to 2 spells
+      max_count: 2
+      spell_filter: !pyclass local:spell_available

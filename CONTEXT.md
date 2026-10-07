@@ -91,6 +91,22 @@ The complete disclaimer is available in the main README.md file.
     │   │   ├── interface/                       # Generic game interfaces
     │   │   │   ├── __init__.py
     │   │   │   └── game_plugin.py               # GamePlugin contract (every plugin)
+    │   │   ├── creation/                        # Character creation engine
+    │   │   │   ├── __init__.py
+    │   │   │   ├── context.py                   # State container (choices + computed values)
+    │   │   │   ├── inputs.py                    # Input providers (UI-agnostic answers)
+    │   │   │   ├── rules.py                     # Condition/Effect rule engine
+    │   │   │   ├── strategies.py                # Attribute generation strategies
+    │   │   │   ├── pipeline.py                  # Ordered step pipeline + report
+    │   │   │   ├── workflow.py                  # YAML workflow loader (step order)
+    │   │   │   └── steps/                       # Generic creation steps
+    │   │   │       ├── __init__.py
+    │   │   │       ├── base.py                  # CreationStep ABC + step results
+    │   │   │       ├── identity.py              # IdentityStep (name, background)
+    │   │   │       ├── selection.py             # SelectionStep (race, class...)
+    │   │   │       ├── attributes.py            # AttributeGenerationStep
+    │   │   │       ├── skills.py                # SkillSelectionStep
+    │   │   │       └── spells.py                # SpellSelectionStep
     │   │   └── rules/                           # Shared rule elements
     │   │       ├── __init__.py
     │   │       └── oracle_rule.py               # OracleRule (shared by all plugins)
@@ -110,12 +126,22 @@ The complete disclaimer is available in the main README.md file.
     │   │       │   ├── combat_rule.py
     │   │       │   ├── loot_rule.py
     │   │       │   └── magic_rule.py
+    │   │       ├── creation/                    # Character creation (game system side)
+    │   │       │   ├── __init__.py
+    │   │       │   ├── strategies.py            # Named generation methods (4d6 keep 3)
+    │   │       │   ├── filters.py               # Spell availability filter
+    │   │       │   └── workflow.py              # Pipeline assembly (data + rules)
     │   │       ├── datas/                       # Plugin specific datas
     │   │       │   ├── plugin.yaml
     │   │       │   ├── classes.yaml
     │   │       │   ├── monsters.yaml
     │   │       │   ├── items.yaml
-    │   │       │   └── rules.yaml
+    │   │       │   ├── rules.yaml
+    │   │       │   ├── races.yaml               # Character creation catalogs
+    │   │       │   ├── skills.yaml
+    │   │       │   ├── spells.yaml
+    │   │       │   ├── workflow.yaml            # Character creation step order
+    │   │       │   └── creation_rules.yaml      # Bonuses (conditions/effects)
     │   │       └── README.md
     │   │
     │   ├── utils/                               # Shared helpers

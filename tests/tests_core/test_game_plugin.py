@@ -35,4 +35,5 @@ def test_gameplugin_declares_the_documented_api() -> None:
         "generate_dungeon",
         "get_rule_engine",
         "create_component",
+        "create_character_creation",
     }

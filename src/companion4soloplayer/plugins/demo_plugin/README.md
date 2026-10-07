@@ -12,6 +12,9 @@ The mechanics implemented are generic board game concepts that are not protected
 - 2d6 room generation
 - Simple character progression
 - Exploration mechanics
+- Character creation workflow (races, classes, attributes, skills,
+  spells) declared in `datas/workflow.yaml` with Condition/Effect
+  bonuses in `datas/creation_rules.yaml`
 
 ## Usage
 

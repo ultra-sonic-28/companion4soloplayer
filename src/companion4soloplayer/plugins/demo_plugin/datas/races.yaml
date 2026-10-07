@@ -1,0 +1,26 @@
+# Races ----------------------------------------------------------------
+# Original descriptions built on generic fantasy archetypes only.
+
+- name: Human
+  description: Adaptable and ambitious folk found in every settlement.
+  traits:
+    - Versatile
+    - Ambitious
+
+- name: Dwarf
+  description: Stout mountain folk, resilient and stubborn.
+  traits:
+    - Hardy
+    - Stonewise
+
+- name: Elf
+  description: Graceful woodland folk with keen senses.
+  traits:
+    - Graceful
+    - Keen-eared
+
+- name: Gnome
+  description: Curious tinkerers with a flair for the arcane.
+  traits:
+    - Curious
+    - Tinker

@@ -1,0 +1,236 @@
+# Character creation rules ---------------------------------------------
+# Condition/Effect rules evaluated by the core creation rules engine
+# after every executed step. Format:
+#   when:   list of conditions (ALL must hold): target + operator + value
+#   effects: list of actions: target + action + value
+# Rules are evaluated in declaration order; each evaluation rebuilds the
+# effects from scratch, so nothing is ever applied twice.
+
+rules:
+  # --- Racial bonuses and maluses ------------------------------------
+  - id: dwarf_hardy
+    description: Dwarves are hardy (+2 constitution).
+    when:
+      - target: choices.race
+        operator: eq
+        value: Dwarf
+    effects:
+      - target: values.attributes.constitution
+        action: add
+        value: 2
+
+  - id: dwarf_stonewise
+    description: Dwarves inherit the Stonewise skill.
+    when:
+      - target: choices.race
+        operator: eq
+        value: Dwarf
+    effects:
+      - target: values.skills
+        action: grant
+        value: Stonewise
+
+  - id: elf_grace
+    description: Elves are agile (+2 dexterity).
+    when:
+      - target: choices.race
+        operator: eq
+        value: Elf
+    effects:
+      - target: values.attributes.dexterity
+        action: add
+        value: 2
+
+  - id: elf_frail
+    description: Elves are slight (-1 constitution).
+    when:
+      - target: choices.race
+        operator: eq
+        value: Elf
+    effects:
+      - target: values.attributes.constitution
+        action: sub
+        value: 1
+
+  - id: elf_stealth
+    description: Elves inherit the Stealth skill.
+    when:
+      - target: choices.race
+        operator: eq
+        value: Elf
+    effects:
+      - target: values.skills
+        action: grant
+        value: Stealth
+
+  - id: gnome_learning
+    description: Gnomes are clever (+2 intelligence).
+    when:
+      - target: choices.race
+        operator: eq
+        value: Gnome
+    effects:
+      - target: values.attributes.intelligence
+        action: add
+        value: 2
+
+  - id: gnome_nature
+    description: Gnomes inherit the Nature Lore skill.
+    when:
+      - target: choices.race
+        operator: eq
+        value: Gnome
+    effects:
+      - target: values.skills
+        action: grant
+        value: Nature Lore
+
+  - id: human_versatile
+    description: Humans carry an extra wound of resolve (+1 hit point).
+    when:
+      - target: choices.race
+        operator: eq
+        value: Human
+    effects:
+      - target: values.hit_points
+        action: add
+        value: 1
+
+  # --- Class bonuses and granted skills ------------------------------
+  - id: wizard_mind
+    description: Wizards train the mind (+2 intelligence).
+    when:
+      - target: choices.class
+        operator: eq
+        value: Wizard
+    effects:
+      - target: values.attributes.intelligence
+        action: add
+        value: 2
+
+  - id: wizard_arcana
+    description: Wizards inherit the Arcane Lore skill.
+    when:
+      - target: choices.class
+        operator: eq
+        value: Wizard
+    effects:
+      - target: values.skills
+        action: grant
+        value: Arcane Lore
+
+  - id: wizard_grimoire
+    description: Wizards start with two first-level spells.
+    when:
+      - target: choices.class
+        operator: eq
+        value: Wizard
+    effects:
+      - target: values.spells
+        action: grant
+        value: Spark
+      - target: values.spells
+        action: grant
+        value: Mend
+
+  - id: scout_eye
+    description: Scouts are perceptive (+1 dexterity, Perception).
+    when:
+      - target: choices.class
+        operator: eq
+        value: Scout
+    effects:
+      - target: values.attributes.dexterity
+        action: add
+        value: 1
+      - target: values.skills
+        action: grant
+        value: Perception
+
+  - id: bruiser_brawn
+    description: Bruisers are strong (+2 strength, Athletics).
+    when:
+      - target: choices.class
+        operator: eq
+        value: Bruiser
+    effects:
+      - target: values.attributes.strength
+        action: add
+        value: 2
+      - target: values.skills
+        action: grant
+        value: Athletics
+
+  - id: scholar_lore
+    description: Scholars are learned (+1 intelligence, Nature Lore).
+    when:
+      - target: choices.class
+        operator: eq
+        value: Scholar
+    effects:
+      - target: values.attributes.intelligence
+        action: add
+        value: 1
+      - target: values.skills
+        action: grant
+        value: Nature Lore
+
+  - id: archer_eye
+    description: Archers are keen (+1 dexterity, Perception).
+    when:
+      - target: choices.class
+        operator: eq
+        value: Archer
+    effects:
+      - target: values.attributes.dexterity
+        action: add
+        value: 1
+      - target: values.skills
+        action: grant
+        value: Perception
+
+  # --- Bonuses from attribute values ---------------------------------
+  - id: sturdy
+    description: A constitution of 14 or more grants +2 hit points.
+    when:
+      - target: values.attributes.constitution
+        operator: ge
+        value: 14
+    effects:
+      - target: values.hit_points
+        action: add
+        value: 2
+
+  - id: mighty
+    description: A strength of 16 or more grants +1 hit point.
+    when:
+      - target: values.attributes.strength
+        operator: ge
+        value: 16
+    effects:
+      - target: values.hit_points
+        action: add
+        value: 1
+
+  # --- Bonuses from other skills -------------------------------------
+  - id: arcane_initiate
+    description: Knowing Arcane Lore also grants the Light spell.
+    when:
+      - target: values.skills
+        operator: contains
+        value: Arcane Lore
+    effects:
+      - target: values.spells
+        action: grant
+        value: Light
+
+  - id: iron_body
+    description: Knowing Athletics grants +1 hit point.
+    when:
+      - target: values.skills
+        operator: contains
+        value: Athletics
+    effects:
+      - target: values.hit_points
+        action: add
+        value: 1

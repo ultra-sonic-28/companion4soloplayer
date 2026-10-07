@@ -11,6 +11,7 @@ This document details every feature provided by Companion4SoloPlayer, organized 
 - [Overview and Key Strengths](#overview-and-key-strengths)
 - [Character Management](#character-management)
   - [Character Data Model](#character-data-model)
+  - [Character Creation Workflow](#character-creation-workflow)
   - [Party Tracking and Multi-Character Support](#party-tracking-and-multi-character-support)
   - [Hit Points and Status Management](#hit-points-and-status-management)
   - [Inventory and Equipment](#inventory-and-equipment)
@@ -77,6 +78,17 @@ Each character is represented as a strongly-typed `Character` record comprising:
 - **Statistics Block**: A flexible dictionary mapping arbitrary stat identifiers to integer values (e.g., `body`, `mind`, `strength`, `defense`, `speed`).
 - **Inventory**: A list of items, consumables, treasure tokens, and gear currently held in the hero's backpack.
 - **Equipment**: Equipped weapons, armor, shields, and rings actively modifying attributes or usable in combat.
+
+### Character Creation Workflow
+Characters are built by the generic creation engine (`companion4soloplayer.core.creation`), a data-driven pipeline of ordered steps:
+
+- **State container**: raw player *choices* (`choices.*`) and step-computed *values* (`values.*`) with rule-layered effective values.
+- **Steps**: identity (name/background), race and class selection (both optional), attribute generation (random dice strategies, manual entry or a mix of both), skill selection (free picks, inherited from race/class, or absent) and spell selection (filtered list or automatic grants).
+- **Condition/Effect rules**: declarative bonuses and maluses ("if Race=Dwarf then +2 Constitution", attribute thresholds, grants from other skills) evaluated automatically after every step.
+- **Workflow configuration**: each game system declares its own step order in its plugin `workflow.yaml` (see the demo plugin).
+- **Reports**: every run returns per-step statuses (`executed`, `skipped`, `failed`) and the identifiers of the fired rules.
+
+See [Character Creation](character_creation.md) for the full design.
 
 ### Party Tracking and Multi-Character Support
 The `CharacterTracker` engine coordinates party management:

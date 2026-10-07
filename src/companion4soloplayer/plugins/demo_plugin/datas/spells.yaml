@@ -1,0 +1,47 @@
+# Spells ----------------------------------------------------------------
+# Level 1 spells may be picked by a starting character; higher levels
+# are filtered out by the spell_available filter.
+
+- name: Spark
+  level: 1
+  school: Evocation
+  classes: [Wizard]
+  description: A jolt of static electricity leaps to the nearest foe.
+
+- name: Mend
+  level: 1
+  school: Restoration
+  classes: [Wizard]
+  description: Knit superficial wounds closed with a warm glow.
+
+- name: Frost Touch
+  level: 1
+  school: Evocation
+  classes: [Wizard]
+  description: Chill gathers around your hand for a biting touch.
+
+- name: Light
+  level: 1
+  school: Illumination
+  classes: []
+  description: A globe of soft light floats above your head.
+
+- name: Rune Ward
+  level: 1
+  school: Warding
+  classes: []
+  requires_skill: Arcane Lore
+  description: Trace a warding rune that discourages the unwary.
+
+- name: Nature's Whisper
+  level: 1
+  school: Divination
+  classes: []
+  requires_skill: Nature Lore
+  description: The wilds answer your silent question.
+
+- name: Fireball
+  level: 2
+  school: Evocation
+  classes: [Wizard]
+  description: A roaring globe of flame bursts at a distant point.

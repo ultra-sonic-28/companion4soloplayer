@@ -3,16 +3,19 @@
 The facade exposes the
 :class:`~companion4soloplayer.core.interface.game_plugin.GamePlugin`
 protocol API, serves the YAML data documents from the ``datas/``
-directory and binds the hybrid rule engine (declarative ``rules.yaml``
-+ Python rule elements).
+directory, binds the hybrid rule engine (declarative ``rules.yaml`` +
+Python rule elements) and assembles the character creation workflow
+(``datas/workflow.yaml`` + ``datas/creation_rules.yaml``).
 """
 
 from __future__ import annotations
 
 from typing import Any
 
+from companion4soloplayer.core.creation import CharacterCreationPipeline
 from companion4soloplayer.core.rule_engine import RuleEngine
 
+from .creation.workflow import create_character_creation as build_character_creation
 from .data import DATA_DIR, load_data
 from .manifest import PluginMetadata
 
@@ -24,6 +27,7 @@ class Plugin:
         """Initialize the plugin and load its manifest."""
         self._metadata = PluginMetadata(**load_data("plugin.yaml"))
         self._engine: RuleEngine | None = None
+        self._creation: CharacterCreationPipeline | None = None
 
     @property
     def name(self) -> str:
@@ -75,6 +79,29 @@ class Plugin:
             The instantiated component (cached by the rule engine).
         """
         return self.get_rule_engine().component(kind)
+
+    def create_character_creation(self) -> CharacterCreationPipeline:
+        """Get the character creation workflow of this game system.
+
+        The pipeline is built once (the object is stateless and
+        reusable) from ``datas/workflow.yaml`` (step order),
+        ``datas/creation_rules.yaml`` (bonuses/maluses) and the YAML
+        catalogs of the plugin.
+
+        Returns:
+            The assembled creation pipeline.
+
+        Raises:
+            YamlLoadError: If a data file is not valid YAML.
+            RuleDefinitionError: If the creation rules are malformed.
+            WorkflowError: If the workflow cannot be built.
+        """
+        if self._creation is None:
+            # base_module is this plugin package: 'local:' references
+            # of workflow.yaml resolve against it, exactly like the
+            # 'local:' references of rules.yaml.
+            self._creation = build_character_creation(base_module=__package__)
+        return self._creation
 
     def generate_dungeon(self, config: dict) -> dict:
         """Generate a dungeon."""
