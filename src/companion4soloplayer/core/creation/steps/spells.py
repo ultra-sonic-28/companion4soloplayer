@@ -6,7 +6,7 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 from companion4soloplayer.core.creation.context import CharacterCreationContext, parse_path
-from companion4soloplayer.core.creation.inputs import InputProvider
+from companion4soloplayer.core.creation.inputs import InputField, InputKind, InputProvider
 from companion4soloplayer.core.creation.steps.base import (
     CreationStep,
     StepConfigurationError,
@@ -167,6 +167,43 @@ class SpellSelectionStep(CreationStep):
         if self._mode != "choice":
             return False
         return bool(self.available(context))
+
+    def describe_inputs(self, context: CharacterCreationContext) -> tuple[InputField, ...]:
+        """Describe the spell picks as one multiple-choice field.
+
+        The option list goes through the configured ``spell_filter``
+        with the given context, so it only proposes the spells this
+        character may pick.
+
+        Args:
+            context: Current creation state (provides the catalog and
+                feeds the filter).
+
+        Returns:
+            One ``CHOICES`` field in ``choice`` mode with at least one
+            available spell, or an empty tuple (``auto``/``none`` modes
+            ask nothing).
+
+        Raises:
+            StepConfigurationError: If the catalog or the filter is
+                broken.
+        """
+        if self._mode != "choice":
+            return ()
+        options = self.available(context)
+        if not options:
+            return ()
+        return (
+            InputField(
+                key=self.step_id,
+                label=self._prompt,
+                kind=InputKind.CHOICES,
+                options=tuple(options),
+                required=self._min_count > 0,
+                min_count=self._min_count,
+                max_count=self._max_count,
+            ),
+        )
 
     def execute(self, context: CharacterCreationContext, inputs: InputProvider) -> None:
         """Ask for the spell picks and mirror them to the working list.

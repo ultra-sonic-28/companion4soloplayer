@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from companion4soloplayer.core.creation.context import CharacterCreationContext, parse_path
-from companion4soloplayer.core.creation.inputs import InputProvider
+from companion4soloplayer.core.creation.inputs import InputField, InputKind, InputProvider
 from companion4soloplayer.core.creation.steps.base import (
     CreationStep,
     StepConfigurationError,
@@ -129,6 +129,34 @@ class SkillSelectionStep(CreationStep):
         if self._mode != "free":
             return False
         return bool(self.available(context))
+
+    def describe_inputs(self, context: CharacterCreationContext) -> tuple[InputField, ...]:
+        """Describe the skill picks as one multiple-choice field.
+
+        Args:
+            context: Current creation state (provides the catalog).
+
+        Returns:
+            One ``CHOICES`` field in ``free`` mode with a non-empty
+            catalog, or an empty tuple (``inherited`` and ``none``
+            modes ask nothing).
+        """
+        if self._mode != "free":
+            return ()
+        options = self.available(context)
+        if not options:
+            return ()
+        return (
+            InputField(
+                key=self.step_id,
+                label=self._prompt,
+                kind=InputKind.CHOICES,
+                options=tuple(options),
+                required=self._min_count > 0,
+                min_count=self._min_count,
+                max_count=self._max_count,
+            ),
+        )
 
     def execute(self, context: CharacterCreationContext, inputs: InputProvider) -> None:
         """Ask for the skill picks and mirror them to the working list.

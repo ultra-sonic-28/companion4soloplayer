@@ -8,6 +8,7 @@ from PySide6.QtGui import QAction, QCloseEvent, QGuiApplication, QIcon
 from PySide6.QtWidgets import (
     QLabel,
     QMainWindow,
+    QMessageBox,
     QStatusBar,
     QTabWidget,
     QVBoxLayout,
@@ -16,6 +17,8 @@ from PySide6.QtWidgets import (
 
 from companion4soloplayer import APPLICATION_NAME
 from companion4soloplayer.app.application import application_config
+from companion4soloplayer.core.interface.game_plugin import GamePlugin
+from companion4soloplayer.ui.builder import CharacterCreationDialog
 from companion4soloplayer.ui.dialogs.about_dialog import AboutDialog
 from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.dialogs.quest_wizard import QuestWizard
@@ -105,6 +108,10 @@ class MainWindow(QMainWindow):
 
         # Manage menu
         manage_menu = menu_bar.addMenu("&Manage")
+
+        player_action = QAction("&Player", self)
+        player_action.triggered.connect(self._show_player)
+        manage_menu.addAction(player_action)
 
         plugin_action = QAction("&Plugins", self)
         plugin_action.triggered.connect(self._show_plugin)
@@ -279,3 +286,54 @@ class MainWindow(QMainWindow):
         """Show the Plugin dialog."""
         dialog = PluginsDialog(self, self._plugin_loader)
         dialog.exec()
+
+    def _creation_plugin(self) -> GamePlugin | None:
+        """Return the plugin providing the character creation workflow.
+
+        The first already loaded plugin wins; otherwise the first
+        discovered plugin is loaded on demand (and reported in the
+        status bar).
+
+        Returns:
+            The plugin facade, or None when no plugin is available.
+        """
+        if self._plugin_loader.loaded_plugins:
+            return next(iter(self._plugin_loader.loaded_plugins.values()))
+        names = self._plugin_loader.discover_plugins()
+        if not names:
+            return None
+        plugin = self._plugin_loader.load_plugin(names[0])
+        if plugin is not None:
+            self.status_bar.showMessage(f"Plugin '{names[0]}' loaded")
+        return plugin
+
+    def _show_player(self) -> None:
+        """Show the Player creation dialog (Manage > Player).
+
+        The dialog is built dynamically from the creation pipeline of
+        the game system (its ``workflow.yaml`` step order) and the
+        result of a validated character is reported in the status bar.
+        """
+        plugin = self._creation_plugin()
+        if plugin is None:
+            QMessageBox.information(
+                self,
+                "Player",
+                "No game plugin is available.\n" "Load a plugin first (Manage > Plugins).",
+            )
+            return
+        try:
+            pipeline = plugin.create_character_creation()
+        except Exception as exc:
+            QMessageBox.warning(
+                self,
+                "Player",
+                f"The character creation workflow could not be loaded:\n{exc}",
+            )
+            return
+        dialog = CharacterCreationDialog(pipeline, self)
+        if not dialog.exec():
+            return
+        name = str(dialog.answers.get("identity.name") or "").strip()
+        label = f" '{name}'" if name else ""
+        self.status_bar.showMessage(f"Player character{label} created")

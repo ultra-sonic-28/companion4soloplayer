@@ -38,6 +38,8 @@ from companion4soloplayer.core.creation.context import (
 )
 from companion4soloplayer.core.creation.inputs import (
     InputError,
+    InputField,
+    InputKind,
     InputProvider,
     InvalidAnswerError,
     MappingInputProvider,
@@ -99,6 +101,8 @@ __all__ = [
     "EvaluationReport",
     "IdentityStep",
     "InputError",
+    "InputField",
+    "InputKind",
     "InputProvider",
     "InvalidAnswerError",
     "InvalidPathError",

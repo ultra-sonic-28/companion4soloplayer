@@ -14,6 +14,11 @@ the pipeline:
 
 The pipeline then evaluates the condition/effect rules automatically
 before moving to the next step.
+
+Before the run starts, :meth:`CreationStep.describe_inputs` declares
+the data the step is going to ask (answer key, widget category,
+options), so a UI can build the whole form upfront without executing
+anything.
 """
 
 from __future__ import annotations
@@ -25,7 +30,7 @@ from enum import StrEnum
 from typing import Any
 
 from companion4soloplayer.core.creation.context import CharacterCreationContext
-from companion4soloplayer.core.creation.inputs import InputProvider
+from companion4soloplayer.core.creation.inputs import InputField, InputProvider
 
 
 class StepConfigurationError(ValueError):
@@ -103,6 +108,25 @@ class CreationStep(ABC):
     def label(self) -> str:
         """Return the human-readable label of the step."""
         return self._label
+
+    def describe_inputs(self, context: CharacterCreationContext) -> tuple[InputField, ...]:
+        """Describe the data this step will ask, in display order.
+
+        The generic UI builds its form from these descriptions (one
+        field per data item, grouped per step) without executing the
+        step. The default implementation declares nothing; the generic
+        steps override it.
+
+        Args:
+            context: Current creation state (used to resolve the
+                available options, the attribute names...).
+
+        Returns:
+            The fields describing the answers collected by
+            :meth:`execute`, in display order; empty when the step
+            collects nothing (or is not applicable).
+        """
+        return ()
 
     @abstractmethod
     def is_applicable(self, context: CharacterCreationContext) -> bool:

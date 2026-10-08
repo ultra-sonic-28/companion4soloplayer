@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 
 from companion4soloplayer.core.creation.context import CharacterCreationContext, parse_path
-from companion4soloplayer.core.creation.inputs import InputProvider
+from companion4soloplayer.core.creation.inputs import InputField, InputKind, InputProvider
 from companion4soloplayer.core.creation.steps.base import (
     CreationStep,
     StepConfigurationError,
@@ -133,6 +133,31 @@ class SelectionStep(CreationStep):
             True when at least one option is available.
         """
         return bool(self.available(context))
+
+    def describe_inputs(self, context: CharacterCreationContext) -> tuple[InputField, ...]:
+        """Describe the selection as one single-choice field.
+
+        Args:
+            context: Current creation state (resolves the available
+                options).
+
+        Returns:
+            One ``CHOICE`` field listing the available options, or an
+            empty tuple when the game system declares no such data
+            (the step is then skipped by the pipeline).
+        """
+        options = self.available(context)
+        if not options:
+            return ()
+        return (
+            InputField(
+                key=self.step_id,
+                label=self._prompt,
+                kind=InputKind.CHOICE,
+                options=tuple(options),
+                required=not self._optional,
+            ),
+        )
 
     def execute(self, context: CharacterCreationContext, inputs: InputProvider) -> None:
         """Ask for the selection and store it at ``target``.

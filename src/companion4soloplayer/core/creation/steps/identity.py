@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from companion4soloplayer.core.creation.context import CharacterCreationContext
-from companion4soloplayer.core.creation.inputs import InputProvider
+from companion4soloplayer.core.creation.inputs import InputField, InputKind, InputProvider
 from companion4soloplayer.core.creation.steps.base import CreationStep
 
 
@@ -82,6 +82,36 @@ class IdentityStep(CreationStep):
             Always True: every character has an identity.
         """
         return True
+
+    def describe_inputs(self, context: CharacterCreationContext) -> tuple[InputField, ...]:
+        """Describe the name and background fields of the character.
+
+        Args:
+            context: Current creation state (unused).
+
+        Returns:
+            One ``TEXT`` field for the name and one field for the
+            background: a ``CHOICE`` field when ``background_options``
+            is configured, a ``TEXT`` field otherwise.
+        """
+        background_kind = (
+            InputKind.CHOICE if self._background_options is not None else InputKind.TEXT
+        )
+        return (
+            InputField(
+                key=f"{self.step_id}.name",
+                label=self._name_prompt,
+                kind=InputKind.TEXT,
+                required=self._name_required,
+            ),
+            InputField(
+                key=f"{self.step_id}.background",
+                label=self._background_prompt,
+                kind=background_kind,
+                options=tuple(self._background_options or ()),
+                required=self._background_required,
+            ),
+        )
 
     def execute(self, context: CharacterCreationContext, inputs: InputProvider) -> None:
         """Ask for the name and the background, then store them.

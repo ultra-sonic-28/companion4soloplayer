@@ -17,6 +17,7 @@ plugin.
 - [Pipeline](#pipeline)
 - [Workflow configuration](#workflow-configuration)
 - [Using the workflow from a plugin](#using-the-workflow-from-a-plugin)
+- [Player creation dialog](#player-creation-dialog)
 
 ---
 
@@ -89,6 +90,7 @@ Every step subclasses `CreationStep` and implements three methods:
 | `is_applicable(context)` | tells whether the step must run (missing catalog, `inherited`/`auto`/`none` modes...) |
 | `execute(context, inputs)` | asks the answers through the `InputProvider` and writes the state |
 | `validate(context)` | returns the list of error messages (empty = valid) |
+| `describe_inputs(context)` | declares the data the step will ask (answer key, widget kind, options) |
 
 The generic steps shipped by the core are:
 
@@ -172,7 +174,10 @@ earlier ones (chaining).
 
 `AttributeGenerationStep` supports three modes:
 
-- `random` — every attribute comes from a strategy;
+- `random` — every attribute comes from a strategy, unless the provider
+  already holds an answer for it (a die rolled in the Player dialog, a
+  scripted fixture...), which keeps the UI and the final character in
+  sync;
 - `manual` — every attribute is asked to the player;
 - `mixed` — the attributes listed in `manual_attributes` are asked, the
   others are rolled.
@@ -272,3 +277,59 @@ The plugin declares, under `plugins/demo_plugin/`:
 - `creation/strategies.py` — the named generation methods;
 - `creation/filters.py` — the spell availability filter;
 - `creation/workflow.py` — the assembly (catalogs + rules + workflow).
+
+---
+
+## Player creation dialog
+
+The **Manage > Player** menu (right above *Manage > Plugins*) opens the
+dynamic creation dialog. The dialog belongs to the **application**
+(`companion4soloplayer.ui.builder`), not to the plugins: any game
+system exposing a creation pipeline through the `GamePlugin` contract
+gets the same form, built from its `workflow.yaml` step order.
+
+```mermaid
+flowchart TD
+    W["workflow.yaml (plugin)"] --> P["CharacterCreationPipeline"]
+    P -->|describe_inputs() per step| B["CharacterCreationDialogBuilder"]
+    B --> D["CharacterCreationDialog<br/>sections of empty widgets"]
+    D -->|Validate| R["pipeline.run(collected answers)"]
+    R -->|ok| OK["accepted: report + context"]
+    R -->|failure| KO["errors displayed, dialog stays open"]
+```
+
+- The **sections, the field count and their widget kinds** come from
+  the steps declared by `workflow.yaml`, through
+  `CreationStep.describe_inputs(context)`: one section (group box) per
+  step describing data; steps asking nothing (`inherited` skills,
+  `auto` spells...) are not rendered.
+- Each data item renders a widget matching its `InputKind`:
+
+  | Kind | Widget | Example |
+  | --- | --- | --- |
+  | `TEXT` | single-line text edit | character name |
+  | `NUMBER` | single-line numeric edit | manually assigned attribute |
+  | `DICE` | label + die button | randomly generated attribute |
+  | `CHOICE` | single-selection list | race, class |
+  | `CHOICES` | multiple-selection list | skills, spells |
+
+- Every widget starts **empty**.
+- **Validate** collects the answers (empty widgets stay unanswered, so
+  the steps keep enforcing their own required/optional rules), runs the
+  pipeline and closes the dialog on success — `dialog.report` holds the
+  `CreationReport`, `dialog.context` the filled state. On failure the
+  step error messages are displayed and the dialog stays open.
+- **Cancel** discards everything (`report` and `context` stay `None`).
+- The choice lists are **re-evaluated** whenever a selection or a die
+  roll changes: the pipeline is replayed on a throwaway context with
+  the answers collected so far (`stop_on_error=False`), so a filtered
+  list — the spells restricted to the chosen class, for instance —
+  always matches the state known so far.
+
+```python
+from companion4soloplayer.ui.builder import CharacterCreationDialog
+
+dialog = CharacterCreationDialog(plugin.create_character_creation(), parent)
+if dialog.exec():
+    character = dialog.context.export()
+```

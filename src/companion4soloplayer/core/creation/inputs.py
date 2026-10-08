@@ -20,11 +20,20 @@ Many selections               ``<step_id>`` (e.g. ``skills``, ``spells``)
 One attribute value           ``<step_id>.<attribute>`` (e.g.
                               ``attributes.strength``)
 ============================  ==========================================
+
+Before any answer exists, a step may also *describe* the data it is
+going to ask: :class:`InputKind` and :class:`InputField` carry the
+answer key, the widget category (text, dice, choice...) and the
+available options of one data item. Those descriptions are produced by
+``CreationStep.describe_inputs()`` and consumed by the UI to build a
+form dynamically, in the step order declared by the workflow.
 """
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any, Protocol, runtime_checkable
 
 #: Internal marker for "the provider holds no answer for this key".
@@ -41,6 +50,68 @@ class MissingInputError(InputError):
 
 class InvalidAnswerError(InputError):
     """Raised when an answer has the wrong type or is out of bounds."""
+
+
+class InputKind(StrEnum):
+    """Category of one data item, mapped to a widget by the UI.
+
+    The kind tells the UI *how* to render the field and tells the
+    reader *which* provider method will collect the answer:
+
+    ===========  ==================  ====================================
+    Kind         Provider method     Typical widget
+    ===========  ==================  ====================================
+    ``TEXT``     ``ask_text``        single-line text edit
+    ``NUMBER``   ``ask_number``      single-line numeric text edit
+    ``DICE``     ``ask_number``      label + die button (rolled value)
+    ``CHOICE``   ``ask_choice``      single-selection list
+    ``CHOICES``  ``ask_many``        multiple-selection list
+    ===========  ==================  ====================================
+    """
+
+    TEXT = "text"
+    NUMBER = "number"
+    DICE = "dice"
+    CHOICE = "choice"
+    CHOICES = "choices"
+
+
+@dataclass(frozen=True)
+class InputField:
+    """Description of one data item collected by a creation step.
+
+    A field is pure data (no widget): a step declares what it is going
+    to ask through ``CreationStep.describe_inputs()`` and the UI turns
+    each field into a widget of the kind declared here.
+
+    Attributes:
+        key: Stable answer key forwarded to the ``InputProvider``
+            (e.g. ``identity.name``, ``attributes.strength``).
+        label: Human-readable label displayed next to the widget.
+        kind: Widget/answer category (see :class:`InputKind`).
+        options: Available options of a ``CHOICE``/``CHOICES`` field.
+        required: Whether an empty answer is rejected.
+        min_count: Minimum number of picks of a ``CHOICES`` field.
+        max_count: Maximum number of picks of a ``CHOICES`` field
+            (None means unlimited).
+        min_value: Inclusive lower bound of a ``NUMBER``/``DICE``
+            field.
+        max_value: Inclusive upper bound of a ``NUMBER``/``DICE``
+            field.
+        roll: Callable producing the dice value of a ``DICE`` field
+            (None when no die is involved).
+    """
+
+    key: str
+    label: str
+    kind: InputKind
+    options: tuple[str, ...] = ()
+    required: bool = False
+    min_count: int = 0
+    max_count: int | None = None
+    min_value: int | None = None
+    max_value: int | None = None
+    roll: Callable[[], int] | None = None
 
 
 @runtime_checkable

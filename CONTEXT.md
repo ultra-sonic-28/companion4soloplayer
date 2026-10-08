@@ -158,6 +158,11 @@ The complete disclaimer is available in the main README.md file.
     │       ├── character_panel.py               # Character management panel
     │       ├── quest_panel.py                   # Quest management panel
     │       ├── grid_view.py                     # Dungeon grid view
+    │       ├── builder/                         # Dynamic player creation dialog
+    │       │   ├── __init__.py
+    │       │   ├── fields.py                    # Field widgets (text, dice, choice)
+    │       │   ├── dialog_builder.py            # Pipeline -> dialog sections
+    │       │   └── creation_dialog.py           # Player dialog (Validate / Cancel)
     │       └── dialogs/                         # Dialog windows
     │           ├── quest_wizard.py              # Quest creation wizard
     │           └── settings_dialog.py           # Settings
