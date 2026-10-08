@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from functools import partial
-from typing import Any
+from typing import Any, cast
 
 from companion4soloplayer.core.creation.context import CharacterCreationContext, parse_path
 from companion4soloplayer.core.creation.inputs import (
@@ -360,7 +360,7 @@ class AttributeGenerationStep(CreationStep):
                 name is unknown, or the configured value is neither a
                 strategy nor an instantiable class.
         """
-        strategy = self._strategy
+        strategy: AttributeGenerationStrategy | str | type | None = self._strategy
         if strategy is None:
             raise StepConfigurationError(
                 f"Step {self.step_id!r}: no attribute generation strategy configured"
@@ -375,15 +375,19 @@ class AttributeGenerationStep(CreationStep):
                 )
             strategy = registry[strategy]
         if isinstance(strategy, type):
+            strategy_class = strategy
             try:
-                strategy = strategy()
+                strategy = strategy_class()
             except Exception as exc:
                 raise StepConfigurationError(
-                    f"Step {self.step_id!r}: cannot instantiate strategy {strategy.__name__}: {exc}"
+                    f"Step {self.step_id!r}: cannot instantiate strategy "
+                    f"{strategy_class.__name__}: {exc}"
                 ) from exc
         if not callable(getattr(strategy, "roll", None)):
             raise StepConfigurationError(
                 f"Step {self.step_id!r}: {strategy!r} is not an attribute strategy"
             )
-        resolved: AttributeGenerationStrategy = strategy
-        return resolved
+        # The branches above exhaustively handled None, str and type, and
+        # the roll attribute was just checked: the cast states that
+        # guarantee without relying on the checker's narrowing.
+        return cast(AttributeGenerationStrategy, strategy)
