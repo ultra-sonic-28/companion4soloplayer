@@ -1,8 +1,11 @@
 # Character classes ----------------------------------------------------
 # Original descriptions built on generic fantasy archetypes only.
+# can_cast_spells tells whether members of the class may cast spells:
+# it gates the spells block of the character creation dialog.
 
 - name: Adventurer
   description: A generic adventurer exploring the dungeon
+  can_cast_spells: false
   base_stats:
     combat: 3
     exploration: 3
@@ -13,6 +16,7 @@
 
 - name: Scout
   description: A keen-eyed explorer with cartographic skills
+  can_cast_spells: false
   base_stats:
     combat: 2
     exploration: 5
@@ -23,6 +27,7 @@
 
 - name: Bruiser
   description: A heavy-hitting warrior built for front lines
+  can_cast_spells: false
   base_stats:
     combat: 5
     exploration: 2
@@ -33,6 +38,7 @@
 
 - name: Scholar
   description: A learned individual versed in ancient lore
+  can_cast_spells: false
   base_stats:
     combat: 2
     exploration: 4
@@ -43,6 +49,7 @@
 
 - name: Wizard
   description: A master of the arcane arts
+  can_cast_spells: true
   base_stats:
     body: 4
     mind: 6
@@ -53,6 +60,7 @@
 
 - name: Archer
   description: A graceful archer from the forests
+  can_cast_spells: false
   base_stats:
     body: 5
     mind: 5

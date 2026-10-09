@@ -23,6 +23,7 @@ from PySide6.QtWidgets import QGridLayout, QGroupBox, QVBoxLayout, QWidget
 from companion4soloplayer.core.creation import (
     CharacterCreationContext,
     CharacterCreationPipeline,
+    CreationStep,
     InputField,
     InputKind,
 )
@@ -103,20 +104,49 @@ class CharacterCreationDialogBuilder:
             context = self._pipeline.create_context()
         sections: list[StepSection] = []
         for step in self._pipeline.steps:
-            fields = step.describe_inputs(context)
-            if not fields:
-                continue
-            box = QGroupBox(step.label, parent)
-            rows = self._fill_section(box, fields)
-            sections.append(
-                StepSection(
-                    step_id=step.step_id,
-                    label=step.label,
-                    box=box,
-                    rows=rows,
-                )
-            )
+            section = self.build_section(step, context=context, parent=parent)
+            if section is not None:
+                sections.append(section)
         return sections
+
+    def build_section(
+        self,
+        step: CreationStep,
+        *,
+        context: CharacterCreationContext | None = None,
+        parent: QWidget | None = None,
+    ) -> StepSection | None:
+        """Build the single section of one workflow step.
+
+        This is the incremental counterpart of :meth:`build`: a dialog
+        refreshing itself as the answers come in can materialize a
+        section whose step starts describing data (the spells block
+        appearing once a spellcasting race/class is chosen, for
+        instance).
+
+        Args:
+            step: Workflow step describing the data to render.
+            context: State used to resolve the descriptions. A fresh
+                context of the pipeline is used when omitted.
+            parent: Owning widget of the group box.
+
+        Returns:
+            The section, or None when the step currently describes no
+            data (the block must not be rendered).
+        """
+        if context is None:
+            context = self._pipeline.create_context()
+        fields = step.describe_inputs(context)
+        if not fields:
+            return None
+        box = QGroupBox(step.label, parent)
+        rows = self._fill_section(box, fields)
+        return StepSection(
+            step_id=step.step_id,
+            label=step.label,
+            box=box,
+            rows=rows,
+        )
 
     @staticmethod
     def _fill_section(

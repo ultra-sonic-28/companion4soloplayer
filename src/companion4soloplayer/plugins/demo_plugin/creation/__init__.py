@@ -15,7 +15,11 @@ The generic engine lives in
 the ``datas/`` directory of the plugin.
 """
 
-from companion4soloplayer.plugins.demo_plugin.creation.filters import spell_available
+from companion4soloplayer.plugins.demo_plugin.creation.filters import (
+    can_cast_spells,
+    skill_available,
+    spell_available,
+)
 from companion4soloplayer.plugins.demo_plugin.creation.strategies import (
     FourSixKeepBestStrategy,
 )
@@ -29,6 +33,8 @@ __all__ = [
     "ATTRIBUTES",
     "FourSixKeepBestStrategy",
     "build_system",
+    "can_cast_spells",
     "create_character_creation",
+    "skill_available",
     "spell_available",
 ]

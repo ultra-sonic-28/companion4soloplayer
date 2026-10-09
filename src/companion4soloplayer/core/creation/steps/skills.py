@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping, Sequence
+from typing import Any
+
 from companion4soloplayer.core.creation.context import CharacterCreationContext, parse_path
 from companion4soloplayer.core.creation.inputs import InputField, InputKind, InputProvider
 from companion4soloplayer.core.creation.steps.base import (
@@ -13,13 +16,17 @@ from companion4soloplayer.core.creation.steps.base import (
 #: Skill selection modes understood by the step.
 MODES: tuple[str, ...] = ("free", "inherited", "none")
 
+#: Signature of the skill filter: ``(skill, context) -> is_available``.
+SkillFilter = Callable[[Mapping[str, Any], CharacterCreationContext], bool]
+
 
 class SkillSelectionStep(CreationStep):
     """Collect the skills of the character.
 
     Three modes cover the possible skill models of a game system:
 
-    - ``free``: the player picks 0..n skills from the catalog; the raw
+    - ``free``: the player picks 0..n skills from the catalog, kept
+      available by the optional ``skill_filter``; the raw
       picks are stored at ``target`` (``choices.skills``) and mirrored
       as base values at ``working_target`` (``values.skills``) so the
       rules engine can layer the inherited skills on top;
@@ -39,12 +46,15 @@ class SkillSelectionStep(CreationStep):
             (rule grants are layered on top of it).
         min_count: Minimum number of picks in ``free`` mode.
         max_count: Maximum number of picks in ``free`` mode.
+        skill_filter: Predicate keeping the skills available for the
+            current character; ``None`` keeps the whole catalog.
         prompt: Question asked to the player.
         label: Human-readable label.
 
     Raises:
         StepConfigurationError: If ``step_id`` is empty, a target is
-            not a valid leaf path, or the mode is unknown.
+            not a valid leaf path, the mode is unknown, or the filter
+            is not callable.
     """
 
     def __init__(
@@ -57,6 +67,7 @@ class SkillSelectionStep(CreationStep):
         working_target: str = "values.skills",
         min_count: int = 0,
         max_count: int | None = None,
+        skill_filter: SkillFilter | None = None,
         prompt: str | None = None,
         label: str = "",
     ) -> None:
@@ -70,6 +81,7 @@ class SkillSelectionStep(CreationStep):
             working_target: State path of the effective skill list base.
             min_count: Minimum number of picks.
             max_count: Maximum number of picks.
+            skill_filter: Predicate keeping available skills.
             prompt: Question asked to the player.
             label: Human-readable label.
 
@@ -89,12 +101,15 @@ class SkillSelectionStep(CreationStep):
             raise StepConfigurationError(
                 f"max_count ({max_count}) cannot be lower than min_count ({min_count})"
             )
+        if skill_filter is not None and not callable(skill_filter):
+            raise StepConfigurationError("skill_filter must be callable")
         self._mode = mode
         self._catalog = catalog
         self._target = target
         self._working_target = working_target
         self._min_count = min_count
         self._max_count = max_count
+        self._skill_filter = skill_filter
         self._prompt = prompt or "Choose your skills"
 
     @property
@@ -103,19 +118,49 @@ class SkillSelectionStep(CreationStep):
         return self._mode
 
     def available(self, context: CharacterCreationContext) -> list[str]:
-        """Return the skill catalog of the game system.
+        """Return the skills available for the current character.
+
+        The catalog goes through the configured ``skill_filter`` when
+        one is declared, so an option list depending on the state (the
+        skills unlocked by the chosen race/class, for instance) only
+        proposes the relevant entries.
 
         Args:
-            context: Current creation state.
+            context: Current creation state (the filter receives the
+                catalog entries together with the state).
 
         Returns:
-            The skill names, or an empty list when the system declares
-            no skills.
+            The names of the catalog entries passing the filter (the
+            whole catalog when no filter is configured), or an empty
+            list when the system declares no skills.
 
         Raises:
-            StepConfigurationError: If the catalog is malformed.
+            StepConfigurationError: If the catalog or the filter is
+                malformed.
         """
-        return catalog_names(context.system, self._catalog)
+        entries = context.system.get(self._catalog)
+        if entries is None:
+            return []
+        names = catalog_names(context.system, self._catalog)
+        if self._skill_filter is None:
+            return names
+        if isinstance(entries, (str, bytes)) or not isinstance(entries, Sequence):
+            raise StepConfigurationError(f"Catalog {self._catalog!r} must be a sequence of entries")
+        available: list[str] = []
+        for name, entry in zip(names, entries, strict=True):
+            if not isinstance(entry, Mapping):
+                raise StepConfigurationError(
+                    f"Catalog {self._catalog!r} entries must be mappings to be filtered"
+                )
+            try:
+                keep = self._skill_filter(entry, context)
+            except Exception as exc:
+                raise StepConfigurationError(
+                    f"The skill filter of step {self.step_id!r} failed for {name!r}: {exc}"
+                ) from exc
+            if keep:
+                available.append(name)
+        return available
 
     def is_applicable(self, context: CharacterCreationContext) -> bool:
         """Tell whether the step must run.
@@ -124,7 +169,8 @@ class SkillSelectionStep(CreationStep):
             context: Current creation state.
 
         Returns:
-            True only in ``free`` mode with a non-empty catalog.
+            True only in ``free`` mode with at least one available
+            skill.
         """
         if self._mode != "free":
             return False
@@ -133,25 +179,33 @@ class SkillSelectionStep(CreationStep):
     def describe_inputs(self, context: CharacterCreationContext) -> tuple[InputField, ...]:
         """Describe the skill picks as one multiple-choice field.
 
+        The step keeps describing its field even when the filter
+        currently removes every entry (before a race/class is chosen,
+        for instance): a UI then renders the block with an *empty*
+        option list, which fills in as soon as the state unlocks
+        skills.
+
         Args:
-            context: Current creation state (provides the catalog).
+            context: Current creation state (provides the catalog and
+                feeds the filter).
 
         Returns:
             One ``CHOICES`` field in ``free`` mode with a non-empty
-            catalog, or an empty tuple (``inherited`` and ``none``
-            modes ask nothing).
+            catalog (its options may be empty while nothing is
+            available), or an empty tuple (``inherited``/``none``
+            modes and a system without skills ask nothing).
         """
         if self._mode != "free":
             return ()
-        options = self.available(context)
-        if not options:
+        entries = context.system.get(self._catalog)
+        if entries is None or (isinstance(entries, Sequence) and not entries):
             return ()
         return (
             InputField(
                 key=self.step_id,
                 label=self._prompt,
                 kind=InputKind.CHOICES,
-                options=tuple(options),
+                options=tuple(self.available(context)),
                 required=self._min_count > 0,
                 min_count=self._min_count,
                 max_count=self._max_count,

@@ -3,7 +3,9 @@
 The dialog is built from the creation pipeline of the demo plugin (the
 step order declared by ``datas/workflow.yaml``): sections, field count
 and widget kinds must match the workflow, every widget starts empty,
-Validate runs the pipeline and Cancel discards everything.
+the shape of the form follows the answers (empty skill list at first,
+spells block appearing only for a spellcasting race/class), Validate
+runs the pipeline and Cancel discards everything.
 """
 
 import pytest
@@ -12,11 +14,19 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QDialog, QGridLayout, QMessageBox, QWidget
 from pytestqt.qtbot import QtBot
 
-from companion4soloplayer.core.creation import CharacterCreationPipeline, InputKind
+from companion4soloplayer.core.creation import (
+    CharacterCreationPipeline,
+    InputKind,
+    build_workflow,
+    load_creation_rules,
+)
 from companion4soloplayer.core.creation.inputs import InputField
 from companion4soloplayer.plugins.demo_plugin import Plugin
+from companion4soloplayer.plugins.demo_plugin.creation import build_system
+from companion4soloplayer.plugins.demo_plugin.data import DATA_DIR, load_data
 from companion4soloplayer.ui.builder import CharacterCreationDialog
 from companion4soloplayer.ui.builder.fields import (
+    CHOICE_LIST_VISIBLE_ROWS,
     ChoiceField,
     DiceField,
     FieldWidget,
@@ -86,7 +96,11 @@ def test_sections_follow_the_workflow_order(
     qtbot: QtBot,
     pipeline: CharacterCreationPipeline,
 ) -> None:
-    """One section per workflow step, in the order of workflow.yaml."""
+    """One section per workflow step describing data, in workflow order.
+
+    At start the spells step describes nothing (no spellcasting
+    race/class chosen yet), so only five sections are rendered.
+    """
     dialog = CharacterCreationDialog(pipeline)
     qtbot.addWidget(dialog)
 
@@ -96,12 +110,12 @@ def test_sections_follow_the_workflow_order(
         "class",
         "attributes",
         "skills",
-        "spells",
     ]
-    assert [len(section.rows) for section in dialog.sections] == [2, 1, 1, 6, 1, 1]
+    assert [len(section.rows) for section in dialog.sections] == [2, 1, 1, 6, 1]
     assert [section.box.title() for section in dialog.sections] == [
         section.step_id for section in dialog.sections
     ]
+    assert all(not section.box.isHidden() for section in dialog.sections)
     assert dialog.windowTitle() == "Create Player"
     assert dialog.validate_button.text() == "Validate"
     assert dialog.cancel_button.text() == "Cancel"
@@ -147,12 +161,12 @@ def test_fields_match_the_declared_data_types(
     assert isinstance(skills[1], ChoiceField)
     assert skills[0].min_count == 2
     assert skills[0].max_count == 4
-    assert len(skills[0].options) == 10
+    # No race/class chosen yet: the skills block is shown with an empty list.
+    assert skills[0].options == ()
+    assert skills[1].options == ()
 
-    # The spell filter only lets the classless spells through at first.
-    spells = rows["spells"]
-    assert spells[0].kind is InputKind.CHOICES
-    assert spells[0].options == ("Light",)
+    # No spellcasting race/class chosen yet: no spells block at all.
+    assert "spells" not in rows
 
 
 def test_dialog_starts_with_empty_information(
@@ -170,7 +184,7 @@ def test_dialog_starts_with_empty_information(
     assert values["class"] is None
     assert all(values[key] is None for key in ATTRIBUTE_KEYS)
     assert values["skills"] == []
-    assert values["spells"] == []
+    assert "spells" not in values  # no spells block at first
     assert not dialog.error_label.isVisibleTo(dialog)
 
 
@@ -237,7 +251,12 @@ def test_validate_creates_the_character(
     assert isinstance(race, ChoiceField)
     _select(race, "Dwarf")
 
-    character_class = rows["class"][1]
+    # Choosing a race opens the skill catalog.
+    skills = _rows(dialog)["skills"][1]
+    assert isinstance(skills, ChoiceField)
+    assert len(skills.options) == 10
+
+    character_class = _rows(dialog)["class"][1]
     assert isinstance(character_class, ChoiceField)
     _select(character_class, "Wizard")
 
@@ -246,6 +265,7 @@ def test_validate_creates_the_character(
         assert isinstance(dice, DiceField)
         dice.die_button.click()
 
+    rows = _rows(dialog)  # the Wizard class materialized the spells block
     skills = rows["skills"][1]
     assert isinstance(skills, ChoiceField)
     _select(skills, "Athletics")
@@ -277,29 +297,41 @@ def test_validate_creates_the_character(
     assert "wizard_arcana" in dialog.report.rules_fired
 
 
-def test_choice_lists_refresh_when_a_selection_changes(
+def test_choice_lists_and_blocks_follow_the_selections(
     qtbot: QtBot,
     pipeline: CharacterCreationPipeline,
 ) -> None:
-    """Picking a class re-evaluates the spell filter of the dialog."""
+    """Selections open the skill catalog and show or hide the spells."""
     dialog = CharacterCreationDialog(pipeline)
     qtbot.addWidget(dialog)
-    rows = _rows(dialog)
 
-    spells = rows["spells"][1]
-    assert isinstance(spells, ChoiceField)
-    assert spells.options == ("Light",)
+    # At start the skills list is empty and no spells block exists.
+    skills = _rows(dialog)["skills"][1]
+    assert isinstance(skills, ChoiceField)
+    assert skills.options == ()
+    assert "spells" not in _rows(dialog)
 
-    character_class = rows["class"][1]
+    # A race opens the skill catalog; a non-casting race adds no spells.
+    race = _rows(dialog)["race"][1]
+    assert isinstance(race, ChoiceField)
+    _select(race, "Dwarf")
+    assert len(skills.options) == 10
+    assert "spells" not in _rows(dialog)
+
+    # A spellcasting class materializes the spells block, filtered.
+    character_class = _rows(dialog)["class"][1]
     assert isinstance(character_class, ChoiceField)
     _select(character_class, "Wizard")
-
-    assert "Spark" in spells.options
+    spells = _rows(dialog)["spells"][1]
+    assert isinstance(spells, ChoiceField)
+    assert {"Light", "Spark", "Mend"} <= set(spells.options)
     assert "Rune Ward" in spells.options  # granted Arcane Lore by the class
     assert "Fireball" not in spells.options  # level 2, not a starting spell
 
+    # Switching to a non-casting class hides the block again.
     _select(character_class, "Adventurer")
-    assert spells.options == ("Light",)
+    spells_section = {section.step_id: section for section in dialog.sections}["spells"]
+    assert spells_section.box.isHidden()
 
 
 def test_cancel_discards_the_dialog(
@@ -407,13 +439,21 @@ def test_sections_are_arranged_on_two_columns(
     assert cell_of("identity") == (0, 0, 2)
     assert cell_of("race") == (1, 0, 1)
     assert cell_of("class") == (1, 1, 1)
-    # attributes takes the third row; skills and spells share the fourth.
+    # attributes takes the third row; skills alone on the fourth (the
+    # spells block is not rendered without a spellcasting choice).
     assert cell_of("attributes") == (2, 0, 2)
     assert cell_of("skills") == (3, 0, 1)
-    assert cell_of("spells") == (3, 1, 1)
+    assert "spells" not in sections
 
     # The identity block keeps its own single-column stack.
     assert not isinstance(sections["identity"].box.layout(), QGridLayout)
+
+    # A spellcasting class pairs the spells block next to the skills.
+    character_class = sections["class"].rows[0][1]
+    assert isinstance(character_class, ChoiceField)
+    _select(character_class, "Wizard")
+    sections = {section.step_id: section for section in dialog.sections}
+    assert cell_of("spells") == (3, 1, 1)
 
 
 def test_attributes_block_spreads_over_two_equal_columns(
@@ -455,3 +495,52 @@ def test_dialog_minimum_size(
     qtbot.addWidget(dialog)
 
     assert dialog.minimumSize() == QSize(860, 640)
+
+
+def test_choice_lists_show_at_least_four_rows(
+    qtbot: QtBot,
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """Race, class, skills and spells lists fit at least 4 options."""
+    dialog = CharacterCreationDialog(pipeline)
+    qtbot.addWidget(dialog)
+    character_class = _rows(dialog)["class"][1]
+    assert isinstance(character_class, ChoiceField)
+    _select(character_class, "Wizard")
+
+    for key in ("race", "class", "skills", "spells"):
+        choice = _rows(dialog)[key][1]
+        assert isinstance(choice, ChoiceField)
+        row_height = choice.list.fontMetrics().height()
+        # setFixedHeight pins the minimum (and maximum) height.
+        assert choice.list.minimumHeight() >= row_height * CHOICE_LIST_VISIBLE_ROWS
+
+
+def test_system_without_skills_or_spells_has_no_blocks(qtbot: QtBot) -> None:
+    """A game system without skills/spells never renders those blocks."""
+    system = build_system()
+    del system["skills"]
+    del system["spells"]
+    pipeline = build_workflow(
+        load_data("workflow.yaml"),
+        rules=load_creation_rules(DATA_DIR / "creation_rules.yaml"),
+        system=system,
+        base_module="companion4soloplayer.plugins.demo_plugin",
+    )
+    dialog = CharacterCreationDialog(pipeline)
+    qtbot.addWidget(dialog)
+
+    step_ids = [section.step_id for section in dialog.sections]
+    assert "skills" not in step_ids
+    assert "spells" not in step_ids
+
+    # Even spellcasting choices never bring the blocks back.
+    race = _rows(dialog)["race"][1]
+    assert isinstance(race, ChoiceField)
+    _select(race, "Elf")
+    character_class = _rows(dialog)["class"][1]
+    assert isinstance(character_class, ChoiceField)
+    _select(character_class, "Wizard")
+    step_ids = [section.step_id for section in dialog.sections]
+    assert "skills" not in step_ids
+    assert "spells" not in step_ids

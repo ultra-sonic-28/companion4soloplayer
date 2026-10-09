@@ -99,7 +99,7 @@ The generic steps shipped by the core are:
 | `IdentityStep` | name + background | `background_options`, `name_required`, `background_required` |
 | `SelectionStep` | one choice (race, class...) | `target`, `catalog` **or** `options`, `optional` |
 | `AttributeGenerationStep` | base attribute values | `mode` (`random`/`manual`/`mixed`), `strategy`, `manual_attributes`, bounds |
-| `SkillSelectionStep` | skill picks | `mode` (`free`/`inherited`/`none`), `catalog`, counts |
+| `SkillSelectionStep` | skill picks | `mode` (`free`/`inherited`/`none`), `skill_filter`, counts |
 | `SpellSelectionStep` | spell picks | `mode` (`choice`/`auto`/`none`), `spell_filter`, counts |
 
 A step that has nothing to do is **skipped**, which is how a game
@@ -234,7 +234,13 @@ steps:
       target: choices.race
       catalog: races
       optional: true
-  # ... attributes, skills, spells ...
+  # ... attributes ...
+  - !pyclass
+    path: companion4soloplayer.core.creation:SkillSelectionStep
+    params:
+      step_id: skills
+      mode: free
+      skill_filter: !pyclass local:skill_available
   - !pyclass
     path: companion4soloplayer.core.creation:SpellSelectionStep
     params:
@@ -245,7 +251,8 @@ steps:
 
 `build_workflow()` / `build_workflow_from_yaml()` turn the document into
 a pipeline; parameters that are themselves `!pyclass` references (such
-as the spell filter) are resolved to the object they point at.
+as the skill and spell filters) are resolved to the object they point
+at.
 
 ---
 
@@ -272,10 +279,14 @@ The plugin declares, under `plugins/demo_plugin/`:
 - `datas/workflow.yaml` — step order and step parameters;
 - `datas/creation_rules.yaml` — bonuses/maluses (race, class,
   attribute values, other skills);
-- `datas/races.yaml`, `datas/skills.yaml`, `datas/spells.yaml` — the
-  catalogs read through `system`;
+- `datas/races.yaml`, `datas/classes.yaml`, `datas/skills.yaml`,
+  `datas/spells.yaml` — the catalogs read through `system`; every race
+  and class declares `can_cast_spells: true|false`, the flag gating
+  the spells of the character;
 - `creation/strategies.py` — the named generation methods;
-- `creation/filters.py` — the spell availability filter;
+- `creation/filters.py` — the availability filters (`skill_available`
+  opening the skill catalog, `spell_available` built on
+  `can_cast_spells`);
 - `creation/workflow.py` — the assembly (catalogs + rules + workflow).
 
 ---
@@ -302,7 +313,11 @@ flowchart TD
   the steps declared by `workflow.yaml`, through
   `CreationStep.describe_inputs(context)`: one section (group box) per
   step describing data; steps asking nothing (`inherited` skills,
-  `auto` spells...) are not rendered.
+  `auto` spells...) are not rendered. The shape follows the answers
+  while the form is filled: the skills list starts **empty** until a
+  race or a class is chosen, the spells block appears only when the
+  chosen race/class may cast spells (the `can_cast_spells` flag), and
+  a system declaring no skills/spells never renders those blocks.
 - Each data item renders a widget matching its `InputKind`:
 
   | Kind | Widget | Example |
@@ -320,18 +335,22 @@ flowchart TD
   (race on the left and class on the right, skills on the left and
   spells on the right). Inside an attribute block the fields are spread
   over **two equal columns**. The dialog is at least 860 x 640 pixels.
-- Every widget starts **empty**.
+- Every widget starts **empty**, and the choice lists (race, class,
+  skills, spells) keep a fixed height showing **at least four rows**, so
+  a catalog stays readable without scrolling inside the list.
 - **Validate** collects the answers (empty widgets stay unanswered, so
   the steps keep enforcing their own required/optional rules), runs the
   pipeline and closes the dialog on success — `dialog.report` holds the
   `CreationReport`, `dialog.context` the filled state. On failure the
   step error messages are displayed and the dialog stays open.
 - **Cancel** discards everything (`report` and `context` stay `None`).
-- The choice lists are **re-evaluated** whenever a selection or a die
-  roll changes: the pipeline is replayed on a throwaway context with
-  the answers collected so far (`stop_on_error=False`), so a filtered
-  list — the spells restricted to the chosen class, for instance —
-  always matches the state known so far.
+- The sections and choice lists are **re-evaluated** whenever a
+  selection or a die roll changes: the pipeline is replayed on a
+  throwaway context with the answers collected so far
+  (`stop_on_error=False`), so a filtered list — the spells restricted
+  to the chosen class, for instance — always matches the state known so
+  far, and a section appearing or disappearing with that state (the
+  spells block) is shown, hidden or created on the fly.
 
 ```python
 from companion4soloplayer.ui.builder import CharacterCreationDialog

@@ -48,6 +48,9 @@ DICE_ICON_SIZE = 24
 #: Width reserved to the field labels inside a section.
 LABEL_WIDTH = 160
 
+#: Number of option rows a choice list must display without scrolling.
+CHOICE_LIST_VISIBLE_ROWS = 4
+
 
 def dice_icon(size: int = DICE_ICON_SIZE) -> QIcon:
     """Draw a six-sided die icon (no bundled asset required).
@@ -311,7 +314,13 @@ class DiceField(FieldWidget):
 
 
 class ChoiceField(FieldWidget):
-    """Labelled option list, single or multiple selection."""
+    """Labelled option list, single or multiple selection.
+
+    The list keeps a fixed height showing at least
+    :data:`CHOICE_LIST_VISIBLE_ROWS` rows (four), so a catalog of race,
+    class, skills or spells is readable without scrolling inside the
+    list; a shorter catalog simply leaves empty rows below.
+    """
 
     def __init__(self, field: InputField, parent: QWidget | None = None) -> None:
         """Initialize the choice field.
@@ -337,12 +346,26 @@ class ChoiceField(FieldWidget):
         self.list.setSelectionMode(mode)
         layout.addWidget(self.list)
         self.set_options(field.options)
+        self._apply_list_height()
         self.list.itemSelectionChanged.connect(self.changed.emit)
 
     @property
     def options(self) -> tuple[str, ...]:
         """Return the options currently listed by the widget."""
         return self._options
+
+    def _apply_list_height(self) -> None:
+        """Give the list a fixed height of :data:`CHOICE_LIST_VISIBLE_ROWS` rows.
+
+        The row height comes from the font metrics of the list, or
+        from the first row when the list already holds options, so the
+        four rows stay readable whatever the platform style.
+        """
+        row_height = self.list.fontMetrics().height() + 4
+        if self.list.count() > 0:
+            row_height = max(row_height, self.list.sizeHintForRow(0))
+        border = 2 * self.list.frameWidth()
+        self.list.setFixedHeight(row_height * CHOICE_LIST_VISIBLE_ROWS + border + 6)
 
     def set_options(self, options: Sequence[str]) -> None:
         """Replace the option list, keeping the still-available picks.
@@ -364,6 +387,7 @@ class ChoiceField(FieldWidget):
             self.list.addItem(item)
         self.list.blockSignals(False)
         self._options = new_options
+        self._apply_list_height()
 
     def value(self) -> str | list[str] | None:
         """Return the current selection.

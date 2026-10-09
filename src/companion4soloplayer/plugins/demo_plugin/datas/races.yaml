@@ -1,26 +1,32 @@
 # Races ----------------------------------------------------------------
 # Original descriptions built on generic fantasy archetypes only.
+# can_cast_spells tells whether members of the race may cast spells:
+# it gates the spells block of the character creation dialog.
 
 - name: Human
   description: Adaptable and ambitious folk found in every settlement.
+  can_cast_spells: false
   traits:
     - Versatile
     - Ambitious
 
 - name: Dwarf
   description: Stout mountain folk, resilient and stubborn.
+  can_cast_spells: false
   traits:
     - Hardy
     - Stonewise
 
 - name: Elf
   description: Graceful woodland folk with keen senses.
+  can_cast_spells: true
   traits:
     - Graceful
     - Keen-eared
 
 - name: Gnome
   description: Curious tinkerers with a flair for the arcane.
+  can_cast_spells: true
   traits:
     - Curious
     - Tinker

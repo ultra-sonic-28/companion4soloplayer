@@ -14,7 +14,9 @@ The mechanics implemented are generic board game concepts that are not protected
 - Exploration mechanics
 - Character creation workflow (races, classes, attributes, skills,
   spells) declared in `datas/workflow.yaml` with Condition/Effect
-  bonuses in `datas/creation_rules.yaml`
+  bonuses in `datas/creation_rules.yaml`; `datas/races.yaml` and
+  `datas/classes.yaml` declare `can_cast_spells` (spellcasting flag
+  gating the spells block of the creation dialog)
 
 ## Usage
 

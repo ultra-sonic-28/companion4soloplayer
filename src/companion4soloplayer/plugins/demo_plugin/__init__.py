@@ -10,8 +10,9 @@ oracle lives in ``companion4soloplayer.core.rules``.
 
 The character creation workflow re-exports here too: its
 ``datas/workflow.yaml`` document references ``local:`` names (such as
-the ``spell_available`` filter) that must resolve against this package
-in development and in the compiled build alike.
+the ``skill_available`` and ``spell_available`` filters) that must
+resolve against this package in development and in the compiled build
+alike.
 
 This package facade keeps the public surface of the plugin: the core
 plugin loader instantiates :class:`Plugin`, and the ``local:``
@@ -21,7 +22,12 @@ against this module.
 
 from __future__ import annotations
 
-from .creation import FourSixKeepBestStrategy, spell_available
+from .creation import (
+    FourSixKeepBestStrategy,
+    can_cast_spells,
+    skill_available,
+    spell_available,
+)
 from .manifest import PluginMetadata
 from .plugin import Plugin
 from .rules import CharacterCreationRule, CombatRule, LootRule, MagicRule
@@ -34,5 +40,7 @@ __all__ = [
     "MagicRule",
     "Plugin",
     "PluginMetadata",
+    "can_cast_spells",
+    "skill_available",
     "spell_available",
 ]

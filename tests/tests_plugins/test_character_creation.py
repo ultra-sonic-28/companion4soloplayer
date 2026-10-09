@@ -26,6 +26,8 @@ from companion4soloplayer.plugins.demo_plugin import Plugin
 from companion4soloplayer.plugins.demo_plugin.creation import (
     FourSixKeepBestStrategy,
     build_system,
+    can_cast_spells,
+    skill_available,
     spell_available,
 )
 from companion4soloplayer.plugins.demo_plugin.data import DATA_DIR, load_data
@@ -131,6 +133,38 @@ def test_system_data_exposes_catalogs_and_strategies() -> None:
     assert isinstance(system["strategies"]["classic_4d6"], FourSixKeepBestStrategy)
 
 
+def test_steps_describe_an_empty_start_and_wait_for_the_right_choices(
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """At start: empty skill list, no spells; choices unlock the blocks."""
+    context = pipeline.create_context()
+    skills = next(step for step in pipeline.steps if step.step_id == "skills")
+    spells = next(step for step in pipeline.steps if step.step_id == "spells")
+
+    # No race/class chosen: the skills block describes an empty list.
+    skill_fields = skills.describe_inputs(context)
+    assert len(skill_fields) == 1
+    assert skill_fields[0].options == ()
+    # ... and no spellcasting choice means no spells block at all.
+    assert spells.describe_inputs(context) == ()
+
+    # A race opens the skill catalog; spells still wait for a caster.
+    context.set("choices.race", "Dwarf")
+    assert len(skills.describe_inputs(context)[0].options) == 10
+    assert spells.describe_inputs(context) == ()
+
+    # A spellcasting class materializes the spells block.
+    context.set("choices.class", "Wizard")
+    spell_fields = spells.describe_inputs(context)
+    assert len(spell_fields) == 1
+    assert "Spark" in spell_fields[0].options
+
+    # A non-casting combination hides it again.
+    context.set("choices.race", "Human")
+    context.set("choices.class", "Bruiser")
+    assert spells.describe_inputs(context) == ()
+
+
 def test_four_six_keep_best_strategy_range() -> None:
     """The classic 4d6-keep-3 method stays in the 3..18 range."""
     strategy = FourSixKeepBestStrategy()
@@ -209,11 +243,37 @@ def test_race_and_class_are_optional(pipeline: CharacterCreationPipeline) -> Non
     assert context.peek("choices.class") is None
     assert "dwarf_hardy" not in report.rules_fired
     assert "wizard_mind" not in report.rules_fired
-    # Athletics (free pick) still grants its own bonus through the rules.
-    assert "iron_body" in report.rules_fired
+    # Without a race/class choice no skill or spell is proposed: both
+    # steps are not applicable and the recorded answers are ignored.
+    statuses = {result.step_id: result.status for result in report.results}
+    assert statuses["skills"].value == "skipped"
+    assert statuses["spells"].value == "skipped"
+    assert context.peek("choices.skills") is None
+    assert context.peek("choices.spells") is None
+    # No free pick means no skill-driven bonus either.
+    assert "iron_body" not in report.rules_fired
     assert context.effective("values.attributes.constitution") == context.peek(
         "values.attributes.constitution"
     )
+
+
+def test_free_skill_picks_grant_their_rule_bonuses(
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """Once a race/class is chosen, free picks feed the rules engine."""
+    answers = {
+        "identity.name": "Rowan",
+        "identity.background": "Keen tracker",
+        "race": "Human",
+        "class": "Scout",
+        "skills": ["Athletics", "Stealth"],
+    }
+    context = pipeline.create_context()
+    report = pipeline.run(context, MappingInputProvider(answers))
+    assert report.ok
+    assert context.peek("choices.skills") == ["Athletics", "Stealth"]
+    # Athletics (free pick) grants its own bonus through the rules.
+    assert "iron_body" in report.rules_fired
 
 
 def test_system_without_races_skips_the_race_step() -> None:
@@ -357,9 +417,45 @@ def test_minimal_workflow_without_optional_steps() -> None:
 # ----------------------------------------------------------------------
 
 
-def test_spell_available_filters_by_class_level_and_skill() -> None:
-    """The filter applies the class, level and skill requirements."""
-    context = CharacterCreationContext()
+def test_can_cast_spells_follows_the_yaml_flags() -> None:
+    """The can_cast_spells flags of races.yaml/classes.yaml gate casting."""
+    context = CharacterCreationContext(system=build_system())
+    # Nothing chosen yet: no casting at all (spells block stays hidden).
+    assert can_cast_spells(context) is False
+
+    context.set("choices.race", "Dwarf")
+    context.set("choices.class", "Bruiser")
+    assert can_cast_spells(context) is False  # neither of them casts
+
+    context.set("choices.class", "Wizard")
+    assert can_cast_spells(context) is True  # the class can cast
+
+    context.set("choices.race", "Gnome")
+    context.set("choices.class", "Scout")
+    assert can_cast_spells(context) is True  # the race can cast
+
+    context.set("choices.race", "Human")
+    context.set("choices.class", "Scout")
+    assert can_cast_spells(context) is False
+
+
+def test_skill_available_waits_for_a_race_or_a_class() -> None:
+    """The skill catalog opens as soon as a race or a class is chosen."""
+    context = CharacterCreationContext(system=build_system())
+    skill = {"name": "Athletics", "description": "Running, climbing..."}
+    assert skill_available(skill, context) is False  # nothing chosen yet
+
+    context.set("choices.race", "Dwarf")
+    assert skill_available(skill, context) is True
+
+    other = CharacterCreationContext(system=build_system())
+    other.set("choices.class", "Scout")
+    assert skill_available(skill, other) is True
+
+
+def test_spell_available_filters_by_casting_class_level_and_skill() -> None:
+    """The filter applies the casting, class, level and skill requirements."""
+    context = CharacterCreationContext(system=build_system())
     wizard_spell = {"name": "Spark", "level": 1, "classes": ["Wizard"]}
     classless = {"name": "Light", "level": 1, "classes": []}
     high_level = {"name": "Fireball", "level": 2, "classes": ["Wizard"]}
@@ -370,14 +466,22 @@ def test_spell_available_filters_by_class_level_and_skill() -> None:
         "requires_skill": "Arcane Lore",
     }
 
-    # Without a chosen class, only classless spells stay available.
-    assert spell_available(classless, context) is True
+    # Without a spellcasting race/class, no spell at all stays available.
+    assert spell_available(classless, context) is False
     assert spell_available(wizard_spell, context) is False
 
     context.set("choices.class", "Wizard")
+    # The Wizard casts: the classless spells come back with them.
+    assert spell_available(classless, context) is True
     assert spell_available(wizard_spell, context) is True
     assert spell_available(high_level, context) is False
 
     assert spell_available(skilled, context) is False
     context.record("values.skills", Effect("values.skills", Action.GRANT, "Arcane Lore"))
     assert spell_available(skilled, context) is True
+
+    # A non-casting class combination loses every spell again.
+    context.set("choices.class", "Scout")
+    assert spell_available(classless, context) is False
+    context.set("choices.race", "Gnome")
+    assert spell_available(classless, context) is True  # the race casts

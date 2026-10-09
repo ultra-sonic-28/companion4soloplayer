@@ -15,7 +15,10 @@ order declared by the plugin ``workflow.yaml``:
 The choice lists are re-evaluated whenever a selection or a dice roll
 changes, so an option list depending on the state (the spells filtered
 by the chosen class, for instance) always reflects the answers
-collected so far.
+collected so far. The *shape* of the form follows the same state: a
+section appears as soon as its step describes data (the spells block
+of a game system only shows up once a spellcasting race/class is
+picked) and hides again when the step describes nothing.
 
 The construction logic lives in
 :class:`~companion4soloplayer.ui.builder.dialog_builder.CharacterCreationDialogBuilder`:
@@ -44,7 +47,6 @@ from companion4soloplayer.core.creation import (
     CreationReport,
     MappingInputProvider,
 )
-from companion4soloplayer.core.creation.steps import CreationStep
 from companion4soloplayer.ui.builder.dialog_builder import (
     CharacterCreationDialogBuilder,
     StepSection,
@@ -66,6 +68,12 @@ class CharacterCreationDialog(QDialog):
     The sections, the number of fields and their widget kinds come
     from the steps declared by the plugin ``workflow.yaml``; every
     widget starts empty.
+
+    The form also follows the state while it is being filled: a
+    section whose step starts describing data is materialized (the
+    spells block of the demo system appears once a spellcasting
+    race/class is picked), and a section whose step describes nothing
+    is hidden again.
 
     The sections are laid out on a two-column grid: a multi-field
     section (identity, attributes) takes a whole row while two
@@ -96,12 +104,13 @@ class CharacterCreationDialog(QDialog):
         self._pipeline = pipeline
         self._builder = CharacterCreationDialogBuilder(pipeline)
         self._sections: list[StepSection] = []
-        self._steps_by_id: dict[str, CreationStep] = {s.step_id: s for s in pipeline.steps}
         self._report: CreationReport | None = None
         self._context: CharacterCreationContext | None = None
         self._in_refresh = False
+        self._container: QWidget
+        self._form_layout: QGridLayout
         self.setWindowTitle(title)
-        self.setMinimumSize(860, 640)
+        self.setMinimumSize(860, 800)
         self._setup_ui()
 
     # ------------------------------------------------------------------
@@ -110,7 +119,11 @@ class CharacterCreationDialog(QDialog):
 
     @property
     def sections(self) -> tuple[StepSection, ...]:
-        """Return the rendered sections, in workflow order."""
+        """Return the rendered sections, in workflow order.
+
+        A section whose step currently describes nothing (no spell
+        available yet, for instance) is present but hidden.
+        """
         return tuple(self._sections)
 
     @property
@@ -150,24 +163,19 @@ class CharacterCreationDialog(QDialog):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        container = QWidget()
-        outer_layout = QVBoxLayout(container)
-        form_layout = QGridLayout()
-        self._sections = self._builder.build(parent=container)
-        self._builder.arrange(form_layout, self._sections)
+        self._container = QWidget()
+        outer_layout = QVBoxLayout(self._container)
+        self._form_layout = QGridLayout()
+        self._sections = self._builder.build(parent=self._container)
         for section in self._sections:
-            for _field, widget in section.rows:
-                if isinstance(widget, DiceField):
-                    widget.die_button.clicked.connect(
-                        lambda checked=False, w=widget: self._on_roll(w)
-                    )
-                if not isinstance(widget, (TextField, TextAreaField)):
-                    # Text edits never gate an option list: refreshing
-                    # on every keystroke would be pure overhead.
-                    widget.changed.connect(self._on_field_changed)
-        outer_layout.addLayout(form_layout)
+            # Mark the freshly built boxes as explicitly shown: the
+            # refresh toggles them through show()/hide().
+            section.box.show()
+            self._wire_section(section)
+        self._builder.arrange(self._form_layout, self._sections)
+        outer_layout.addLayout(self._form_layout)
         outer_layout.addStretch()
-        scroll.setWidget(container)
+        scroll.setWidget(self._container)
         root.addWidget(scroll, stretch=1)
 
         self.error_label = QLabel()
@@ -186,6 +194,22 @@ class CharacterCreationDialog(QDialog):
         self.cancel_button.clicked.connect(self.reject)
         buttons.addWidget(self.cancel_button)
         root.addLayout(buttons)
+
+    def _wire_section(self, section: StepSection) -> None:
+        """Connect the dice buttons and change signals of one section.
+
+        Args:
+            section: Section whose widgets talk to the dialog.
+        """
+        for _field, widget in section.rows:
+            if isinstance(widget, DiceField):
+                widget.die_button.clicked.connect(
+                    lambda checked=False, w=widget: self._on_roll(w)
+                )
+            if not isinstance(widget, (TextField, TextAreaField)):
+                # Text edits never gate an option list: refreshing
+                # on every keystroke would be pure overhead.
+                widget.changed.connect(self._on_field_changed)
 
     # ------------------------------------------------------------------
     # Interaction
@@ -209,20 +233,24 @@ class CharacterCreationDialog(QDialog):
         widget.set_rolled_value(value)
 
     def _on_field_changed(self) -> None:
-        """Re-evaluate the dependent option lists after a change."""
+        """Re-evaluate the sections and option lists after a change."""
         if self._in_refresh:
             return
-        self._refresh_options()
+        self._refresh_sections()
 
-    def _refresh_options(self) -> None:
-        """Recompute the choice options from the answers collected so far.
+    def _refresh_sections(self) -> None:
+        """Recompute the sections and their options from the answers so far.
 
         The pipeline is replayed on a throwaway context with the
         current answers (``stop_on_error=False``): a step whose answers
         are still missing fails and leaves the state untouched, so an
-        option list only reflects the data known so far. A broken step
-        keeps the options already on screen instead of breaking the
-        dialog.
+        option list only reflects the data known so far.
+
+        The shape of the form follows the same state: a step that now
+        describes data gets its section materialized (the spells block
+        appearing once a spellcasting race/class is picked) and a
+        section whose step describes nothing is hidden again. A broken
+        step keeps the form as it is instead of breaking the dialog.
         """
         self._in_refresh = True
         try:
@@ -232,20 +260,63 @@ class CharacterCreationDialog(QDialog):
                 MappingInputProvider(self.answers),
                 stop_on_error=False,
             )
-            for section in self._sections:
-                step = self._steps_by_id.get(section.step_id)
-                if step is None:  # pragma: no cover - ids come from the pipeline
-                    continue
-                described = {field.key: field for field in step.describe_inputs(context)}
-                for field, widget in section.rows:
-                    if isinstance(widget, ChoiceField):
-                        new_field = described.get(field.key)
-                        if new_field is not None:
-                            widget.set_options(new_field.options)
+            self._sync_sections(context)
         except Exception:  # a broken plugin must not break the dialog
             return
         finally:
             self._in_refresh = False
+
+    def _sync_sections(self, context: CharacterCreationContext) -> None:
+        """Show, hide or materialize the sections for the given state.
+
+        Args:
+            context: State resolved by replaying the pipeline with the
+                answers collected so far.
+        """
+        sections = {section.step_id: section for section in self._sections}
+        changed = False
+        for step in self._pipeline.steps:
+            section = sections.get(step.step_id)
+            fields = step.describe_inputs(context)
+            if not fields:
+                if section is not None and not section.box.isHidden():
+                    section.box.hide()
+                continue
+            if section is None:
+                section = self._builder.build_section(
+                    step, context=context, parent=self._container
+                )
+                if section is None:  # pragma: no cover - fields are non-empty
+                    continue
+                self._wire_section(section)
+                section.box.show()
+                self._insert_section(section)
+                changed = True
+                continue
+            if section.box.isHidden():
+                section.box.show()
+            described = {field.key: field for field in fields}
+            for field, widget in section.rows:
+                if isinstance(widget, ChoiceField):
+                    new_field = described.get(field.key)
+                    if new_field is not None:
+                        widget.set_options(new_field.options)
+        if changed:
+            self._builder.arrange(self._form_layout, self._sections)
+
+    def _insert_section(self, section: StepSection) -> None:
+        """Register a materialized section, keeping the workflow order.
+
+        Args:
+            section: Section to insert.
+        """
+        order = {step.step_id: index for index, step in enumerate(self._pipeline.steps)}
+        position = len(self._sections)
+        for index, existing in enumerate(self._sections):
+            if order.get(existing.step_id, len(order)) > order.get(section.step_id, len(order)):
+                position = index
+                break
+        self._sections.insert(position, section)
 
     def _on_validate(self) -> None:
         """Run the pipeline with the collected answers."""
