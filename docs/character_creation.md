@@ -308,11 +308,18 @@ flowchart TD
   | Kind | Widget | Example |
   | --- | --- | --- |
   | `TEXT` | single-line text edit | character name |
+  | `TEXTAREA` | multi-line text edit | character background |
   | `NUMBER` | single-line numeric edit | manually assigned attribute |
   | `DICE` | label + die button | randomly generated attribute |
   | `CHOICE` | single-selection list | race, class |
   | `CHOICES` | multiple-selection list | skills, spells |
 
+- The sections are laid out on a **two-column grid**: a section
+  describing several fields (identity, attributes) takes a whole row,
+  while two consecutive single-field sections share a row side by side
+  (race on the left and class on the right, skills on the left and
+  spells on the right). Inside an attribute block the fields are spread
+  over **two equal columns**. The dialog is at least 860 x 640 pixels.
 - Every widget starts **empty**.
 - **Validate** collects the answers (empty widgets stay unanswered, so
   the steps keep enforcing their own required/optional rules), runs the

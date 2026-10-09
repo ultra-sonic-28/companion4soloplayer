@@ -62,6 +62,7 @@ class InputKind(StrEnum):
     Kind         Provider method     Typical widget
     ===========  ==================  ====================================
     ``TEXT``     ``ask_text``        single-line text edit
+    ``TEXTAREA`` ``ask_text``        multi-line text edit
     ``NUMBER``   ``ask_number``      single-line numeric text edit
     ``DICE``     ``ask_number``      label + die button (rolled value)
     ``CHOICE``   ``ask_choice``      single-selection list
@@ -70,6 +71,7 @@ class InputKind(StrEnum):
     """
 
     TEXT = "text"
+    TEXTAREA = "textarea"
     NUMBER = "number"
     DICE = "dice"
     CHOICE = "choice"

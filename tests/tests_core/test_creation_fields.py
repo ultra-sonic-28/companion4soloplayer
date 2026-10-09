@@ -62,10 +62,10 @@ def make_context(**overrides: Any) -> CharacterCreationContext:
 # ----------------------------------------------------------------------
 
 
-def test_identity_describes_two_text_fields() -> None:
-    """The name and the background are text fields, with their keys."""
+def test_identity_describes_name_and_background() -> None:
+    """The name is a text field, the background a multi-line text area."""
     fields = IdentityStep().describe_inputs(make_context())
-    assert [field.kind for field in fields] == [InputKind.TEXT, InputKind.TEXT]
+    assert [field.kind for field in fields] == [InputKind.TEXT, InputKind.TEXTAREA]
     assert [field.key for field in fields] == ["identity.name", "identity.background"]
     assert fields[0].label == "Character name"
     assert fields[0].required is True

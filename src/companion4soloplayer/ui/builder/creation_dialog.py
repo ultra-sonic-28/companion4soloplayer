@@ -29,6 +29,7 @@ from typing import Any
 
 from PySide6.QtWidgets import (
     QDialog,
+    QGridLayout,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -48,7 +49,12 @@ from companion4soloplayer.ui.builder.dialog_builder import (
     CharacterCreationDialogBuilder,
     StepSection,
 )
-from companion4soloplayer.ui.builder.fields import ChoiceField, DiceField, TextField
+from companion4soloplayer.ui.builder.fields import (
+    ChoiceField,
+    DiceField,
+    TextAreaField,
+    TextField,
+)
 
 #: Default window title of the dialog.
 DEFAULT_TITLE = "Create Player"
@@ -60,6 +66,11 @@ class CharacterCreationDialog(QDialog):
     The sections, the number of fields and their widget kinds come
     from the steps declared by the plugin ``workflow.yaml``; every
     widget starts empty.
+
+    The sections are laid out on a two-column grid: a multi-field
+    section (identity, attributes) takes a whole row while two
+    consecutive single-field sections (race + class, skills + spells)
+    sit side by side; the dialog is at least 860 x 640 pixels.
 
     Args:
         pipeline: Creation pipeline of the loaded game system.
@@ -90,7 +101,7 @@ class CharacterCreationDialog(QDialog):
         self._context: CharacterCreationContext | None = None
         self._in_refresh = False
         self.setWindowTitle(title)
-        self.setMinimumSize(560, 520)
+        self.setMinimumSize(860, 640)
         self._setup_ui()
 
     # ------------------------------------------------------------------
@@ -140,20 +151,22 @@ class CharacterCreationDialog(QDialog):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         container = QWidget()
-        form_layout = QVBoxLayout(container)
+        outer_layout = QVBoxLayout(container)
+        form_layout = QGridLayout()
         self._sections = self._builder.build(parent=container)
+        self._builder.arrange(form_layout, self._sections)
         for section in self._sections:
-            form_layout.addWidget(section.box)
             for _field, widget in section.rows:
                 if isinstance(widget, DiceField):
                     widget.die_button.clicked.connect(
                         lambda checked=False, w=widget: self._on_roll(w)
                     )
-                if not isinstance(widget, TextField):
+                if not isinstance(widget, (TextField, TextAreaField)):
                     # Text edits never gate an option list: refreshing
                     # on every keystroke would be pure overhead.
                     widget.changed.connect(self._on_field_changed)
-        form_layout.addStretch()
+        outer_layout.addLayout(form_layout)
+        outer_layout.addStretch()
         scroll.setWidget(container)
         root.addWidget(scroll, stretch=1)
 

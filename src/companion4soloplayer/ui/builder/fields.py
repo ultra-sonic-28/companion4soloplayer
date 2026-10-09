@@ -3,15 +3,16 @@
 Each widget edits exactly one
 :class:`~companion4soloplayer.core.creation.inputs.InputField`:
 
-===================  ==========================================
-Widget               Field kind
-===================  ==========================================
-:class:`TextField`   ``TEXT`` (player name, background...)
-:class:`NumberField` ``NUMBER`` (manually assigned attribute)
-:class:`DiceField`   ``DICE`` (attribute rolled with a die)
-:class:`ChoiceField` ``CHOICE`` / ``CHOICES`` (race, class,
-                     skills, spells...)
-===================  ==========================================
+=====================  ==========================================
+Widget                 Field kind
+=====================  ==========================================
+:class:`TextField`     ``TEXT`` (player name...)
+:class:`TextAreaField` ``TEXTAREA`` (background...)
+:class:`NumberField`   ``NUMBER`` (manually assigned attribute)
+:class:`DiceField`     ``DICE`` (attribute rolled with a die)
+:class:`ChoiceField`   ``CHOICE`` / ``CHOICES`` (race, class,
+                       skills, spells...)
+=====================  ==========================================
 
 Every widget starts **empty**: the dialog never pre-fills an answer.
 A widget emits :attr:`FieldWidget.changed` when the value edited by
@@ -33,6 +34,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QListWidget,
     QListWidgetItem,
+    QPlainTextEdit,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -180,6 +182,37 @@ class TextField(FieldWidget):
             The text of the edit, or None when it is blank.
         """
         text = self.edit.text().strip()
+        return text or None
+
+
+class TextAreaField(FieldWidget):
+    """Multi-line text edit (long free-form answers: background...)."""
+
+    def __init__(self, field: InputField, parent: QWidget | None = None) -> None:
+        """Initialize the text area.
+
+        Args:
+            field: Field described by the creation step.
+            parent: Owning widget.
+        """
+        super().__init__(field, parent)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.label = QLabel(field.label)
+        layout.addWidget(self.label)
+        self.edit = QPlainTextEdit()
+        self.edit.setAccessibleName(field.label)
+        self.edit.setFixedHeight(72)
+        layout.addWidget(self.edit)
+        self.edit.textChanged.connect(self._emit_changed)
+
+    def value(self) -> str | None:
+        """Return the trimmed text.
+
+        Returns:
+            The text of the area, or None when it is blank.
+        """
+        text = self.edit.toPlainText().strip()
         return text or None
 
 
@@ -361,6 +394,7 @@ def create_field_widget(field: InputField, parent: QWidget | None = None) -> Fie
     """
     widget_class = {
         InputKind.TEXT: TextField,
+        InputKind.TEXTAREA: TextAreaField,
         InputKind.NUMBER: NumberField,
         InputKind.DICE: DiceField,
         InputKind.CHOICE: ChoiceField,

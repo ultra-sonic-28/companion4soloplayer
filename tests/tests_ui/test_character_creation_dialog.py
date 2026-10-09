@@ -7,8 +7,9 @@ Validate runs the pipeline and Cancel discards everything.
 """
 
 import pytest
+from PySide6.QtCore import QSize
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QDialog, QMessageBox
+from PySide6.QtWidgets import QDialog, QGridLayout, QMessageBox, QWidget
 from pytestqt.qtbot import QtBot
 
 from companion4soloplayer.core.creation import CharacterCreationPipeline, InputKind
@@ -19,6 +20,7 @@ from companion4soloplayer.ui.builder.fields import (
     ChoiceField,
     DiceField,
     FieldWidget,
+    TextAreaField,
     TextField,
 )
 from companion4soloplayer.ui.main_window import MainWindow
@@ -65,6 +67,21 @@ def _select(choice: ChoiceField, label: str) -> None:
     choice.list.item(labels.index(label)).setSelected(True)
 
 
+def _grid_containing(widget: QWidget) -> QGridLayout:
+    """Return the grid layout of the dialog holding ``widget``.
+
+    Args:
+        widget: Widget placed in the grid.
+
+    Returns:
+        The enclosing grid layout.
+    """
+    for layout in widget.window().findChildren(QGridLayout):
+        if layout.indexOf(widget) != -1:
+            return layout
+    raise AssertionError(f"No grid layout holds {widget!r}")
+
+
 def test_sections_follow_the_workflow_order(
     qtbot: QtBot,
     pipeline: CharacterCreationPipeline,
@@ -102,7 +119,8 @@ def test_fields_match_the_declared_data_types(
     name = rows["identity.name"][1]
     assert isinstance(name, TextField)
     background = rows["identity.background"][1]
-    assert isinstance(background, TextField)
+    assert isinstance(background, TextAreaField)
+    assert background.field.kind is InputKind.TEXTAREA
 
     race = rows["race"]
     assert race[0].kind is InputKind.CHOICE
@@ -211,6 +229,10 @@ def test_validate_creates_the_character(
     assert isinstance(name, TextField)
     name.edit.setText("Brom")
 
+    background = rows["identity.background"][1]
+    assert isinstance(background, TextAreaField)
+    background.edit.setPlainText("Orphaned smith\nof the far north")
+
     race = rows["race"][1]
     assert isinstance(race, ChoiceField)
     _select(race, "Dwarf")
@@ -242,6 +264,7 @@ def test_validate_creates_the_character(
     context = dialog.context
     assert context is not None
     assert context.peek("choices.identity.name") == "Brom"
+    assert context.peek("choices.identity.background") == "Orphaned smith\nof the far north"
     assert context.peek("choices.race") == "Dwarf"
     assert context.peek("choices.class") == "Wizard"
     assert context.peek("choices.skills") == ["Athletics", "Medicine"]
@@ -291,6 +314,10 @@ def test_cancel_discards_the_dialog(
     name = rows["identity.name"][1]
     assert isinstance(name, TextField)
     name.edit.setText("Brom")
+
+    background = rows["identity.background"][1]
+    assert isinstance(background, TextAreaField)
+    background.edit.setPlainText("A background")
 
     dialog.cancel_button.click()
 
@@ -358,3 +385,73 @@ def test_player_menu_reports_when_no_plugin_is_available(
     window._show_player()
 
     assert captured == ["Player"]
+
+
+def test_sections_are_arranged_on_two_columns(
+    qtbot: QtBot,
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """Multi-field sections span the row; single-field ones pair up."""
+    dialog = CharacterCreationDialog(pipeline)
+    qtbot.addWidget(dialog)
+    sections = {section.step_id: section for section in dialog.sections}
+    grid = _grid_containing(sections["identity"].box)
+
+    def cell_of(step_id: str) -> tuple[int, int, int]:
+        """Return the (row, column, column span) of a section."""
+        box = sections[step_id].box
+        row, column, _row_span, column_span = grid.getItemPosition(grid.indexOf(box))
+        return row, column, column_span
+
+    # identity takes the first row; race and class share the second.
+    assert cell_of("identity") == (0, 0, 2)
+    assert cell_of("race") == (1, 0, 1)
+    assert cell_of("class") == (1, 1, 1)
+    # attributes takes the third row; skills and spells share the fourth.
+    assert cell_of("attributes") == (2, 0, 2)
+    assert cell_of("skills") == (3, 0, 1)
+    assert cell_of("spells") == (3, 1, 1)
+
+    # The identity block keeps its own single-column stack.
+    assert not isinstance(sections["identity"].box.layout(), QGridLayout)
+
+
+def test_attributes_block_spreads_over_two_equal_columns(
+    qtbot: QtBot,
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """The six attributes are split 3/3 over the two columns."""
+    dialog = CharacterCreationDialog(pipeline)
+    qtbot.addWidget(dialog)
+    attributes = {s.step_id: s for s in dialog.sections}["attributes"].box
+    layout = attributes.layout()
+    assert isinstance(layout, QGridLayout)
+
+    def label_at(row: int, column: int) -> str:
+        """Return the attribute label shown at a grid cell."""
+        item = layout.itemAtPosition(row, column)
+        assert item is not None
+        widget = item.widget()
+        assert isinstance(widget, DiceField)
+        return widget.label.text()
+
+    assert label_at(0, 0) == "strength"
+    assert label_at(1, 0) == "dexterity"
+    assert label_at(2, 0) == "constitution"
+    assert label_at(0, 1) == "intelligence"
+    assert label_at(1, 1) == "wisdom"
+    assert label_at(2, 1) == "charisma"
+    # Equal distribution: no third row.
+    assert layout.itemAtPosition(3, 0) is None
+    assert layout.itemAtPosition(3, 1) is None
+
+
+def test_dialog_minimum_size(
+    qtbot: QtBot,
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """The dialog is at least 860 x 640 pixels."""
+    dialog = CharacterCreationDialog(pipeline)
+    qtbot.addWidget(dialog)
+
+    assert dialog.minimumSize() == QSize(860, 640)

@@ -92,10 +92,10 @@ class IdentityStep(CreationStep):
         Returns:
             One ``TEXT`` field for the name and one field for the
             background: a ``CHOICE`` field when ``background_options``
-            is configured, a ``TEXT`` field otherwise.
+            is configured, a multi-line ``TEXTAREA`` field otherwise.
         """
         background_kind = (
-            InputKind.CHOICE if self._background_options is not None else InputKind.TEXT
+            InputKind.CHOICE if self._background_options is not None else InputKind.TEXTAREA
         )
         return (
             InputField(
