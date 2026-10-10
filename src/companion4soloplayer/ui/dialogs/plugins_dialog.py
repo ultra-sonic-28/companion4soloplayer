@@ -10,7 +10,7 @@ Manage menu.
 
 from typing import Any
 
-from PySide6.QtCore import QRectF, Qt
+from PySide6.QtCore import QRectF, Qt, Signal
 from PySide6.QtGui import QBrush, QColor, QIcon, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -116,6 +116,11 @@ def _eye_icon() -> QIcon:
 
 class PluginsDialog(QDialog):
     """Plugins dialog: scrollable table of plugins with load controls."""
+
+    #: Emitted after a plugin was loaded or unloaded, so the main
+    #: window can refresh the entries depending on the load state
+    #: (Manage > Player is greyed out while no plugin is loaded).
+    plugin_state_changed = Signal()
 
     def __init__(
         self,
@@ -237,6 +242,7 @@ class PluginsDialog(QDialog):
             self._plugin_loader.unload_plugin(plugin_name)
             self._set_loaded_state(plugin_name, False)
             self._report_status(f"Plugin '{plugin_name}' unloaded")
+        self.plugin_state_changed.emit()
 
     def _set_loaded_state(self, plugin_name: str, loaded: bool) -> None:
         """Refresh the Loaded cell and the action button of a plugin row."""

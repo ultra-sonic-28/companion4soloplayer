@@ -299,6 +299,12 @@ dynamic creation dialog. The dialog belongs to the **application**
 system exposing a creation pipeline through the `GamePlugin` contract
 gets the same form, built from its `workflow.yaml` step order.
 
+The entry is **greyed out while no plugin is loaded**: at least one
+game plugin must be loaded through **Manage > Plugins** before a
+character creation can start. Loading a plugin lights the entry up,
+unloading every plugin greys it out again (the state is re-checked
+every time the Manage menu opens).
+
 ```mermaid
 flowchart TD
     W["workflow.yaml (plugin)"] --> P["CharacterCreationPipeline"]

@@ -109,9 +109,14 @@ class MainWindow(QMainWindow):
         # Manage menu
         manage_menu = menu_bar.addMenu("&Manage")
 
-        player_action = QAction("&Player", self)
-        player_action.triggered.connect(self._show_player)
-        manage_menu.addAction(player_action)
+        self._player_action = QAction("&Player", self)
+        self._player_action.triggered.connect(self._show_player)
+        manage_menu.addAction(self._player_action)
+        # The creation needs a loaded game plugin: re-check the state
+        # every time the menu opens (a plugin may have been loaded or
+        # unloaded through Manage > Plugins in between).
+        manage_menu.aboutToShow.connect(self._refresh_player_action)
+        self._refresh_player_action()
 
         plugin_action = QAction("&Plugins", self)
         plugin_action.triggered.connect(self._show_plugin)
@@ -285,34 +290,46 @@ class MainWindow(QMainWindow):
     def _show_plugin(self) -> None:
         """Show the Plugin dialog."""
         dialog = PluginsDialog(self, self._plugin_loader)
+        # Loading or unloading a plugin right away refreshes the
+        # entries depending on the load state (Manage > Player).
+        dialog.plugin_state_changed.connect(self._refresh_player_action)
         dialog.exec()
+        self._refresh_player_action()
+
+    def _refresh_player_action(self) -> None:
+        """Grey out Manage > Player while no plugin is loaded.
+
+        The player creation dialog is built from the workflow of a
+        game system: at least one plugin must be loaded (through
+        Manage > Plugins) before the entry becomes usable, so the
+        character creation stays unreachable without a loaded plugin.
+        """
+        self._player_action.setEnabled(bool(self._plugin_loader.loaded_plugins))
 
     def _creation_plugin(self) -> GamePlugin | None:
         """Return the plugin providing the character creation workflow.
 
-        The first already loaded plugin wins; otherwise the first
-        discovered plugin is loaded on demand (and reported in the
-        status bar).
+        Only an **already loaded** plugin qualifies: plugins are loaded
+        through Manage > Plugins (where the Player entry becomes
+        available), and the creation never starts from a game system
+        that is not loaded.
 
         Returns:
-            The plugin facade, or None when no plugin is available.
+            The first loaded plugin facade, or None when no plugin is
+            loaded.
         """
-        if self._plugin_loader.loaded_plugins:
-            return next(iter(self._plugin_loader.loaded_plugins.values()))
-        names = self._plugin_loader.discover_plugins()
-        if not names:
+        if not self._plugin_loader.loaded_plugins:
             return None
-        plugin = self._plugin_loader.load_plugin(names[0])
-        if plugin is not None:
-            self.status_bar.showMessage(f"Plugin '{names[0]}' loaded")
-        return plugin
+        return next(iter(self._plugin_loader.loaded_plugins.values()))
 
     def _show_player(self) -> None:
         """Show the Player creation dialog (Manage > Player).
 
-        The dialog is built dynamically from the creation pipeline of
-        the game system (its ``workflow.yaml`` step order) and the
-        result of a validated character is reported in the status bar.
+        The menu entry is greyed out while no plugin is loaded, so the
+        dialog can only open with a loaded game system. The dialog is
+        built dynamically from the creation pipeline of that plugin
+        (its ``workflow.yaml`` step order) and the result of a
+        validated character is reported in the status bar.
         """
         plugin = self._creation_plugin()
         if plugin is None:

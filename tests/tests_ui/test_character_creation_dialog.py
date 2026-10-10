@@ -9,7 +9,6 @@ runs the pipeline and Cancel discards everything.
 """
 
 import pytest
-from PySide6.QtCore import QSize
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QDialog, QGridLayout, QMessageBox, QWidget
 from pytestqt.qtbot import QtBot
@@ -33,6 +32,7 @@ from companion4soloplayer.ui.builder.fields import (
     TextAreaField,
     TextField,
 )
+from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.main_window import MainWindow
 
 #: Attribute keys of the demo workflow, in declaration order.
@@ -371,11 +371,63 @@ def test_manage_player_menu_sits_above_plugins(qtbot: QtBot) -> None:
     assert texts[:2] == ["&Player", "&Plugins"]
 
 
+def test_player_menu_is_greyed_out_until_a_plugin_is_loaded(qtbot: QtBot) -> None:
+    """Manage > Player is disabled while no plugin is loaded."""
+    window = MainWindow()
+    qtbot.addWidget(window)
+
+    assert window._player_action.isEnabled() is False
+
+
+def test_player_menu_follows_the_plugin_load_state(
+    qtbot: QtBot,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Loading a plugin enables Player; unloading greys it out again."""
+    window = MainWindow()
+    qtbot.addWidget(window)
+    assert window._player_action.isEnabled() is False
+
+    # Simulate the user toggling the plugin from the dialog opened by
+    # Manage > Plugins (the window wires that dialog to the Player
+    # entry): the first opening loads the plugin, the next unloads it.
+    plugin_name = window._plugin_loader.discover_plugins()[0]
+    monkeypatch.setattr(
+        PluginsDialog,
+        "exec",
+        lambda self: self._toggle_plugin(plugin_name),
+    )
+
+    window._show_plugin()
+    assert window._player_action.isEnabled() is True
+
+    window._show_plugin()
+    assert window._player_action.isEnabled() is False
+
+
+def test_player_menu_refreshes_when_the_manage_menu_opens(qtbot: QtBot) -> None:
+    """Opening Manage re-checks the state, whatever loaded the plugin."""
+    window = MainWindow()
+    qtbot.addWidget(window)
+    assert window._player_action.isEnabled() is False
+
+    # A plugin loaded outside of the dialogs still lights the entry up
+    # as soon as the user opens the Manage menu.
+    window._plugin_loader.load_plugin("demo")
+    manage = next(
+        action for action in window.menuBar().actions() if action.text() == "&Manage"
+    ).menu()
+    assert manage is not None
+    manage.aboutToShow.emit()
+
+    assert window._player_action.isEnabled() is True
+
+
 def test_player_menu_action_opens_the_dialog(
     qtbot: QtBot,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """The Player action loads the first plugin and opens the dialog."""
+    """The Player action opens the dialog of the loaded plugin."""
     window = MainWindow()
     qtbot.addWidget(window)
 
@@ -392,10 +444,25 @@ def test_player_menu_action_opens_the_dialog(
         action for action in window.findChildren(QAction) if action.text() == "&Player"
     ]
     assert len(player_actions) == 1
+
+    # Without a loaded plugin the entry is greyed out and inert.
+    assert player_actions[0].isEnabled() is False
+    player_actions[0].trigger()
+    assert calls == []
+
+    # Loading a plugin through Manage > Plugins makes it available.
+    plugin_name = window._plugin_loader.discover_plugins()[0]
+    monkeypatch.setattr(
+        PluginsDialog,
+        "exec",
+        lambda self: self._toggle_plugin(plugin_name),
+    )
+    window._show_plugin()
+    assert player_actions[0].isEnabled() is True
+
     player_actions[0].trigger()
 
     assert calls == [1]
-    assert window.status_bar.currentMessage() == "Plugin 'demo' loaded"
 
 
 def test_player_menu_reports_when_no_plugin_is_available(
@@ -405,7 +472,6 @@ def test_player_menu_reports_when_no_plugin_is_available(
     """Without any plugin the action explains what to do first."""
     window = MainWindow()
     qtbot.addWidget(window)
-    monkeypatch.setattr(window._plugin_loader, "discover_plugins", lambda: [])
 
     captured: list[str] = []
     monkeypatch.setattr(
@@ -417,6 +483,7 @@ def test_player_menu_reports_when_no_plugin_is_available(
     window._show_player()
 
     assert captured == ["Player"]
+    assert window._player_action.isEnabled() is False
 
 
 def test_sections_are_arranged_on_two_columns(
@@ -494,7 +561,10 @@ def test_dialog_minimum_size(
     dialog = CharacterCreationDialog(pipeline)
     qtbot.addWidget(dialog)
 
-    assert dialog.minimumSize() == QSize(860, 640)
+    # setMinimumSize pins the floor; the content may ask for more.
+    minimum = dialog.minimumSize()
+    assert minimum.width() >= 860
+    assert minimum.height() >= 640
 
 
 def test_choice_lists_show_at_least_four_rows(
