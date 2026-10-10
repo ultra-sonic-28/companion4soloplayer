@@ -57,6 +57,7 @@ from companion4soloplayer.ui.builder.fields import (
     TextAreaField,
     TextField,
 )
+from companion4soloplayer.utils.plugin_config import PluginConfigRegistry
 
 #: Default window title of the dialog.
 DEFAULT_TITLE = "Create Player"
@@ -78,12 +79,18 @@ class CharacterCreationDialog(QDialog):
     The sections are laid out on a two-column grid: a multi-field
     section (identity, attributes) takes a whole row while two
     consecutive single-field sections (race + class, skills + spells)
-    sit side by side; the dialog is at least 860 x 640 pixels.
+    sit side by side. The minimum size of the dialog comes from the
+    ``dialog.character_creation_dialog`` section of the plugin
+    configuration (``datas/config.yaml`` of the loaded plugin), and
+    falls back on 860 x 800 pixels when the plugin declares none.
 
     Args:
         pipeline: Creation pipeline of the loaded game system.
         parent: Owning widget.
         title: Window title.
+        plugin_name: Name of the plugin providing the pipeline, used to
+            read its configuration. When omitted, the configuration of
+            the first loaded plugin applies.
     """
 
     def __init__(
@@ -92,6 +99,7 @@ class CharacterCreationDialog(QDialog):
         parent: QWidget | None = None,
         *,
         title: str = DEFAULT_TITLE,
+        plugin_name: str | None = None,
     ) -> None:
         """Initialize the dialog and build its sections.
 
@@ -99,6 +107,10 @@ class CharacterCreationDialog(QDialog):
             pipeline: Creation pipeline of the loaded game system.
             parent: Owning widget.
             title: Window title.
+            plugin_name: Name of the plugin providing the pipeline, used
+                to read the dialog settings of its ``datas/config.yaml``
+                configuration. When omitted, the configuration of the
+                first loaded plugin applies.
         """
         super().__init__(parent)
         self._pipeline = pipeline
@@ -110,7 +122,11 @@ class CharacterCreationDialog(QDialog):
         self._container: QWidget
         self._form_layout: QGridLayout
         self.setWindowTitle(title)
-        self.setMinimumSize(860, 800)
+        # Minimum size driven by the plugin configuration
+        # (datas/config.yaml), with application defaults as fallback.
+        self.setMinimumSize(
+            *PluginConfigRegistry.instance().character_creation_dialog_size(plugin_name)
+        )
         self._setup_ui()
 
     # ------------------------------------------------------------------
@@ -203,9 +219,7 @@ class CharacterCreationDialog(QDialog):
         """
         for _field, widget in section.rows:
             if isinstance(widget, DiceField):
-                widget.die_button.clicked.connect(
-                    lambda checked=False, w=widget: self._on_roll(w)
-                )
+                widget.die_button.clicked.connect(lambda checked=False, w=widget: self._on_roll(w))
             if not isinstance(widget, (TextField, TextAreaField)):
                 # Text edits never gate an option list: refreshing
                 # on every keystroke would be pure overhead.
@@ -283,9 +297,7 @@ class CharacterCreationDialog(QDialog):
                     section.box.hide()
                 continue
             if section is None:
-                section = self._builder.build_section(
-                    step, context=context, parent=self._container
-                )
+                section = self._builder.build_section(step, context=context, parent=self._container)
                 if section is None:  # pragma: no cover - fields are non-empty
                     continue
                 self._wire_section(section)

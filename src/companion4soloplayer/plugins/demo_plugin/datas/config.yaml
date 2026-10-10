@@ -1,0 +1,14 @@
+# Plugin configuration -------------------------------------------------
+# Optional file read by the application each time the plugin is loaded
+# (see companion4soloplayer.utils.plugin_config). It declares how the
+# plugin integrates in the application and can therefore be adjusted
+# without recompiling anything: the values are published in the plugin
+# configuration registry and are reachable everywhere in the application.
+#
+# Every section is optional: a missing file, a missing section or a
+# missing entry falls back on the application default.
+
+dialog:
+  - character_creation_dialog:
+    width: 860    # minimum width of the player creation dialog, in pixels
+    height: 800   # minimum height of the player creation dialog, in pixels

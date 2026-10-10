@@ -8,6 +8,8 @@ spells block appearing only for a spellcasting race/class), Validate
 runs the pipeline and Cancel discards everything.
 """
 
+from collections.abc import Iterator
+
 import pytest
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QDialog, QGridLayout, QMessageBox, QWidget
@@ -34,6 +36,7 @@ from companion4soloplayer.ui.builder.fields import (
 )
 from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.main_window import MainWindow
+from companion4soloplayer.utils.plugin_config import PluginConfigRegistry
 
 #: Attribute keys of the demo workflow, in declaration order.
 ATTRIBUTE_KEYS: tuple[str, ...] = (
@@ -50,6 +53,20 @@ ATTRIBUTE_KEYS: tuple[str, ...] = (
 def pipeline() -> CharacterCreationPipeline:
     """Return the creation pipeline assembled by the demo plugin."""
     return Plugin().create_character_creation()
+
+
+@pytest.fixture(autouse=True)
+def isolated_plugin_config() -> Iterator[None]:
+    """Keep the plugin configuration registry isolated between tests.
+
+    The dialog reads the minimum size from the plugin configuration
+    registry: resetting it around every test guarantees the dialog
+    falls back on the application defaults, whatever the other test
+    files did earlier in the session.
+    """
+    PluginConfigRegistry.reset()
+    yield
+    PluginConfigRegistry.reset()
 
 
 def _rows(dialog: CharacterCreationDialog) -> dict[str, tuple[InputField, FieldWidget]]:
@@ -557,14 +574,40 @@ def test_dialog_minimum_size(
     qtbot: QtBot,
     pipeline: CharacterCreationPipeline,
 ) -> None:
-    """The dialog is at least 860 x 640 pixels."""
+    """Without a plugin configuration, the defaults apply (860 x 800)."""
     dialog = CharacterCreationDialog(pipeline)
     qtbot.addWidget(dialog)
 
     # setMinimumSize pins the floor; the content may ask for more.
     minimum = dialog.minimumSize()
     assert minimum.width() >= 860
-    assert minimum.height() >= 640
+    assert minimum.height() >= 800
+
+
+def test_dialog_minimum_size_follows_the_plugin_configuration(
+    qtbot: QtBot,
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """The ``datas/config.yaml`` of the loaded plugin drives the size."""
+    PluginConfigRegistry.instance().register(
+        "demo",
+        {
+            "dialog": [
+                {
+                    "character_creation_dialog": None,
+                    "width": 1024,
+                    "height": 768,
+                }
+            ]
+        },
+    )
+
+    dialog = CharacterCreationDialog(pipeline, plugin_name="demo")
+    qtbot.addWidget(dialog)
+
+    minimum = dialog.minimumSize()
+    assert minimum.width() >= 1024
+    assert minimum.height() >= 768
 
 
 def test_choice_lists_show_at_least_four_rows(

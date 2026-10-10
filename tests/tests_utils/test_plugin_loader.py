@@ -9,6 +9,7 @@ import pytest
 
 import companion4soloplayer
 from companion4soloplayer.core.interface.game_plugin import GamePlugin
+from companion4soloplayer.utils.plugin_config import PluginConfigRegistry
 from companion4soloplayer.utils.plugin_loader import PluginLoader
 
 PLUGINS_SRC = Path(__file__).resolve().parents[2] / "src" / "companion4soloplayer" / "plugins"
@@ -106,6 +107,48 @@ def test_unload_plugin(loader: PluginLoader) -> None:
     assert loader.unload_plugin("demo") is True
     assert loader.get_plugin("demo") is None
     assert loader.unload_plugin("demo") is False
+
+
+# ----------------------------------------------------------------------
+# Plugin configuration (datas/config.yaml)
+# ----------------------------------------------------------------------
+
+
+def test_load_plugin_publishes_its_configuration(loader: PluginLoader) -> None:
+    """The ``datas/config.yaml`` of the plugin lands in the registry."""
+    PluginConfigRegistry.reset()
+    try:
+        plugin = loader.load_plugin("demo")
+        assert plugin is not None
+        config = PluginConfigRegistry.instance().config("demo")
+        assert config == {
+            "dialog": [{"character_creation_dialog": None, "width": 860, "height": 800}]
+        }
+    finally:
+        PluginConfigRegistry.reset()
+
+
+def test_loaded_configuration_is_reachable_application_wide(loader: PluginLoader) -> None:
+    """The dialog size of the loaded plugin is readable without a reference."""
+    PluginConfigRegistry.reset()
+    try:
+        assert loader.load_plugin("demo") is not None
+        size = PluginConfigRegistry.instance().character_creation_dialog_size("demo")
+        assert size == (860, 800)
+    finally:
+        PluginConfigRegistry.reset()
+
+
+def test_unload_plugin_drops_its_configuration(loader: PluginLoader) -> None:
+    """Unloading a plugin also unregisters its configuration."""
+    PluginConfigRegistry.reset()
+    try:
+        assert loader.load_plugin("demo") is not None
+        assert PluginConfigRegistry.instance().config("demo")
+        assert loader.unload_plugin("demo") is True
+        assert PluginConfigRegistry.instance().config("demo") == {}
+    finally:
+        PluginConfigRegistry.reset()
 
 
 def test_load_compiled_plugin_extension(tmp_path: Path) -> None:

@@ -306,7 +306,7 @@ class MainWindow(QMainWindow):
         """
         self._player_action.setEnabled(bool(self._plugin_loader.loaded_plugins))
 
-    def _creation_plugin(self) -> GamePlugin | None:
+    def _creation_plugin(self) -> tuple[str, GamePlugin] | None:
         """Return the plugin providing the character creation workflow.
 
         Only an **already loaded** plugin qualifies: plugins are loaded
@@ -315,12 +315,13 @@ class MainWindow(QMainWindow):
         that is not loaded.
 
         Returns:
-            The first loaded plugin facade, or None when no plugin is
-            loaded.
+            ``(plugin name, plugin facade)`` of the first loaded plugin,
+            or None when no plugin is loaded.
         """
         if not self._plugin_loader.loaded_plugins:
             return None
-        return next(iter(self._plugin_loader.loaded_plugins.values()))
+        plugin_name = next(iter(self._plugin_loader.loaded_plugins))
+        return plugin_name, self._plugin_loader.loaded_plugins[plugin_name]
 
     def _show_player(self) -> None:
         """Show the Player creation dialog (Manage > Player).
@@ -329,16 +330,19 @@ class MainWindow(QMainWindow):
         dialog can only open with a loaded game system. The dialog is
         built dynamically from the creation pipeline of that plugin
         (its ``workflow.yaml`` step order) and the result of a
-        validated character is reported in the status bar.
+        validated character is reported in the status bar. The plugin
+        name is forwarded so the dialog picks the dialog settings of
+        the plugin configuration (``datas/config.yaml``).
         """
-        plugin = self._creation_plugin()
-        if plugin is None:
+        creation = self._creation_plugin()
+        if creation is None:
             QMessageBox.information(
                 self,
                 "Player",
                 "No game plugin is available.\n" "Load a plugin first (Manage > Plugins).",
             )
             return
+        plugin_name, plugin = creation
         try:
             pipeline = plugin.create_character_creation()
         except Exception as exc:
@@ -348,7 +352,7 @@ class MainWindow(QMainWindow):
                 f"The character creation workflow could not be loaded:\n{exc}",
             )
             return
-        dialog = CharacterCreationDialog(pipeline, self)
+        dialog = CharacterCreationDialog(pipeline, self, plugin_name=plugin_name)
         if not dialog.exec():
             return
         name = str(dialog.answers.get("identity.name") or "").strip()

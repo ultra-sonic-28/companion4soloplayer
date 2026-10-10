@@ -24,6 +24,11 @@ ships as commented YAML files (``plugin.yaml``, ``rules.yaml``, ...)
 loaded through :mod:`companion4soloplayer.utils.yaml_loader`, and rule
 elements are bound to Python classes through the hybrid
 :class:`companion4soloplayer.core.rule_engine.RuleEngine`.
+
+A plugin may also ship an optional ``datas/config.yaml`` file (see
+:mod:`companion4soloplayer.utils.plugin_config`): it is read when the
+plugin is loaded and published in the plugin configuration registry,
+which makes its values reachable from anywhere in the application.
 """
 
 import importlib
@@ -34,6 +39,7 @@ from pathlib import Path
 from typing import cast
 
 from companion4soloplayer.core.interface.game_plugin import GamePlugin
+from companion4soloplayer.utils.plugin_config import PluginConfigRegistry, load_plugin_config
 
 
 def _default_plugins_dir() -> Path:
@@ -212,8 +218,33 @@ class PluginLoader:
             self.last_errors[plugin_name] = f"{type(e).__name__}: {e}"
             print(f"Error loading plugin {plugin_name}: {e}")
             return None
+        self._publish_config(plugin_name, library_path)
         self.last_errors.pop(plugin_name, None)
         return plugin
+
+    def _publish_config(self, plugin_name: str, library_path: Path | None) -> None:
+        """Load the ``datas/config.yaml`` file of a plugin and publish it.
+
+        The configuration is registered in the global
+        :class:`~companion4soloplayer.utils.plugin_config.PluginConfigRegistry`,
+        which makes its values reachable from anywhere in the
+        application, whatever the context. A plugin without a
+        configuration file (or with an invalid one) publishes an empty
+        mapping: the application defaults apply.
+
+        Args:
+            plugin_name: Plugin name.
+            library_path: Path of the compiled library, or None when the
+                plugin was loaded from its source package.
+        """
+        candidates: list[Path] = []
+        if library_path is not None:
+            # Compiled library: data files sit in <plugins_dir>/<name>/.
+            candidates.append(library_path.parent / plugin_name)
+        # Source package: data files sit in the package itself.
+        candidates.append(self.plugins_dir / f"{plugin_name}{_PLUGIN_PACKAGE_SUFFIX}")
+        candidates.append(self.plugins_dir / plugin_name)
+        PluginConfigRegistry.instance().register(plugin_name, load_plugin_config(candidates))
 
     def get_plugin(self, plugin_name: str) -> GamePlugin | None:
         """Get a loaded plugin.
@@ -230,7 +261,8 @@ class PluginLoader:
         """Unload a plugin.
 
         Also drops the dynamically registered module (compiled libraries)
-        so a subsequent load re-imports it from disk.
+        so a subsequent load re-imports it from disk, together with the
+        configuration published in the plugin configuration registry.
 
         Args:
             plugin_name: Plugin name
@@ -240,9 +272,7 @@ class PluginLoader:
         """
         if plugin_name in self.loaded_plugins:
             del self.loaded_plugins[plugin_name]
+            PluginConfigRegistry.instance().unregister(plugin_name)
             sys.modules.pop(f"companion4soloplayer.plugins.{plugin_name}", None)
             return True
         return False
-
-
-
