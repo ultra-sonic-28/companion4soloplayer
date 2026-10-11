@@ -317,6 +317,58 @@ def test_attribute_step_explicit_names_override_system_data() -> None:
     assert not context.has("values.attributes.strength")
 
 
+def test_attribute_step_reads_rich_entries_from_system() -> None:
+    """Rich entries expose ids, display names and descriptions."""
+    step = AttributeGenerationStep(strategy="fixed")
+    context = make_context(
+        attributes=[
+            {"id": "strength", "name": "Strength", "description": "Raw muscle."},
+            {"id": "charm", "name": "Charisma"},
+        ]
+    )
+    assert step.attribute_names(context) == ["strength", "charm"]
+    assert step.attribute_labels(context) == {"strength": "Strength", "charm": "Charisma"}
+    assert step.attribute_descriptions(context) == {"strength": "Raw muscle.", "charm": ""}
+    step.execute(context, MappingInputProvider({}))
+    assert context.get("values.attributes.strength") == 12
+
+
+def test_attribute_step_describe_inputs_uses_names_and_descriptions() -> None:
+    """Fields carry the display name and the description of the entry."""
+    step = AttributeGenerationStep(strategy="fixed")
+    context = make_context(
+        attributes=[{"id": "strength", "name": "Strength", "description": "Raw muscle."}]
+    )
+    (field,) = step.describe_inputs(context)
+    assert field.key == "attributes.strength"
+    assert field.label == "Strength"
+    assert field.description == "Raw muscle."
+    # A plain string declaration stays its own display name.
+    (plain,) = AttributeGenerationStep().describe_inputs(make_context(attributes=["luck"]))
+    assert plain.label == "luck"
+    assert plain.description == ""
+
+
+def test_attribute_step_display_label_reads_the_system_title() -> None:
+    """The block title comes from the system and falls back on the label."""
+    step = AttributeGenerationStep()
+    assert step.display_label(make_context(attributes_title="Attributes")) == "Attributes"
+    assert step.display_label(make_context()) == "attributes"
+
+
+def test_attribute_step_rejects_malformed_entries() -> None:
+    """An entry without id, a bad name or a duplicate id is rejected."""
+    step = AttributeGenerationStep(strategy="fixed")
+    with pytest.raises(StepConfigurationError, match="id"):
+        step.attribute_names(make_context(attributes=[{"name": "Strength"}]))
+    with pytest.raises(StepConfigurationError, match="name"):
+        step.attribute_names(make_context(attributes=[{"id": "strength", "name": ""}]))
+    with pytest.raises(StepConfigurationError, match="duplicate"):
+        step.attribute_names(
+            make_context(attributes=["strength", {"id": "strength", "name": "Strong"}])
+        )
+
+
 def test_attribute_step_validate_reports_missing_and_invalid_values() -> None:
     """Validation catches absent, non integer and out of bound values."""
     step = AttributeGenerationStep(mode="manual", min_value=3, max_value=18)

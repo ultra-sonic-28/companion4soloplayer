@@ -1,0 +1,32 @@
+# Player attributes -----------------------------------------------------
+# The attributes of a player character for this game system. This file
+# drives the attributes block of the player creation dialog:
+# - `attributes.title` is the heading of the block;
+# - the ORDER of `attributes.list` is the display order of the fields;
+# - each entry declares:
+#     id:          technical identifier used in the state paths and the
+#                  answer keys (values.attributes.<id>, attributes.<id>)
+#     name:        text displayed in the dialog
+#     description: optional help text shown as a tooltip
+
+attributes:
+  title: "Attributes"
+  list:
+    - id: strength
+      name: "Strength"
+      description: "Strength measures your character’s muscle and physical power."
+    - id: dexterity
+      name: "Dexterity"
+      description: "Dexterity measures hand-eye coordination, agility, reflexes, and balance."
+    - id: constitution
+      name: "Constitution"
+      description: "Constitution represents your character’s health and stamina."
+    - id: intelligence
+      name: "Intelligence"
+      description: "Intelligence determines how well your character learns and reasons."
+    - id: wisdom
+      name: "Wisdom"
+      description: "Wisdom describes a character’s willpower, common sense, perception, and intuition."
+    - id: charisma
+      name: "Charisma"
+      description: "Charisma measures a character’s force of personality, persuasiveness, personal magnetism, ability to lead, and physical attractiveness."

@@ -129,8 +129,14 @@ def test_sections_follow_the_workflow_order(
         "skills",
     ]
     assert [len(section.rows) for section in dialog.sections] == [2, 1, 1, 6, 1]
+    # Section titles come from the step label, except the attributes
+    # block whose title is declared by datas/attributes.yaml.
     assert [section.box.title() for section in dialog.sections] == [
-        section.step_id for section in dialog.sections
+        "identity",
+        "race",
+        "class",
+        "Attributes",
+        "skills",
     ]
     assert all(not section.box.isHidden() for section in dialog.sections)
     assert dialog.windowTitle() == "Create Player"
@@ -540,6 +546,19 @@ def test_sections_are_arranged_on_two_columns(
     assert cell_of("spells") == (3, 1, 1)
 
 
+def test_field_widgets_show_the_description_as_tooltip(qtbot: QtBot) -> None:
+    """A declared description (attributes.yaml) becomes the tooltip."""
+    field = InputField(
+        key="attributes.strength",
+        label="Strength",
+        kind=InputKind.DICE,
+        description="Raw muscle.",
+    )
+    widget = TextField(field)
+    qtbot.addWidget(widget)
+    assert widget.toolTip() == "Raw muscle."
+
+
 def test_attributes_block_spreads_over_two_equal_columns(
     qtbot: QtBot,
     pipeline: CharacterCreationPipeline,
@@ -559,12 +578,12 @@ def test_attributes_block_spreads_over_two_equal_columns(
         assert isinstance(widget, DiceField)
         return widget.label.text()
 
-    assert label_at(0, 0) == "strength"
-    assert label_at(1, 0) == "dexterity"
-    assert label_at(2, 0) == "constitution"
-    assert label_at(0, 1) == "intelligence"
-    assert label_at(1, 1) == "wisdom"
-    assert label_at(2, 1) == "charisma"
+    assert label_at(0, 0) == "Strength"
+    assert label_at(1, 0) == "Dexterity"
+    assert label_at(2, 0) == "Constitution"
+    assert label_at(0, 1) == "Intelligence"
+    assert label_at(1, 1) == "Wisdom"
+    assert label_at(2, 1) == "Charisma"
     # Equal distribution: no third row.
     assert layout.itemAtPosition(3, 0) is None
     assert layout.itemAtPosition(3, 1) is None

@@ -102,6 +102,8 @@ class InputField:
             field.
         roll: Callable producing the dice value of a ``DICE`` field
             (None when no die is involved).
+        description: Optional help text about the data item, shown by
+            the UI as a tooltip (empty when the field declares none).
     """
 
     key: str
@@ -114,6 +116,7 @@ class InputField:
     min_value: int | None = None
     max_value: int | None = None
     roll: Callable[[], int] | None = None
+    description: str = ""
 
 
 @runtime_checkable

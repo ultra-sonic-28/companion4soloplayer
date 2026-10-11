@@ -139,11 +139,15 @@ class CharacterCreationDialogBuilder:
         fields = step.describe_inputs(context)
         if not fields:
             return None
-        box = QGroupBox(step.label, parent)
+        # The section title may come from the game data (the
+        # ``attributes`` block of a plugin attributes.yaml), so the
+        # step resolves it against the current context.
+        label = step.display_label(context)
+        box = QGroupBox(label, parent)
         rows = self._fill_section(box, fields)
         return StepSection(
             step_id=step.step_id,
-            label=step.label,
+            label=label,
             box=box,
             rows=rows,
         )

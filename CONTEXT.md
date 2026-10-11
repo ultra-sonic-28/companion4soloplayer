@@ -140,6 +140,7 @@ The complete disclaimer is available in the main README.md file.
     │   │       │   ├── races.yaml               # Character creation catalogs
     │   │       │   ├── skills.yaml
     │   │       │   ├── spells.yaml
+    │   │       │   ├── attributes.yaml          # Player attributes (title, name, order)
     │   │       │   ├── workflow.yaml            # Character creation step order
     │   │       │   └── creation_rules.yaml      # Bonuses (conditions/effects)
     │   │       └── README.md

@@ -27,6 +27,7 @@ from companion4soloplayer.plugins.demo_plugin.creation import (
     FourSixKeepBestStrategy,
     build_system,
     can_cast_spells,
+    load_attributes,
     skill_available,
     spell_available,
 )
@@ -101,6 +102,7 @@ def test_workflow_ships_its_yaml_documents() -> None:
     names = (
         "workflow.yaml",
         "creation_rules.yaml",
+        "attributes.yaml",
         "races.yaml",
         "skills.yaml",
         "spells.yaml",
@@ -129,8 +131,34 @@ def test_system_data_exposes_catalogs_and_strategies() -> None:
     assert [klass["name"] for klass in system["classes"]][:1] == ["Adventurer"]
     assert "Arcane Lore" in [skill["name"] for skill in system["skills"]]
     assert "Spark" in [spell["name"] for spell in system["spells"]]
-    assert system["attributes"][0] == "strength"
+    assert system["attributes"][0]["id"] == "strength"
+    assert system["attributes"][0]["name"] == "Strength"
+    assert [entry["id"] for entry in system["attributes"]][-1] == "charisma"
+    assert system["attributes_title"] == "Attributes"
     assert isinstance(system["strategies"]["classic_4d6"], FourSixKeepBestStrategy)
+
+
+def test_attributes_document_drives_ids_names_and_order() -> None:
+    """datas/attributes.yaml declares the ids, names and display order."""
+    attributes = load_attributes()
+    assert attributes["title"] == "Attributes"
+    assert [entry["id"] for entry in attributes["list"]] == [
+        "strength",
+        "dexterity",
+        "constitution",
+        "intelligence",
+        "wisdom",
+        "charisma",
+    ]
+    assert [entry["name"] for entry in attributes["list"]] == [
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma",
+    ]
+    assert all(isinstance(entry["description"], str) for entry in attributes["list"])
 
 
 def test_steps_describe_an_empty_start_and_wait_for_the_right_choices(
@@ -331,7 +359,8 @@ def test_manual_attribute_workflow() -> None:
     }
     pipeline = build_workflow(workflow, system=build_system())
     answers = {
-        f"attributes.{name}": 10 + index for index, name in enumerate(build_system()["attributes"])
+        f"attributes.{entry['id']}": 10 + index
+        for index, entry in enumerate(build_system()["attributes"])
     }
     context = pipeline.create_context()
     report = pipeline.run(context, MappingInputProvider(answers))

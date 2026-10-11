@@ -279,6 +279,11 @@ The plugin declares, under `plugins/demo_plugin/`:
 - `datas/workflow.yaml` — step order and step parameters;
 - `datas/creation_rules.yaml` — bonuses/maluses (race, class,
   attribute values, other skills);
+- `datas/attributes.yaml` — the player attributes: `attributes.title`
+  is the heading of the attributes block and the list order is the
+  display order of the fields; each entry declares the technical `id`
+  (state path and answer key), the display `name` shown as the field
+  label and an optional `description` shown as a tooltip;
 - `datas/races.yaml`, `datas/classes.yaml`, `datas/skills.yaml`,
   `datas/spells.yaml` — the catalogs read through `system`; every race
   and class declares `can_cast_spells: true|false`, the flag gating
@@ -324,6 +329,13 @@ flowchart TD
   race or a class is chosen, the spells block appears only when the
   chosen race/class may cast spells (the `can_cast_spells` flag), and
   a system declaring no skills/spells never renders those blocks.
+- The **attributes block** is fully driven by the plugin
+  `datas/attributes.yaml`: the group box title is the declared
+  `attributes.title` ("Attributes" for the demo system), each field
+  label is the `name` of the matching entry ("Strength", "Dexterity"...)
+  while the answer keys and state paths keep the technical `id`
+  (`attributes.strength`, `values.attributes.strength`), and a
+  non-empty `description` shows up as a tooltip on the field.
 - Each data item renders a widget matching its `InputKind`:
 
   | Kind | Widget | Example |

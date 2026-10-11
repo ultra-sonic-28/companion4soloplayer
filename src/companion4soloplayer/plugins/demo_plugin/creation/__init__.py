@@ -24,17 +24,19 @@ from companion4soloplayer.plugins.demo_plugin.creation.strategies import (
     FourSixKeepBestStrategy,
 )
 from companion4soloplayer.plugins.demo_plugin.creation.workflow import (
-    ATTRIBUTES,
+    ATTRIBUTES_FILE,
     build_system,
     create_character_creation,
+    load_attributes,
 )
 
 __all__ = [
-    "ATTRIBUTES",
+    "ATTRIBUTES_FILE",
     "FourSixKeepBestStrategy",
     "build_system",
     "can_cast_spells",
     "create_character_creation",
+    "load_attributes",
     "skill_available",
     "spell_available",
 ]

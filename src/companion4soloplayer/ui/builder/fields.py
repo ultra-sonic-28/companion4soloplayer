@@ -114,11 +114,14 @@ class FieldWidget(QWidget):
         """Initialize the widget.
 
         Args:
-            field: Field described by the creation step.
+            field: Field described by the creation step; its
+                description, when declared, is shown as a tooltip.
             parent: Owning widget.
         """
         super().__init__(parent)
         self._field = field
+        if field.description:
+            self.setToolTip(field.description)
 
     @property
     def field(self) -> InputField:

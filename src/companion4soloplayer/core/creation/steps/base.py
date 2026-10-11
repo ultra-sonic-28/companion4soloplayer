@@ -109,6 +109,22 @@ class CreationStep(ABC):
         """Return the human-readable label of the step."""
         return self._label
 
+    def display_label(self, context: CharacterCreationContext) -> str:
+        """Return the title used to render the step in a UI.
+
+        The dialog builder titles the section of a step with this
+        value, which lets a step derive its title from the game data
+        (the ``attributes`` block of a plugin ``attributes.yaml``, for
+        instance). The default implementation returns :attr:`label`.
+
+        Args:
+            context: Current creation state (read-only game data).
+
+        Returns:
+            The human-readable title of the step section.
+        """
+        return self.label
+
     def describe_inputs(self, context: CharacterCreationContext) -> tuple[InputField, ...]:
         """Describe the data this step will ask, in display order.
 

@@ -7,6 +7,8 @@ The game-system specific parts of the feature live here and in the
 - ``datas/creation_rules.yaml`` declares the bonuses and maluses
   ("if Race=Dwarf then +2 Constitution", skill inheritance, automatic
   spell grants...);
+- ``datas/attributes.yaml`` declares the player attributes (block
+  title, and id/name/description of each attribute, in display order);
 - the YAML catalogs (``races``, ``classes``, ``skills``, ``spells``)
   and the named strategies are gathered into the ``system`` mapping
   attached to the pipeline contexts.
@@ -14,6 +16,7 @@ The game-system specific parts of the feature live here and in the
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from companion4soloplayer.core.creation import (
@@ -26,15 +29,55 @@ from companion4soloplayer.core.creation.strategies import RollStrategy
 from ..data import DATA_DIR, load_data
 from .strategies import FourSixKeepBestStrategy
 
-#: Attribute names of the demo game system, in generation order.
-ATTRIBUTES: tuple[str, ...] = (
-    "strength",
-    "dexterity",
-    "constitution",
-    "intelligence",
-    "wisdom",
-    "charisma",
-)
+#: Data file declaring the player attributes of the game system.
+ATTRIBUTES_FILE = "attributes.yaml"
+
+
+def load_attributes() -> dict[str, Any]:
+    """Load the attribute declarations of the game system.
+
+    ``datas/attributes.yaml`` holds the title of the attributes block
+    (``attributes.title``) and the ordered list of the attributes
+    (``attributes.list``), each entry declaring its technical ``id``
+    (state path and answer key), its display ``name`` and an optional
+    ``description``. The list order is the display order of the
+    fields in the player creation dialog.
+
+    Returns:
+        The normalized ``{"title": ..., "list": [...]}`` mapping.
+
+    Raises:
+        YamlLoadError: If the file is not valid YAML.
+        ValueError: If the document is malformed (missing or empty
+            title, missing list, entry without a valid ``id``,
+            duplicate identifier).
+    """
+    document = load_data(ATTRIBUTES_FILE)
+    if not isinstance(document, Mapping):
+        raise ValueError(f"{ATTRIBUTES_FILE} must declare a mapping with an 'attributes' key")
+    attributes = document.get("attributes")
+    if not isinstance(attributes, Mapping):
+        raise ValueError(f"{ATTRIBUTES_FILE} must declare an 'attributes' mapping")
+    title = attributes.get("title")
+    if not isinstance(title, str) or not title.strip():
+        raise ValueError(f"{ATTRIBUTES_FILE} requires a non-empty 'attributes.title' string")
+    entries = attributes.get("list")
+    if isinstance(entries, (str, bytes)) or not isinstance(entries, Sequence):
+        raise ValueError(f"{ATTRIBUTES_FILE} requires an 'attributes.list' sequence")
+    identifiers: list[str] = []
+    for position, entry in enumerate(entries):
+        if not isinstance(entry, Mapping):
+            raise ValueError(f"{ATTRIBUTES_FILE} attribute #{position + 1} must be a mapping")
+        identifier = entry.get("id")
+        if not isinstance(identifier, str) or not identifier.strip():
+            raise ValueError(
+                f"{ATTRIBUTES_FILE} attribute #{position + 1} requires a non-empty 'id' string"
+            )
+        identifiers.append(identifier.strip())
+    duplicated = sorted({name for name in identifiers if identifiers.count(name) > 1})
+    if duplicated:
+        raise ValueError(f"{ATTRIBUTES_FILE} declares duplicate attribute id(s): {duplicated!r}")
+    return {"title": title.strip(), "list": [dict(entry) for entry in entries]}
 
 
 def build_system() -> dict[str, Any]:
@@ -42,11 +85,18 @@ def build_system() -> dict[str, Any]:
 
     Returns:
         The ``system`` mapping attached to the pipeline: catalogs
-        (``races``, ``classes``, ``skills``, ``spells``), attribute
-        names and the named attribute generation strategies.
+        (``races``, ``classes``, ``skills``, ``spells``), the attribute
+        declarations and block title read from ``datas/attributes.yaml``
+        and the named attribute generation strategies.
+
+    Raises:
+        YamlLoadError: If a data file is not valid YAML.
+        ValueError: If ``datas/attributes.yaml`` is malformed.
     """
+    attributes = load_attributes()
     return {
-        "attributes": list(ATTRIBUTES),
+        "attributes": attributes["list"],
+        "attributes_title": attributes["title"],
         "races": load_data("races.yaml"),
         "classes": load_data("classes.yaml"),
         "skills": load_data("skills.yaml"),

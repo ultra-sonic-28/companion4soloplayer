@@ -143,6 +143,23 @@ def test_mixed_mode_describes_both_kinds() -> None:
     assert [field.kind for field in fields] == [InputKind.DICE, InputKind.NUMBER]
 
 
+def test_rich_attribute_entries_drive_labels_and_descriptions() -> None:
+    """Full declarations supply the display name and the help text."""
+    step = AttributeGenerationStep(strategy="fixed")
+    fields = step.describe_inputs(
+        make_context(
+            attributes=[
+                {"id": "strength", "name": "Strength", "description": "Raw muscle."},
+                {"id": "charm", "name": "Charisma"},
+            ]
+        )
+    )
+    assert [field.label for field in fields] == ["Strength", "Charisma"]
+    assert [field.description for field in fields] == ["Raw muscle.", ""]
+    # The answer keys keep the technical identifiers.
+    assert [field.key for field in fields] == ["attributes.strength", "attributes.charm"]
+
+
 def test_attributes_without_system_attributes_describe_nothing() -> None:
     """A system declaring no attribute describes no field."""
     step = AttributeGenerationStep(strategy="fixed")

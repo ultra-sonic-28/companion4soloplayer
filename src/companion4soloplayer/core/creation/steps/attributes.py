@@ -50,8 +50,9 @@ class AttributeGenerationStep(CreationStep):
         target: State path prefix storing the values (default
             ``values.attributes``).
         attributes: Explicit attribute names; when omitted the names
-            are read from ``context.system["attributes"]`` (list or
-            mapping keys).
+            are read from ``context.system["attributes"]`` (mapping
+            keys, or list of names/declarations with ``id``, ``name``
+            and ``description``).
         mode: ``random``, ``manual`` or ``mixed``.
         strategy: Strategy instance, strategy name (key of
             ``context.system["strategies"]``) or strategy class.
@@ -127,8 +128,7 @@ class AttributeGenerationStep(CreationStep):
             for position, attribute in enumerate(attributes):
                 if not isinstance(attribute, str) or not attribute.strip():
                     raise StepConfigurationError(
-                        f"Attribute #{position + 1} of step {step_id!r} must be a "
-                        "non-empty string"
+                        f"Attribute #{position + 1} of step {step_id!r} must be a non-empty string"
                     )
         self._target = target
         self._attributes = tuple(attributes) if attributes is not None else None
@@ -139,42 +139,174 @@ class AttributeGenerationStep(CreationStep):
         self._max_value = max_value
         self._roller = roller
 
-    def attribute_names(self, context: CharacterCreationContext) -> list[str]:
-        """Return the attribute names of the game system.
+    def attribute_entries(self, context: CharacterCreationContext) -> list[dict[str, str]]:
+        """Return the attribute declarations of the game system.
+
+        ``context.system["attributes"]`` accepts several shapes, so a
+        game system can publish plain names or full declarations (a
+        technical identifier, a display name and a description, as
+        read from a plugin ``attributes.yaml``):
+
+        - a mapping: its keys are the attribute identifiers;
+        - a sequence of non-empty strings: each string is the
+          identifier *and* the display name of one attribute;
+        - a sequence of mappings: each entry declares a non-empty
+          ``id`` (state path and answer key), an optional ``name``
+          (text displayed in the dialog, falling back on the id) and an
+          optional ``description`` (help text).
 
         Args:
             context: Current creation state.
 
         Returns:
-            The explicit attribute names, else the names declared in
-            ``context.system["attributes"]`` (list of names or mapping
-            keys); an empty list when the system declares none.
+            One ``{"id": ..., "name": ..., "description": ...}`` mapping
+            per attribute, in declaration order; empty when the game
+            system declares no attribute.
 
         Raises:
             StepConfigurationError: If ``context.system["attributes"]``
-                is neither a list of strings nor a mapping.
+                is malformed (wrong type, entry without a valid
+                ``id``/``name``, duplicate identifier).
         """
         if self._attributes is not None:
-            return list(self._attributes)
+            return [
+                {"id": attribute, "name": attribute, "description": ""}
+                for attribute in self._attributes
+            ]
         raw = context.system.get("attributes")
         if raw is None:
             return []
         if isinstance(raw, Mapping):
-            names: Any = list(raw.keys())
+            items: Sequence[Any] = list(raw.keys())
         elif isinstance(raw, Sequence) and not isinstance(raw, (str, bytes)):
-            names = list(raw)
+            items = raw
         else:
             raise StepConfigurationError(
                 "system['attributes'] must be a list of names or a mapping, "
                 f"got {type(raw).__name__}"
             )
-        for position, name in enumerate(names):
-            if not isinstance(name, str) or not name.strip():
+        entries: list[dict[str, str]] = []
+        for position, item in enumerate(items):
+            if isinstance(item, Mapping):
+                entries.append(self._read_attribute_entry(item, position))
+            elif isinstance(item, str) and item.strip():
+                entries.append({"id": item.strip(), "name": item.strip(), "description": ""})
+            else:
                 raise StepConfigurationError(
                     f"Attribute #{position + 1} of system['attributes'] must be a "
-                    "non-empty string"
+                    "non-empty string or a mapping declaring a non-empty 'id'"
                 )
-        return list(names)
+        identifiers = [entry["id"] for entry in entries]
+        duplicated = sorted({name for name in identifiers if identifiers.count(name) > 1})
+        if duplicated:
+            raise StepConfigurationError(
+                f"system['attributes'] declares duplicate attribute id(s): {', '.join(duplicated)}"
+            )
+        return entries
+
+    @staticmethod
+    def _read_attribute_entry(entry: Mapping[str, Any], position: int) -> dict[str, str]:
+        """Read one attribute declaration mapping.
+
+        Args:
+            entry: Declared attribute (``id``, optional ``name`` and
+                ``description``).
+            position: Zero-based index of the entry, used in error
+                messages.
+
+        Returns:
+            The normalized ``{"id", "name", "description"}`` mapping.
+
+        Raises:
+            StepConfigurationError: If the identifier is missing or is
+                not a non-empty string, or if the name/description are
+                not strings.
+        """
+        identifier = entry.get("id")
+        if not isinstance(identifier, str) or not identifier.strip():
+            raise StepConfigurationError(
+                f"Attribute #{position + 1} of system['attributes'] must define a non-empty 'id'"
+            )
+        name = entry.get("name", identifier)
+        if not isinstance(name, str) or not name.strip():
+            raise StepConfigurationError(
+                f"Attribute {identifier.strip()!r} must define a non-empty 'name' string"
+            )
+        description = entry.get("description", "")
+        if not isinstance(description, str):
+            raise StepConfigurationError(
+                f"Attribute {identifier.strip()!r} must define a 'description' string"
+            )
+        return {"id": identifier.strip(), "name": name.strip(), "description": description}
+
+    def attribute_names(self, context: CharacterCreationContext) -> list[str]:
+        """Return the attribute identifiers of the game system.
+
+        Args:
+            context: Current creation state.
+
+        Returns:
+            The explicit attribute names, else the identifiers declared
+            in ``context.system["attributes"]`` (list of names or
+            entries, or mapping keys); an empty list when the system
+            declares none.
+
+        Raises:
+            StepConfigurationError: If ``context.system["attributes"]``
+                is malformed.
+        """
+        return [entry["id"] for entry in self.attribute_entries(context)]
+
+    def attribute_labels(self, context: CharacterCreationContext) -> dict[str, str]:
+        """Return the display name of each attribute of the system.
+
+        Args:
+            context: Current creation state.
+
+        Returns:
+            Display name of each attribute, keyed by identifier; a
+            system declaring plain names yields name == identifier.
+
+        Raises:
+            StepConfigurationError: If ``context.system["attributes"]``
+                is malformed.
+        """
+        return {entry["id"]: entry["name"] for entry in self.attribute_entries(context)}
+
+    def attribute_descriptions(self, context: CharacterCreationContext) -> dict[str, str]:
+        """Return the description of each attribute of the system.
+
+        Args:
+            context: Current creation state.
+
+        Returns:
+            Description of each attribute, keyed by identifier (empty
+            string when the declaration carries none).
+
+        Raises:
+            StepConfigurationError: If ``context.system["attributes"]``
+                is malformed.
+        """
+        return {entry["id"]: entry["description"] for entry in self.attribute_entries(context)}
+
+    def display_label(self, context: CharacterCreationContext) -> str:
+        """Return the title of the attributes block.
+
+        The title comes from ``context.system["attributes_title"]``
+        (declared by the plugin, typically read from its
+        ``attributes.yaml`` document) and falls back on the step label
+        when the system declares none.
+
+        Args:
+            context: Current creation state.
+
+        Returns:
+            The block title displayed by the UI.
+        """
+        title = context.system.get("attributes_title")
+        if isinstance(title, str) and title.strip():
+            return title.strip()
+        return self.label
 
     def roll_attribute(
         self,
@@ -214,9 +346,14 @@ class AttributeGenerationStep(CreationStep):
         the answer kept by the step. A manually entered attribute is a
         ``NUMBER`` field (plain text entry).
 
+        The label of each field is the display ``name`` declared by
+        the game system (falling back on the attribute identifier) and
+        the field description is the help text of the declaration, so a
+        plugin ``attributes.yaml`` fully drives what the dialog shows.
+
         Args:
             context: Current creation state (provides the attribute
-                names).
+                declarations).
 
         Returns:
             One field per attribute, in declaration order; empty when
@@ -226,6 +363,8 @@ class AttributeGenerationStep(CreationStep):
             StepConfigurationError: If ``context.system["attributes"]``
                 is malformed.
         """
+        labels = self.attribute_labels(context)
+        descriptions = self.attribute_descriptions(context)
         fields: list[InputField] = []
         for attribute in self.attribute_names(context):
             manual = self._is_manual(attribute)
@@ -233,11 +372,12 @@ class AttributeGenerationStep(CreationStep):
             fields.append(
                 InputField(
                     key=f"{self.step_id}.{attribute}",
-                    label=attribute,
+                    label=labels.get(attribute, attribute),
                     kind=InputKind.NUMBER if manual else InputKind.DICE,
                     min_value=self._min_value,
                     max_value=self._max_value,
                     roll=roll,
+                    description=descriptions.get(attribute, ""),
                 )
             )
         return tuple(fields)
