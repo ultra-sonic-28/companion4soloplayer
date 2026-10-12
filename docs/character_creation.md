@@ -254,6 +254,18 @@ a pipeline; parameters that are themselves `!pyclass` references (such
 as the skill and spell filters) are resolved to the object they point
 at.
 
+An `AttributeGenerationStep` may declare `block: "*"`: it is then
+expanded into **one step per attribute block** declared in
+`system["attribute_blocks"]` (the level-1 entries of the plugin
+`attributes.yaml`), in declaration order. Each generated step takes the
+block id as its `step_id` and `block`, and stores its values under
+`values.<block id>`; the other parameters (mode, strategy, bounds) come
+from the template. This is how a game system declaring `attributes:`
+*and* `save:` in `attributes.yaml` gets one dialog block per entry
+without listing them in `workflow.yaml`. A workflow may also pin
+explicit `block: <id>` steps when it needs a specific block at a
+specific position.
+
 ---
 
 ## Using the workflow from a plugin
@@ -279,11 +291,13 @@ The plugin declares, under `plugins/demo_plugin/`:
 - `datas/workflow.yaml` — step order and step parameters;
 - `datas/creation_rules.yaml` — bonuses/maluses (race, class,
   attribute values, other skills);
-- `datas/attributes.yaml` — the player attributes: `attributes.title`
-  is the heading of the attributes block and the list order is the
-  display order of the fields; each entry declares the technical `id`
-  (state path and answer key), the display `name` shown as the field
-  label and an optional `description` shown as a tooltip;
+- `datas/attributes.yaml` — the **attribute blocks**: every level-1
+  entry (`attributes`, `save`...) declares one block rendered as its
+  own group in the dialog; `title` is the heading of the block, the
+  top-level order is the display order of the blocks and the list order
+  is the display order of the fields; each entry declares the technical
+  `id` (state path and answer key), the display `name` shown as the
+  field label and an optional `description` shown as a tooltip;
 - `datas/races.yaml`, `datas/classes.yaml`, `datas/skills.yaml`,
   `datas/spells.yaml` — the catalogs read through `system`; every race
   and class declares `can_cast_spells: true|false`, the flag gating
@@ -329,13 +343,15 @@ flowchart TD
   race or a class is chosen, the spells block appears only when the
   chosen race/class may cast spells (the `can_cast_spells` flag), and
   a system declaring no skills/spells never renders those blocks.
-- The **attributes block** is fully driven by the plugin
-  `datas/attributes.yaml`: the group box title is the declared
-  `attributes.title` ("Attributes" for the demo system), each field
-  label is the `name` of the matching entry ("Strength", "Dexterity"...)
-  while the answer keys and state paths keep the technical `id`
-  (`attributes.strength`, `values.attributes.strength`), and a
-  non-empty `description` shows up as a tooltip on the field.
+- The **attribute blocks** are fully driven by the plugin
+  `datas/attributes.yaml`: every level-1 entry of the document renders
+  its own group box (the demo system shows "Attributes" then "Saving
+  Throws"), whose title is the declared `title`, each field label is
+  the `name` of the matching entry ("Strength", "Dexterity"...) while
+  the answer keys and state paths keep the technical keys
+  (`attributes.strength` / `save.magic`, `values.attributes.strength` /
+  `values.save.magic`), and a non-empty `description` shows up as a
+  tooltip on the field.
 - Each data item renders a widget matching its `InputKind`:
 
   | Kind | Widget | Example |
@@ -348,7 +364,8 @@ flowchart TD
   | `CHOICES` | multiple-selection list | skills, spells |
 
 - The sections are laid out on a **two-column grid**: a section
-  describing several fields (identity, attributes) takes a whole row,
+  describing several fields (identity, each attribute block) takes a
+  whole row,
   while two consecutive single-field sections share a row side by side
   (race on the left and class on the right, skills on the left and
   spells on the right). Inside an attribute block the fields are spread

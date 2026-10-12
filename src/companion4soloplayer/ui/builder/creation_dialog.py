@@ -77,7 +77,7 @@ class CharacterCreationDialog(QDialog):
     is hidden again.
 
     The sections are laid out on a two-column grid: a multi-field
-    section (identity, attributes) takes a whole row while two
+    section (identity, an attribute block) takes a whole row while two
     consecutive single-field sections (race + class, skills + spells)
     sit side by side. The minimum size of the dialog comes from the
     ``dialog.character_creation_dialog`` section of the plugin

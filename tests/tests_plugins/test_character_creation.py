@@ -86,12 +86,18 @@ def test_plugin_exposes_the_creation_workflow(plugin: Plugin) -> None:
 def test_workflow_order_comes_from_workflow_yaml(
     pipeline: CharacterCreationPipeline,
 ) -> None:
-    """The step order is the one declared in datas/workflow.yaml."""
+    """The step order is the one declared in datas/workflow.yaml.
+
+    The attribute step declares ``block: "*"``: it is expanded into one
+    step per ``attributes.yaml`` block (``attributes``, ``save``), in
+    declaration order.
+    """
     assert [step.step_id for step in pipeline.steps] == [
         "identity",
         "race",
         "class",
         "attributes",
+        "save",
         "skills",
         "spells",
     ]
@@ -125,12 +131,23 @@ def test_creation_rules_document_parses() -> None:
 
 
 def test_system_data_exposes_catalogs_and_strategies() -> None:
-    """The system mapping carries the catalogs, attributes, strategies."""
+    """The system mapping carries the catalogs, blocks, strategies.
+
+    ``attribute_blocks`` maps every ``attributes.yaml`` level-1 entry to
+    its block (``attributes``, ``save``); the first block is mirrored
+    under the legacy ``attributes`` / ``attributes_title`` keys.
+    """
     system = build_system()
     assert [race["name"] for race in system["races"]][:1] == ["Human"]
     assert [klass["name"] for klass in system["classes"]][:1] == ["Adventurer"]
     assert "Arcane Lore" in [skill["name"] for skill in system["skills"]]
     assert "Spark" in [spell["name"] for spell in system["spells"]]
+    assert list(system["attribute_blocks"]) == ["attributes", "save"]
+    assert system["attribute_blocks"]["save"]["title"] == "Saving Throws"
+    assert [entry["id"] for entry in system["attribute_blocks"]["save"]["list"]] == [
+        "magic",
+        "poison",
+    ]
     assert system["attributes"][0]["id"] == "strength"
     assert system["attributes"][0]["name"] == "Strength"
     assert [entry["id"] for entry in system["attributes"]][-1] == "charisma"
@@ -139,8 +156,10 @@ def test_system_data_exposes_catalogs_and_strategies() -> None:
 
 
 def test_attributes_document_drives_ids_names_and_order() -> None:
-    """datas/attributes.yaml declares the ids, names and display order."""
-    attributes = load_attributes()
+    """datas/attributes.yaml declares one block per level-1 entry."""
+    blocks = load_attributes()
+    assert [block["id"] for block in blocks] == ["attributes", "save"]
+    attributes = blocks[0]
     assert attributes["title"] == "Attributes"
     assert [entry["id"] for entry in attributes["list"]] == [
         "strength",
@@ -159,6 +178,10 @@ def test_attributes_document_drives_ids_names_and_order() -> None:
         "Charisma",
     ]
     assert all(isinstance(entry["description"], str) for entry in attributes["list"])
+    save = blocks[1]
+    assert save["title"] == "Saving Throws"
+    assert [entry["id"] for entry in save["list"]] == ["magic", "poison"]
+    assert [entry["name"] for entry in save["list"]] == ["Magic", "Poison"]
 
 
 def test_steps_describe_an_empty_start_and_wait_for_the_right_choices(

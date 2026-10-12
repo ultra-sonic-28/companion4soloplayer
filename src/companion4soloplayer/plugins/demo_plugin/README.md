@@ -12,9 +12,11 @@ The mechanics implemented are generic board game concepts that are not protected
 - 2d6 room generation
 - Simple character progression
 - Exploration mechanics
-- Character creation workflow (races, classes, attributes, skills,
-  spells) declared in `datas/workflow.yaml` with Condition/Effect
-  bonuses in `datas/creation_rules.yaml`; `datas/races.yaml` and
+- Character creation workflow (races, classes, attributes, saving
+  throws, skills, spells) declared in `datas/workflow.yaml` with
+  Condition/Effect bonuses in `datas/creation_rules.yaml`;
+  `datas/attributes.yaml` declares one attribute block per level-1
+  entry (Attributes, Saving Throws); `datas/races.yaml` and
   `datas/classes.yaml` declare `can_cast_spells` (spellcasting flag
   gating the spells block of the creation dialog)
 

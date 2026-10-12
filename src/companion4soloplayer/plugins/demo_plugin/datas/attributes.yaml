@@ -1,11 +1,14 @@
-# Player attributes -----------------------------------------------------
-# The attributes of a player character for this game system. This file
-# drives the attributes block of the player creation dialog:
-# - `attributes.title` is the heading of the block;
-# - the ORDER of `attributes.list` is the display order of the fields;
+# Player attribute blocks -----------------------------------------------
+# Every top-level entry of this file declares ONE block of attributes,
+# rendered as its own group in the player creation dialog:
+# - the entry key is the technical block identifier (step id and state
+#   path segment: values.<block id>.<attribute id>);
+# - `title` is the heading of the block;
+# - the ORDER of the top-level entries is the display order of the
+#   blocks, and the ORDER of `list` is the display order of the fields;
 # - each entry declares:
 #     id:          technical identifier used in the state paths and the
-#                  answer keys (values.attributes.<id>, attributes.<id>)
+#                  answer keys (values.<block id>.<id>, <block id>.<id>)
 #     name:        text displayed in the dialog
 #     description: optional help text shown as a tooltip
 
@@ -30,3 +33,13 @@ attributes:
     - id: charisma
       name: "Charisma"
       description: "Charisma measures a character’s force of personality, persuasiveness, personal magnetism, ability to lead, and physical attractiveness."
+
+save:
+  title: "Saving Throws"
+  list:
+    - id: magic
+      name: "Magic"
+      description: "Saving throw versus magic"
+    - id: poison
+      name: "Poison"
+      description: "Saving throw versus poison"

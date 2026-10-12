@@ -78,12 +78,14 @@ from companion4soloplayer.core.creation.strategies import (
     RollStrategy,
 )
 from companion4soloplayer.core.creation.workflow import (
+    ALL_BLOCKS,
     WorkflowError,
     build_workflow,
     build_workflow_from_yaml,
 )
 
 __all__ = [
+    "ALL_BLOCKS",
     "CHOICES_NAMESPACE",
     "NAMESPACES",
     "VALUES_NAMESPACE",

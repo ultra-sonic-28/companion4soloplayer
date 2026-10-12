@@ -45,6 +45,9 @@ from companion4soloplayer.utils.yaml_loader import PyClassRef, YamlTagError, loa
 #: Key of the workflow document holding the ordered step references.
 STEPS_KEY = "steps"
 
+#: Value of the ``block`` parameter expanding to every declared block.
+ALL_BLOCKS = "*"
+
 
 class WorkflowError(ValueError):
     """Raised when a workflow document cannot be turned into a pipeline."""
@@ -61,6 +64,14 @@ def build_workflow(
 ) -> CharacterCreationPipeline:
     """Build a creation pipeline from a parsed workflow document.
 
+    A step reference declaring ``block: "*"`` (an
+    :class:`~companion4soloplayer.core.creation.steps.attributes.AttributeGenerationStep`)
+    is expanded into one step per attribute block declared in
+    ``system["attribute_blocks"]``, so a game system whose
+    ``attributes.yaml`` holds several level-1 entries gets one step (and
+    therefore one dialog block) per entry; see
+    :func:`_expand_all_blocks`.
+
     Args:
         workflow: Parsed workflow document with a ``steps`` sequence of
             ``!pyclass`` references (strings are accepted too).
@@ -70,8 +81,9 @@ def build_workflow(
             the document contains one).
         allowed_modules: Module prefixes accepted for absolute
             references.
-        system: Game data (catalogs, attributes, strategies) attached
-            to the contexts created by the pipeline.
+        system: Game data (catalogs, attributes, attribute blocks,
+            strategies) attached to the contexts created by the
+            pipeline.
         stop_on_error: Whether the pipeline stops on the first failed
             step.
 
@@ -96,6 +108,7 @@ def build_workflow(
     references: dict[str, PyClassRef] = {}
     for index, entry in enumerate(raw_steps):
         references[f"step_{index}"] = _as_reference(entry, index)
+    references = _expand_all_blocks(references, system)
     engine = RuleEngine(
         {"implementations": references},
         base_module=base_module,
@@ -112,6 +125,77 @@ def build_workflow(
         system=system,
         stop_on_error=stop_on_error,
     )
+
+
+def _expand_all_blocks(
+    references: Mapping[str, PyClassRef],
+    system: Mapping[str, Any] | None,
+) -> dict[str, PyClassRef]:
+    """Expand the steps rendering **every** declared attribute block.
+
+    A step reference declaring ``block: "*"`` is a template: it is
+    replaced by one step per block declared in
+    ``system["attribute_blocks"]`` (the blocks read by the plugin from
+    its ``attributes.yaml`` document). Each generated step takes the
+    block identifier as its ``step_id`` and ``block``, and stores its
+    values under ``values.<block identifier>``; the other parameters
+    (mode, strategy, bounds...) are inherited from the template. This is
+    how a game system declaring several level-1 entries in
+    ``attributes.yaml`` gets one dialog block per entry, in declaration
+    order.
+
+    References not declaring ``block: "*"`` are returned untouched, so a
+    workflow may also declare explicit ``block: <identifier>`` steps
+    (one per wanted block, at wanted positions).
+
+    Args:
+        references: Step references of the workflow, keyed by synthetic
+            name.
+        system: Game data of the pipeline (provides the
+            ``attribute_blocks`` mapping).
+
+    Returns:
+        The references to instantiate, in workflow order.
+
+    Raises:
+        WorkflowError: If a step declares ``block: "*"`` but the game
+            system declares no ``attribute_blocks`` mapping, or
+            declares a block without a valid identifier.
+    """
+    template = {
+        name: reference
+        for name, reference in references.items()
+        if dict(reference.params).get("block") == ALL_BLOCKS
+    }
+    if not template:
+        return dict(references)
+    blocks = system.get("attribute_blocks") if system is not None else None
+    if not isinstance(blocks, Mapping) or not blocks:
+        raise WorkflowError(
+            f"A step declaring block={ALL_BLOCKS!r} requires a non-empty "
+            "'attribute_blocks' mapping in the system data"
+        )
+    expanded: dict[str, PyClassRef] = {}
+    for name, reference in references.items():
+        params = dict(reference.params)
+        if name not in template:
+            expanded[name] = reference
+            continue
+        for block_id in blocks:
+            if not isinstance(block_id, str) or not block_id.strip():
+                raise WorkflowError(
+                    f"'attribute_blocks' declares a block without a valid identifier: {block_id!r}"
+                )
+            expanded[f"{name}[{block_id}]"] = PyClassRef(
+                path=reference.path,
+                params={
+                    **params,
+                    "step_id": block_id.strip(),
+                    "block": block_id.strip(),
+                    "target": f"values.{block_id.strip()}",
+                },
+            )
+    return expanded
 
 
 def build_workflow_from_yaml(

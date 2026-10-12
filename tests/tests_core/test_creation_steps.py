@@ -356,6 +356,54 @@ def test_attribute_step_display_label_reads_the_system_title() -> None:
     assert step.display_label(make_context()) == "attributes"
 
 
+def test_attribute_step_reads_a_declared_block() -> None:
+    """A step bound to a block reads its entries and its title."""
+    step = AttributeGenerationStep(
+        step_id="save",
+        block="save",
+        target="values.save",
+        strategy="fixed",
+    )
+    context = make_context(
+        attribute_blocks={
+            "save": {
+                "id": "save",
+                "title": "Saving Throws",
+                "list": [
+                    {"id": "magic", "name": "Magic", "description": "Versus magic."},
+                    {"id": "poison", "name": "Poison"},
+                ],
+            }
+        }
+    )
+    assert step.attribute_names(context) == ["magic", "poison"]
+    assert step.attribute_labels(context) == {"magic": "Magic", "poison": "Poison"}
+    assert step.attribute_descriptions(context) == {"magic": "Versus magic.", "poison": ""}
+    assert step.display_label(context) == "Saving Throws"
+    fields = step.describe_inputs(context)
+    assert [field.key for field in fields] == ["save.magic", "save.poison"]
+    # The block values are stored under the step target, not the system.
+    step.execute(context, MappingInputProvider({}))
+    assert context.get("values.save.magic") == 12
+
+
+def test_attribute_step_unknown_block_raises() -> None:
+    """A block missing from the system is a configuration error."""
+    step = AttributeGenerationStep(block="save", strategy="fixed")
+    context = make_context(attribute_blocks={"attributes": {"title": "Attributes", "list": []}})
+    with pytest.raises(StepConfigurationError, match="unknown attribute block"):
+        step.attribute_names(context)
+    with pytest.raises(StepConfigurationError, match="unknown attribute block"):
+        step.display_label(context)
+
+
+def test_attribute_step_block_without_blocks_mapping_raises() -> None:
+    """A bound block without any declared block is a configuration error."""
+    step = AttributeGenerationStep(block="save", strategy="fixed")
+    with pytest.raises(StepConfigurationError, match="attribute_blocks"):
+        step.attribute_names(make_context())
+
+
 def test_attribute_step_rejects_malformed_entries() -> None:
     """An entry without id, a bad name or a duplicate id is rejected."""
     step = AttributeGenerationStep(strategy="fixed")

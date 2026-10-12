@@ -23,6 +23,8 @@ from companion4soloplayer.core.creation import (
     build_workflow_from_yaml,
 )
 from companion4soloplayer.core.creation.inputs import InputProvider
+from companion4soloplayer.core.creation.strategies import ConstantStrategy
+from companion4soloplayer.utils.yaml_loader import PyClassRef
 
 
 class RecordingStep(CreationStep):
@@ -388,3 +390,70 @@ def test_build_workflow_rejects_invalid_documents(document: dict[str, Any], mess
     """Invalid workflow documents raise WorkflowError with a clear hint."""
     with pytest.raises(WorkflowError, match=message):
         build_workflow(document, base_module=__name__)
+
+
+# ----------------------------------------------------------------------
+# Attribute block expansion (block: "*")
+# ----------------------------------------------------------------------
+
+#: Game system declaring two attribute blocks (attributes.yaml layout).
+BLOCKS_SYSTEM: dict[str, Any] = {
+    "attribute_blocks": {
+        "attributes": {
+            "id": "attributes",
+            "title": "Attributes",
+            "list": [{"id": "strength", "name": "Strength"}],
+        },
+        "save": {
+            "id": "save",
+            "title": "Saving Throws",
+            "list": [{"id": "magic", "name": "Magic"}],
+        },
+    },
+    "strategies": {"fixed": ConstantStrategy(12)},
+}
+
+BLOCKS_WORKFLOW: dict[str, Any] = {
+    "steps": [
+        PyClassRef(
+            path="companion4soloplayer.core.creation:IdentityStep",
+            params={"step_id": "identity"},
+        ),
+        PyClassRef(
+            path="companion4soloplayer.core.creation:AttributeGenerationStep",
+            params={"block": "*", "strategy": "fixed", "min_value": 3, "max_value": 18},
+        ),
+    ]
+}
+
+
+def test_build_workflow_expands_one_step_per_attribute_block() -> None:
+    """``block: "*"`` becomes one step per declared block, in order."""
+    pipeline = build_workflow(BLOCKS_WORKFLOW, base_module=__name__, system=BLOCKS_SYSTEM)
+    assert [step.step_id for step in pipeline.steps] == ["identity", "attributes", "save"]
+    attributes, save = pipeline.steps[1], pipeline.steps[2]
+    context = pipeline.create_context()
+    # Each block renders its own entries, with its own block title.
+    assert [field.key for field in attributes.describe_inputs(context)] == ["attributes.strength"]
+    assert attributes.display_label(context) == "Attributes"
+    assert [field.key for field in save.describe_inputs(context)] == ["save.magic"]
+    assert save.display_label(context) == "Saving Throws"
+    # Each block stores its values under its own state path.
+    pipeline.run(
+        context,
+        MappingInputProvider({"identity.name": "Solo", "identity.background": "None"}),
+    )
+    assert context.get("values.attributes.strength") == 12
+    assert context.get("values.save.magic") == 12
+
+
+def test_build_workflow_expansion_keeps_the_other_steps_untouched() -> None:
+    """Steps not declaring ``block: "*"`` pass through unchanged."""
+    pipeline = build_workflow(BLOCKS_WORKFLOW, base_module=__name__, system=BLOCKS_SYSTEM)
+    assert isinstance(pipeline.steps[0], IdentityStep)
+
+
+def test_build_workflow_expansion_without_blocks_raises() -> None:
+    """``block: "*"`` without declared blocks is a workflow error."""
+    with pytest.raises(WorkflowError, match="attribute_blocks"):
+        build_workflow(BLOCKS_WORKFLOW, base_module=__name__)

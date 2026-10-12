@@ -34,7 +34,7 @@ steps:
   - !pyclass
     path: companion4soloplayer.core.creation:AttributeGenerationStep
     params:
-      step_id: attributes
+      block: "*"                    # one step per block of attributes.yaml
       mode: random                      # random | manual | mixed
       strategy: classic_4d6             # named in the system data
       min_value: 3

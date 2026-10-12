@@ -116,7 +116,9 @@ def test_sections_follow_the_workflow_order(
     """One section per workflow step describing data, in workflow order.
 
     At start the spells step describes nothing (no spellcasting
-    race/class chosen yet), so only five sections are rendered.
+    race/class chosen yet), so only six sections are rendered. The
+    attribute step declares ``block: "*"``: it contributes one section
+    per ``attributes.yaml`` block (``attributes``, ``save``).
     """
     dialog = CharacterCreationDialog(pipeline)
     qtbot.addWidget(dialog)
@@ -126,16 +128,18 @@ def test_sections_follow_the_workflow_order(
         "race",
         "class",
         "attributes",
+        "save",
         "skills",
     ]
-    assert [len(section.rows) for section in dialog.sections] == [2, 1, 1, 6, 1]
-    # Section titles come from the step label, except the attributes
-    # block whose title is declared by datas/attributes.yaml.
+    assert [len(section.rows) for section in dialog.sections] == [2, 1, 1, 6, 2, 1]
+    # Section titles come from the step label, except the attribute
+    # blocks whose titles are declared by datas/attributes.yaml.
     assert [section.box.title() for section in dialog.sections] == [
         "identity",
         "race",
         "class",
         "Attributes",
+        "Saving Throws",
         "skills",
     ]
     assert all(not section.box.isHidden() for section in dialog.sections)
@@ -257,7 +261,7 @@ def test_validate_creates_the_character(
     qtbot: QtBot,
     pipeline: CharacterCreationPipeline,
 ) -> None:
-    """A filled form runs the six workflow steps and yields a character."""
+    """A filled form runs the seven workflow steps and yields a character."""
     dialog = CharacterCreationDialog(pipeline)
     qtbot.addWidget(dialog)
     rows = _rows(dialog)
@@ -529,10 +533,12 @@ def test_sections_are_arranged_on_two_columns(
     assert cell_of("identity") == (0, 0, 2)
     assert cell_of("race") == (1, 0, 1)
     assert cell_of("class") == (1, 1, 1)
-    # attributes takes the third row; skills alone on the fourth (the
-    # spells block is not rendered without a spellcasting choice).
+    # The two attribute blocks (attributes, save) each take a whole row;
+    # skills alone on the fifth (the spells block is not rendered
+    # without a spellcasting choice).
     assert cell_of("attributes") == (2, 0, 2)
-    assert cell_of("skills") == (3, 0, 1)
+    assert cell_of("save") == (3, 0, 2)
+    assert cell_of("skills") == (4, 0, 1)
     assert "spells" not in sections
 
     # The identity block keeps its own single-column stack.
@@ -543,7 +549,7 @@ def test_sections_are_arranged_on_two_columns(
     assert isinstance(character_class, ChoiceField)
     _select(character_class, "Wizard")
     sections = {section.step_id: section for section in dialog.sections}
-    assert cell_of("spells") == (3, 1, 1)
+    assert cell_of("spells") == (4, 1, 1)
 
 
 def test_field_widgets_show_the_description_as_tooltip(qtbot: QtBot) -> None:
@@ -587,6 +593,51 @@ def test_attributes_block_spreads_over_two_equal_columns(
     # Equal distribution: no third row.
     assert layout.itemAtPosition(3, 0) is None
     assert layout.itemAtPosition(3, 1) is None
+
+
+def test_each_attributes_yaml_block_gets_its_own_section(
+    qtbot: QtBot,
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """Every level-1 entry of attributes.yaml becomes its own block.
+
+    The ``save`` entry renders a section titled "Saving Throws" holding
+    its two dice fields, next to the "Attributes" section rendered by
+    the ``attributes`` entry.
+    """
+    dialog = CharacterCreationDialog(pipeline)
+    qtbot.addWidget(dialog)
+    sections = {section.step_id: section for section in dialog.sections}
+
+    # One section per attributes.yaml block, with the declared title.
+    save = sections["save"]
+    assert save.box.title() == "Saving Throws"
+    assert not save.box.isHidden()
+    assert [field.key for field, _widget in save.rows] == ["save.magic", "save.poison"]
+    assert [field.label for field, _widget in save.rows] == ["Magic", "Poison"]
+    assert [field.description for field, _widget in save.rows] == [
+        "Saving throw versus magic",
+        "Saving throw versus poison",
+    ]
+    # The block is made of dice fields only: two equal columns.
+    layout = save.box.layout()
+    assert isinstance(layout, QGridLayout)
+    magic = layout.itemAtPosition(0, 0)
+    poison = layout.itemAtPosition(0, 1)
+    assert magic is not None
+    assert isinstance(magic.widget(), DiceField)
+    assert poison is not None
+    assert isinstance(poison.widget(), DiceField)
+    assert layout.itemAtPosition(1, 0) is None
+
+    # Rolling a saving throw records the answer under its own key.
+    save_die = sections["save"].rows[0][1]
+    assert isinstance(save_die, DiceField)
+    save_die.die_button.click()
+    value = save_die.value()
+    assert value is not None
+    assert 3 <= value <= 18
+    assert dialog.answers["save.magic"] == value
 
 
 def test_dialog_minimum_size(

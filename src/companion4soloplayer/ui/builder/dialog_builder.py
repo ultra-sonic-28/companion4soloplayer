@@ -139,8 +139,8 @@ class CharacterCreationDialogBuilder:
         fields = step.describe_inputs(context)
         if not fields:
             return None
-        # The section title may come from the game data (the
-        # ``attributes`` block of a plugin attributes.yaml), so the
+        # The section title may come from the game data (an
+        # attribute block of a plugin attributes.yaml), so the
         # step resolves it against the current context.
         label = step.display_label(context)
         box = QGroupBox(label, parent)
@@ -195,8 +195,8 @@ class CharacterCreationDialogBuilder:
 
         Two rules drive the rows:
 
-        - a section describing **several** fields (identity,
-          attributes) takes a whole row (two-column span);
+        - a section describing **several** fields (identity, an
+          attribute block) takes a whole row (two-column span);
         - consecutive **single-field** sections (race + class, skills +
           spells) share a row, side by side, in workflow order.
 

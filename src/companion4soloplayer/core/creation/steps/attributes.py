@@ -53,6 +53,11 @@ class AttributeGenerationStep(CreationStep):
             are read from ``context.system["attributes"]`` (mapping
             keys, or list of names/declarations with ``id``, ``name``
             and ``description``).
+        block: Identifier of the attribute block rendered by this step
+            (key of ``context.system["attribute_blocks"]``); the block
+            also provides the title of the dialog group. When empty the
+            step reads ``context.system["attributes"]`` (with the title
+            of ``context.system["attributes_title"]``).
         mode: ``random``, ``manual`` or ``mixed``.
         strategy: Strategy instance, strategy name (key of
             ``context.system["strategies"]``) or strategy class.
@@ -89,6 +94,7 @@ class AttributeGenerationStep(CreationStep):
         *,
         target: str = "values.attributes",
         attributes: Sequence[str] | None = None,
+        block: str = "",
         mode: str = "random",
         strategy: AttributeGenerationStrategy | str | type | None = None,
         manual_attributes: Sequence[str] = (),
@@ -103,6 +109,9 @@ class AttributeGenerationStep(CreationStep):
             step_id: Unique identifier of the step.
             target: State path prefix storing the values.
             attributes: Explicit attribute names.
+            block: Identifier of the attribute block declared in
+                ``context.system["attribute_blocks"]``; empty reads
+                ``context.system["attributes"]`` instead.
             mode: ``random``, ``manual`` or ``mixed``.
             strategy: Strategy instance, name or class.
             manual_attributes: Attributes asked in ``mixed`` mode.
@@ -132,6 +141,7 @@ class AttributeGenerationStep(CreationStep):
                     )
         self._target = target
         self._attributes = tuple(attributes) if attributes is not None else None
+        self._block = block.strip()
         self._mode = mode
         self._strategy = strategy
         self._manual_attributes = tuple(manual_attributes)
@@ -142,18 +152,25 @@ class AttributeGenerationStep(CreationStep):
     def attribute_entries(self, context: CharacterCreationContext) -> list[dict[str, str]]:
         """Return the attribute declarations of the game system.
 
-        ``context.system["attributes"]`` accepts several shapes, so a
-        game system can publish plain names or full declarations (a
-        technical identifier, a display name and a description, as
-        read from a plugin ``attributes.yaml``):
+        The declarations come from the first of these sources:
 
-        - a mapping: its keys are the attribute identifiers;
-        - a sequence of non-empty strings: each string is the
-          identifier *and* the display name of one attribute;
-        - a sequence of mappings: each entry declares a non-empty
-          ``id`` (state path and answer key), an optional ``name``
-          (text displayed in the dialog, falling back on the id) and an
-          optional ``description`` (help text).
+        1. the explicit ``attributes`` names given to the step;
+        2. the attribute block named by the ``block`` parameter, read
+           from ``context.system["attribute_blocks"]`` (the mapping of
+           the blocks declared by the plugin ``attributes.yaml``, each
+           block holding its ``title`` and its ``list``);
+        3. ``context.system["attributes"]``, which accepts several
+           shapes, so a game system can publish plain names or full
+           declarations (a technical identifier, a display name and a
+           description, as read from a plugin ``attributes.yaml``):
+
+           - a mapping: its keys are the attribute identifiers;
+           - a sequence of non-empty strings: each string is the
+             identifier *and* the display name of one attribute;
+           - a sequence of mappings: each entry declares a non-empty
+             ``id`` (state path and answer key), an optional ``name``
+             (text displayed in the dialog, falling back on the id) and
+             an optional ``description`` (help text).
 
         Args:
             context: Current creation state.
@@ -164,8 +181,10 @@ class AttributeGenerationStep(CreationStep):
             system declares no attribute.
 
         Raises:
-            StepConfigurationError: If ``context.system["attributes"]``
-                is malformed (wrong type, entry without a valid
+            StepConfigurationError: If
+                ``context.system["attribute_blocks"]`` holds no block
+                with the configured ``id``, or if the declarations are
+                malformed (wrong type, entry without a valid
                 ``id``/``name``, duplicate identifier).
         """
         if self._attributes is not None:
@@ -173,7 +192,12 @@ class AttributeGenerationStep(CreationStep):
                 {"id": attribute, "name": attribute, "description": ""}
                 for attribute in self._attributes
             ]
-        raw = context.system.get("attributes")
+        if self._block:
+            raw = self._block_entries(context)
+            source = f"system['attribute_blocks'][{self._block!r}]"
+        else:
+            raw = context.system.get("attributes")
+            source = "system['attributes']"
         if raw is None:
             return []
         if isinstance(raw, Mapping):
@@ -182,30 +206,64 @@ class AttributeGenerationStep(CreationStep):
             items = raw
         else:
             raise StepConfigurationError(
-                "system['attributes'] must be a list of names or a mapping, "
-                f"got {type(raw).__name__}"
+                f"{source} must be a list of names or a mapping, got {type(raw).__name__}"
             )
         entries: list[dict[str, str]] = []
         for position, item in enumerate(items):
             if isinstance(item, Mapping):
-                entries.append(self._read_attribute_entry(item, position))
+                entries.append(self._read_attribute_entry(item, position, source))
             elif isinstance(item, str) and item.strip():
                 entries.append({"id": item.strip(), "name": item.strip(), "description": ""})
             else:
                 raise StepConfigurationError(
-                    f"Attribute #{position + 1} of system['attributes'] must be a "
+                    f"Attribute #{position + 1} of {source} must be a "
                     "non-empty string or a mapping declaring a non-empty 'id'"
                 )
         identifiers = [entry["id"] for entry in entries]
         duplicated = sorted({name for name in identifiers if identifiers.count(name) > 1})
         if duplicated:
             raise StepConfigurationError(
-                f"system['attributes'] declares duplicate attribute id(s): {', '.join(duplicated)}"
+                f"{source} declares duplicate attribute id(s): {', '.join(duplicated)}"
             )
         return entries
 
+    def _block_entries(self, context: CharacterCreationContext) -> Any:
+        """Return the ``list`` of the attribute block rendered by this step.
+
+        Args:
+            context: Current creation state (provides the
+                ``attribute_blocks`` mapping declared by the plugin).
+
+        Returns:
+            The raw attribute declarations of the configured block.
+
+        Raises:
+            StepConfigurationError: If the system declares no
+                ``attribute_blocks`` mapping, no block with the
+                configured identifier, or a block that is not a
+                mapping.
+        """
+        blocks = context.system.get("attribute_blocks")
+        if not isinstance(blocks, Mapping):
+            raise StepConfigurationError(
+                f"Step {self.step_id!r} renders the attribute block {self._block!r} but the "
+                "game system declares no 'attribute_blocks' mapping"
+            )
+        block = blocks.get(self._block)
+        if not isinstance(block, Mapping):
+            available = ", ".join(sorted(blocks)) or "none"
+            raise StepConfigurationError(
+                f"Step {self.step_id!r}: unknown attribute block {self._block!r} "
+                f"(available: {available})"
+            )
+        return block.get("list")
+
     @staticmethod
-    def _read_attribute_entry(entry: Mapping[str, Any], position: int) -> dict[str, str]:
+    def _read_attribute_entry(
+        entry: Mapping[str, Any],
+        position: int,
+        source: str = "system['attributes']",
+    ) -> dict[str, str]:
         """Read one attribute declaration mapping.
 
         Args:
@@ -213,6 +271,8 @@ class AttributeGenerationStep(CreationStep):
                 ``description``).
             position: Zero-based index of the entry, used in error
                 messages.
+            source: Declaration source (state path of the read
+                declarations), used in error messages.
 
         Returns:
             The normalized ``{"id", "name", "description"}`` mapping.
@@ -225,7 +285,7 @@ class AttributeGenerationStep(CreationStep):
         identifier = entry.get("id")
         if not isinstance(identifier, str) or not identifier.strip():
             raise StepConfigurationError(
-                f"Attribute #{position + 1} of system['attributes'] must define a non-empty 'id'"
+                f"Attribute #{position + 1} of {source} must define a non-empty 'id'"
             )
         name = entry.get("name", identifier)
         if not isinstance(name, str) or not name.strip():
@@ -292,18 +352,34 @@ class AttributeGenerationStep(CreationStep):
     def display_label(self, context: CharacterCreationContext) -> str:
         """Return the title of the attributes block.
 
-        The title comes from ``context.system["attributes_title"]``
-        (declared by the plugin, typically read from its
-        ``attributes.yaml`` document) and falls back on the step label
-        when the system declares none.
+        The title comes from the declaration driving this step: the
+        ``title`` of the attribute block named by the ``block``
+        parameter (declared by the plugin, typically read from its
+        ``attributes.yaml`` document), else
+        ``context.system["attributes_title"]``. Both fall back on the
+        step label when the game system declares no title.
 
         Args:
             context: Current creation state.
 
         Returns:
             The block title displayed by the UI.
+
+        Raises:
+            StepConfigurationError: If the configured block is unknown
+                (see :meth:`attribute_entries`).
         """
-        title = context.system.get("attributes_title")
+        title: Any = None
+        if self._block:
+            blocks = context.system.get("attribute_blocks")
+            if isinstance(blocks, Mapping) and isinstance(blocks.get(self._block), Mapping):
+                title = cast(Mapping[str, Any], blocks[self._block]).get("title")
+            else:
+                # Unknown block: let attribute_entries raise the same
+                # explicit configuration error.
+                self.attribute_entries(context)
+        else:
+            title = context.system.get("attributes_title")
         if isinstance(title, str) and title.strip():
             return title.strip()
         return self.label
