@@ -41,7 +41,7 @@ The engine covers the functional requirements as follows:
 | --- | --- |
 | Race optional | `SelectionStep` with `optional: true`, or no step at all / no catalog |
 | Class optional | same as race |
-| Attributes: random **or** manual (all or part) | `AttributeGenerationStep` with `random` / `manual` / `mixed` modes |
+| Attributes: random **or** manual (all or part) **or** assigned by the game system | `AttributeGenerationStep` with `random` / `manual` / `mixed` / `auto` modes, each declared per block |
 | A different generation method per block (dice or assigned values) | `AttributeGenerationStep` per-block `mode` / `strategy` (`random` + `classic_4d6` for the attributes, `auto` + `class_saves` for the saving throws) |
 | Skills: free / inherited / none | `SkillSelectionStep` with `free` / `inherited` / `none` modes |
 | Bonuses & maluses (race, class, attributes, skills...) | Condition/Effect rules evaluated after each step |
@@ -99,7 +99,7 @@ The generic steps shipped by the core are:
 | --- | --- | --- |
 | `IdentityStep` | name + background | `background_options`, `name_required`, `background_required` |
 | `SelectionStep` | one choice (race, class...) | `target`, `catalog` **or** `options`, `optional` |
-| `AttributeGenerationStep` | base attribute values | `mode` (`random`/`manual`/`mixed`), `strategy`, `manual_attributes`, bounds |
+| `AttributeGenerationStep` | base attribute values | `mode` (`random`/`manual`/`mixed`/`auto`), `strategy`, `manual_attributes`, bounds — each accepted per block, see [Attribute generation strategies](#attribute-generation-strategies) |
 | `SkillSelectionStep` | skill picks | `mode` (`free`/`inherited`/`none`), `skill_filter`, counts |
 | `SpellSelectionStep` | spell picks | `mode` (`choice`/`auto`/`none`), `spell_filter`, counts |
 
@@ -173,37 +173,159 @@ earlier ones (chaining).
 
 ## Attribute generation strategies
 
-`AttributeGenerationStep` supports four modes:
-
-- `random` — every attribute comes from a strategy, unless the provider
-  already holds an answer for it (a die rolled in the Player dialog, a
-  scripted fixture...), which keeps the UI and the final character in
-  sync;
-- `manual` — every attribute is asked to the player;
-- `mixed` — the attributes listed in `manual_attributes` are asked, the
-  others are rolled;
-- `auto` — the strategy *assigns* the value (no answer, no die): the
-  step describes read-only fields displaying the effective value, and
-  `min_value`/`max_value` are not enforced (the values come from the
-  game data, not from the player).
-
-Strategies implement `AttributeGenerationStrategy.roll(attribute,
-roller)`. The core ships `RollStrategy` (e.g. `"4d6", keep=3`) and
-`ConstantStrategy`; plugins register their own named strategies in
-`system["strategies"]` so `workflow.yaml` can reference them by name:
+`AttributeGenerationStep` is the step rendering the attribute blocks of
+the dialog; everything it does is declared in `workflow.yaml`:
 
 ```yaml
-params:
-  mode: random
-  strategy: classic_4d6      # FourSixKeepBestStrategy of the demo plugin
+  - !pyclass
+    path: companion4soloplayer.core.creation:AttributeGenerationStep
+    params:
+      step_id: attributes         # answer keys: <step_id>.<attribute>
+      target: values.attributes   # state paths: <target>.<attribute>
+      block: "*"                  # one step per attributes.yaml block
+      mode: random                # who produces the value
+      strategy: classic_4d6       # how a generated value is produced
+      manual_attributes: []       # attributes asked in "mixed" mode
+      min_value: 3                # inclusive lower bound
+      max_value: 18               # inclusive upper bound
+      label: Attributes           # step label (attributes.yaml wins)
 ```
+
+(`step_id`, `target` and `label` are the generic step parameters;
+`block` and its expansion are detailed in
+[Workflow configuration](#workflow-configuration).)
+
+### `mode` — who produces the value
+
+`mode` accepts one of four values (default `random`):
+
+| Value | The value comes from | Widget in the dialog | Bounds | Typical use |
+| --- | --- | --- | --- | --- |
+| `random` | the answer already recorded (a die rolled in the dialog, a scripted fixture...), else the **strategy** | `DICE`: label + die button | enforced | attributes rolled with dice |
+| `manual` | the player, the answer being **required** | `NUMBER`: numeric text edit | enforced | point-buy, player-assigned arrays |
+| `mixed` | the player for `manual_attributes`, the **strategy** for the other attributes | `NUMBER` for the manual ones, `DICE` for the others | enforced | roll the physical scores, choose the mental ones |
+| `auto` | the **strategy** only: nothing is ever asked and no answer is ever read | `READONLY`: label + computed value | **not** enforced | values assigned by the game data (the saving throws of the chosen class) |
+
+```yaml
+# The player rolls every attribute of the block (demo `attributes` block)
+mode: random
+strategy: classic_4d6
+
+# The player types every value; no strategy is ever needed
+mode: manual
+min_value: 3
+max_value: 18
+
+# Four scores are rolled, the player assigns the two listed ones
+mode: mixed
+strategy: classic_4d6
+manual_attributes: [intelligence, charisma]
+
+# Nothing is asked: the game system assigns the values (demo `save` block)
+mode: auto
+strategy: class_saves
+```
+
+Whatever the mode, the step writes **base** values under `target`
+(`values.<block id>.<attribute>`); the race and class bonuses of
+`creation_rules.yaml` are layered on top by the rules engine and read
+back with `context.effective(...)`.
+
+Worth knowing:
+
+- in `random` and `mixed` modes a recorded answer **wins** over the
+  strategy (this keeps the die rolled in the dialog and the final
+  character in sync), while `auto` **never** reads an answer;
+- `manual` (and the manual part of `mixed`) fails with
+  `MissingInputError` when the player leaves a field empty;
+- the bounds `min_value` / `max_value` are checked against the
+  answers, the rolled values and the stored values — except in `auto`
+  mode, whose values come from the game data (a magic saving throw of
+  19 stays valid with `max_value: 18`);
+- `manual_attributes` naming an attribute the system does not declare
+  is reported by `validate()` as an error message.
+
+### `strategy` — how a generated value is produced
+
+`strategy` is read by `random` and `mixed` (for the attributes that are
+not manual) and by `auto`; a `manual` block never needs one. Four
+kinds of declarations are accepted, resolved in this order:
+
+1. **a strategy instance** — any object exposing `roll(attribute,
+   roller)`; in `workflow.yaml` such an object is obtained with a
+   `!pyclass` reference resolving to an instance;
+2. **a name** — looked up in `context.system["strategies"]`, the
+   registry the plugin fills in `build_system()`; this is what
+   `workflow.yaml` uses most of the time;
+3. **a strategy class** — instantiated with no argument on the first
+   roll, for example when a `!pyclass` reference points at the class
+   itself;
+4. otherwise the step fails with a `StepConfigurationError`
+   (`no ... strategy configured`, `unknown strategy 'x' (available:
+   ...)`, `x is not an attribute strategy`).
+
+```yaml
+# A registered name (the usual case)
+strategy: classic_4d6
+
+# A class: referenced with !pyclass, then instantiated with no
+# argument -> RollStrategy(), i.e. a plain "4d6" sum (4 to 24)
+strategy: !pyclass
+  path: companion4soloplayer.core.creation.strategies:RollStrategy
+```
+
+Names registered by the demo plugin:
+
+| Name | Implementation | What it generates |
+| --- | --- | --- |
+| `classic_4d6` | `FourSixKeepBestStrategy` | 4d6, drop the lowest die (3–18), the classic method of the demo system |
+| `3d6` | `RollStrategy("3d6")` | a plain 3d6 (3–18) |
+| `4d6_drop_lowest` | `RollStrategy("4d6", keep=3)` | 4d6 keeping the three highest dice |
+| `class_saves` | `ClassSavesStrategy` | the saving throws of the chosen class, read from `classes.yaml`, **without any draw** |
+
+The core ships two generic implementations a plugin can register under
+any name:
+
+- `RollStrategy(dice, keep=None, keep_best=True)` — rolls any dice
+  notation and optionally keeps only the best (`keep=3`) or the worst
+  (`keep_best=False`) dice: `RollStrategy("3d6")`,
+  `RollStrategy("4d6", keep=3)`, `RollStrategy("4d6-2")`;
+- `ConstantStrategy(value)` — always returns the same value (fixed
+  arrays, tests).
 
 A strategy producing **state dependent** values instead overrides
 `roll_for(attribute, roller, context)`, which receives the creation
 context: the default implementation delegates to `roll`, so a strategy
 ignoring the state never has to declare it. The demo `class_saves`
-strategy (registered as `"class_saves"`) reads `choices.class` that
-way and returns the saving throws declared by `classes.yaml`.
+strategy reads `choices.class` and `system["classes"]` that way and
+returns the saving throws declared by `classes.yaml`:
+
+```python
+from companion4soloplayer.core.creation.strategies import (
+    AttributeGenerationStrategy,
+)
+
+class ClassSavesStrategy(AttributeGenerationStrategy):
+    def __init__(self, default=10):
+        """Store the value used while no class is chosen."""
+        self.default = default
+
+    def roll(self, attribute, roller):
+        """No creation state available: neutral fallback."""
+        return self.default
+
+    def roll_for(self, attribute, roller, context):
+        """Read the class chosen so far and return its base save."""
+        chosen = context.peek("choices.class")          # e.g. "Adventurer"
+        for entry in context.system["classes"]:
+            if entry["name"] == chosen:
+                return int(entry["save"][attribute])    # e.g. 16 / 19
+        return self.default
+```
+
+The step calls `roll_for(attribute, roller, context)` for every value
+it generates, so a strategy may adapt to the state chosen so far
+(class, race...) without changing the step.
 
 ---
 
@@ -274,13 +396,13 @@ block id as its `step_id` and `block`, and stores its values under
 `values.<block id>`; the other parameters come from the template. This
 is how a game system declaring `attributes:` *and* `save:` in
 `attributes.yaml` gets one dialog block per entry without listing them
-in `workflow.yaml`. A workflow may also pin explicit `block: <id>`
-steps when it needs a specific block at a specific position.
+in `workflow.yaml`. A workflow may also pin an explicit `block: <id>`
+step (see below).
 
 `mode`, `strategy`, `manual_attributes`, `min_value` and `max_value`
 accept a plain value (shared by every block) **or** a mapping keyed by
-block id (the `"*"` key matches any block left undeclared), so one
-single entry gives each *type* of block its own generation method:
+block id, so one single entry gives each *type* of block its own
+generation method:
 
 ```yaml
   - !pyclass
@@ -293,16 +415,77 @@ single entry gives each *type* of block its own generation method:
       strategy:
         attributes: classic_4d6
         save: class_saves
-      min_value: 3
-      max_value: 18
+      min_value: 3                  # shared by every block
+      max_value: 18                 # (not enforced in `auto` mode)
 ```
 
-The demo workflow therefore rolls the `attributes` block with
-`classic_4d6` and *assigns* the `save` block with `class_saves`: no
-dice are drawn during the creation, the base saving throws come from
-the `save` mapping of the chosen class (`classes.yaml`, e.g. `16` /
-`19` for an Adventurer) and are then modulated by the race and class
-bonuses declared in `creation_rules.yaml`.
+A per-block value is resolved **when the step is instantiated**, before
+anything else is validated:
+
+1. the entry whose key is the block bound to the step wins;
+2. otherwise the `"*"` entry, which matches every block left
+   undeclared, is used;
+3. otherwise the step fails with a `StepConfigurationError`
+   (`parameter 'strategy' declares no value for block 'save'
+   (available: attributes)`), and a per-block value used by a step
+   bound to no block (`block` empty) is rejected as well.
+
+Since `min_value`, `max_value` and `manual_attributes` follow the same
+rule, a block can carry its own bounds and its own manual list:
+
+```yaml
+      mode:
+        attributes: mixed
+        save: auto
+      strategy:
+        attributes: classic_4d6
+        save: class_saves
+      manual_attributes:            # only meaningful in `mixed` mode
+        attributes: [intelligence, charisma]
+        save: []                    # unused: this block is assigned
+      # Bounds only constrain the answers and the rolls; a block
+      # assigned by the game data (`auto`) is never bounds-checked.
+      min_value:
+        attributes: 3
+        save: 0
+      max_value:
+        attributes: 18
+        save: 30
+      label: Attributes             # scalar value: shared by every block
+```
+
+Two shapes are therefore available:
+
+- **one value for every block** (`mode: random`) — the simplest,
+  when all the blocks of the step behave the same;
+- **one value per block type** (`mode: {attributes: random, save:
+  auto}`) — when the blocks of `attributes.yaml` are generated
+  differently.
+
+The demo workflow uses the second shape: the `attributes` block is
+rolled with `classic_4d6` while the `save` block is *assigned* with
+`class_saves`, so no dice are drawn during the creation. The base
+saving throws then come from the `save` mapping of the chosen class
+(`classes.yaml`, e.g. `16` / `19` for an Adventurer, `14` / `12` for a
+Wizard) and are modulated by the race and class bonuses declared in
+`creation_rules.yaml` (`+2` / `+2` for a Dwarf, `+2` magic for an Elf
+or a Gnome...).
+
+A workflow may also pin an explicit `block: <id>` step when it needs
+one specific block at one specific position (with its own `mode` and
+`strategy`, since a block bound that way no longer shares the template
+of the other blocks):
+
+```yaml
+  - !pyclass
+    path: companion4soloplayer.core.creation:AttributeGenerationStep
+    params:
+      step_id: save
+      block: save
+      target: values.save
+      mode: auto
+      strategy: class_saves
+```
 
 ---
 
