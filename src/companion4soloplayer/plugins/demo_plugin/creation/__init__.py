@@ -21,6 +21,7 @@ from companion4soloplayer.plugins.demo_plugin.creation.filters import (
     spell_available,
 )
 from companion4soloplayer.plugins.demo_plugin.creation.strategies import (
+    ClassSavesStrategy,
     FourSixKeepBestStrategy,
 )
 from companion4soloplayer.plugins.demo_plugin.creation.workflow import (
@@ -32,6 +33,7 @@ from companion4soloplayer.plugins.demo_plugin.creation.workflow import (
 
 __all__ = [
     "ATTRIBUTES_FILE",
+    "ClassSavesStrategy",
     "FourSixKeepBestStrategy",
     "build_system",
     "can_cast_spells",

@@ -2,10 +2,11 @@
 
 The dialog is built from the creation pipeline of the demo plugin (the
 step order declared by ``datas/workflow.yaml``): sections, field count
-and widget kinds must match the workflow, every widget starts empty,
-the shape of the form follows the answers (empty skill list at first,
-spells block appearing only for a spellcasting race/class), Validate
-runs the pipeline and Cancel discards everything.
+and widget kinds must match the workflow, every editable widget starts
+empty (while the read-only values the game system assigns are already
+displayed), the shape of the form follows the answers (empty skill
+list at first, spells block appearing only for a spellcasting
+race/class), Validate runs the pipeline and Cancel discards everything.
 """
 
 from collections.abc import Iterator
@@ -31,6 +32,7 @@ from companion4soloplayer.ui.builder.fields import (
     ChoiceField,
     DiceField,
     FieldWidget,
+    ReadOnlyField,
     TextAreaField,
     TextField,
 )
@@ -602,8 +604,9 @@ def test_each_attributes_yaml_block_gets_its_own_section(
     """Every level-1 entry of attributes.yaml becomes its own block.
 
     The ``save`` entry renders a section titled "Saving Throws" holding
-    its two dice fields, next to the "Attributes" section rendered by
-    the ``attributes`` entry.
+    its two read-only fields (the demo system assigns them from the
+    chosen class, no die is rolled), next to the "Attributes" section
+    rendered by the ``attributes`` entry.
     """
     dialog = CharacterCreationDialog(pipeline)
     qtbot.addWidget(dialog)
@@ -619,25 +622,34 @@ def test_each_attributes_yaml_block_gets_its_own_section(
         "Saving throw versus magic",
         "Saving throw versus poison",
     ]
-    # The block is made of dice fields only: two equal columns.
+    # The block is made of read-only fields only: two equal columns.
     layout = save.box.layout()
     assert isinstance(layout, QGridLayout)
     magic = layout.itemAtPosition(0, 0)
     poison = layout.itemAtPosition(0, 1)
     assert magic is not None
-    assert isinstance(magic.widget(), DiceField)
+    assert isinstance(magic.widget(), ReadOnlyField)
     assert poison is not None
-    assert isinstance(poison.widget(), DiceField)
+    assert isinstance(poison.widget(), ReadOnlyField)
     assert layout.itemAtPosition(1, 0) is None
 
-    # Rolling a saving throw records the answer under its own key.
-    save_die = sections["save"].rows[0][1]
-    assert isinstance(save_die, DiceField)
-    save_die.die_button.click()
-    value = save_die.value()
-    assert value is not None
-    assert 3 <= value <= 18
-    assert dialog.answers["save.magic"] == value
+    # Nothing to roll: the fields display the assigned values and the
+    # dialog collects no answer for them. No class chosen yet, so the
+    # neutral default applies.
+    rows = _rows(dialog)
+    assert rows["save.magic"][1].value() == 10
+    assert rows["save.poison"][1].value() == 10
+    assert "save.magic" not in dialog.answers
+    assert "save.poison" not in dialog.answers
+
+    # Picking a class refreshes the displayed saving throws.
+    class_field = rows["class"][1]
+    assert isinstance(class_field, ChoiceField)
+    _select(class_field, "Wizard")
+    rows = _rows(dialog)
+    assert rows["save.magic"][1].value() == 12
+    assert rows["save.poison"][1].value() == 14
+    assert "save.magic" not in dialog.answers
 
 
 def test_dialog_minimum_size(

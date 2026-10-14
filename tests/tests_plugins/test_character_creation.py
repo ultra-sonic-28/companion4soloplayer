@@ -16,6 +16,7 @@ from companion4soloplayer.core.creation import (
     CharacterCreationContext,
     CharacterCreationPipeline,
     Effect,
+    InputKind,
     MappingInputProvider,
     Operator,
     build_workflow,
@@ -537,3 +538,107 @@ def test_spell_available_filters_by_casting_class_level_and_skill() -> None:
     assert spell_available(classless, context) is False
     context.set("choices.race", "Gnome")
     assert spell_available(classless, context) is True  # the race casts
+
+
+# ----------------------------------------------------------------------
+# Saving throws (per-block strategy, classes.yaml)
+# ----------------------------------------------------------------------
+
+
+def test_classes_declare_base_saving_throws() -> None:
+    """Every class of classes.yaml declares its base saving throws."""
+    classes = load_data("classes.yaml")
+    assert {entry["name"]: entry["save"] for entry in classes} == {
+        "Adventurer": {"poison": 16, "magic": 19},
+        "Scout": {"poison": 16, "magic": 19},
+        "Bruiser": {"poison": 16, "magic": 19},
+        "Scholar": {"poison": 13, "magic": 15},
+        "Wizard": {"poison": 14, "magic": 12},
+        "Archer": {"poison": 16, "magic": 19},
+    }
+
+
+def test_workflow_uses_a_different_strategy_per_block(
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """The attributes are rolled, the saving throws are assigned."""
+    steps = {step.step_id: step for step in pipeline.steps}
+    context = pipeline.create_context()
+    attributes = steps["attributes"].describe_inputs(context)
+    assert {field.kind for field in attributes} == {InputKind.DICE}
+
+    save = steps["save"].describe_inputs(context)
+    assert [field.kind for field in save] == [InputKind.READONLY, InputKind.READONLY]
+    # No die to roll and no answer collected for a saving throw.
+    assert all(field.roll is None for field in save)
+
+
+@pytest.mark.parametrize(
+    ("character_class", "magic", "poison"),
+    [
+        ("Adventurer", 19, 16),
+        ("Scout", 19, 16),
+        ("Bruiser", 19, 16),
+        ("Archer", 19, 16),
+        ("Scholar", 15, 13),
+        ("Wizard", 12, 14),
+    ],
+)
+def test_saving_throws_come_from_the_chosen_class(
+    pipeline: CharacterCreationPipeline,
+    character_class: str,
+    magic: int,
+    poison: int,
+) -> None:
+    """The class assigns the base saving throws: no dice drawn."""
+    context = pipeline.create_context()
+    report = pipeline.run(
+        context,
+        MappingInputProvider(
+            {
+                "identity.name": "Solo",
+                "identity.background": "None",
+                "class": character_class,
+                "skills": ["Diplomacy", "Medicine"],
+            }
+        ),
+    )
+    assert report.ok
+    assert context.get("values.save") == {"magic": magic, "poison": poison}
+
+
+def test_saving_throws_are_modulated_by_the_creation_rules(
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """The race bonuses of creation_rules.yaml layer on the base."""
+    context = pipeline.create_context()
+    report = pipeline.run(
+        context,
+        MappingInputProvider(
+            {
+                "identity.name": "Brom",
+                "identity.background": "Orphaned smith",
+                "race": "Dwarf",
+                "class": "Scholar",
+                "skills": ["Diplomacy", "Medicine"],
+            }
+        ),
+    )
+    assert report.ok
+    # Base from classes.yaml (Scholar), then +2 / +2 for the Dwarf.
+    assert context.get("values.save") == {"magic": 15, "poison": 13}
+    assert context.effective("values.save.magic") == 17
+    assert context.effective("values.save.poison") == 15
+
+
+def test_saving_throws_fall_back_without_a_class(
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """An undefined class keeps neutral saving throws."""
+    context = pipeline.create_context()
+    report = pipeline.run(
+        context,
+        MappingInputProvider({"identity.name": "Solo", "identity.background": "None"}),
+    )
+    assert report.ok
+    assert context.get("values.save") == {"magic": 10, "poison": 10}

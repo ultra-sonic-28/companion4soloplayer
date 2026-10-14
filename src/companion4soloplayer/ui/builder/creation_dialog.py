@@ -4,8 +4,10 @@ The dialog chains the creation steps of the active game system in the
 order declared by the plugin ``workflow.yaml``:
 
 1. every step describing data (``CreationStep.describe_inputs``) is
-   rendered as a section of empty widgets: a text zone, a label with a
-   die button for a dice roll, or a choice list;
+   rendered as a section of widgets: a text zone, a label with a die
+   button for a dice roll, a choice list, or a read-only value the
+   game system assigns by itself (every widget starts empty except
+   those read-only values);
 2. **Validate** collects the answers, runs the pipeline and closes the
    dialog on success (the report and the filled context are exposed to
    the caller); on failure the error messages are displayed and the
@@ -45,6 +47,7 @@ from companion4soloplayer.core.creation import (
     CharacterCreationContext,
     CharacterCreationPipeline,
     CreationReport,
+    InputKind,
     MappingInputProvider,
 )
 from companion4soloplayer.ui.builder.dialog_builder import (
@@ -54,6 +57,7 @@ from companion4soloplayer.ui.builder.dialog_builder import (
 from companion4soloplayer.ui.builder.fields import (
     ChoiceField,
     DiceField,
+    ReadOnlyField,
     TextAreaField,
     TextField,
 )
@@ -128,6 +132,10 @@ class CharacterCreationDialog(QDialog):
             *PluginConfigRegistry.instance().character_creation_dialog_size(plugin_name)
         )
         self._setup_ui()
+        # Replay the pipeline once so the values the game system
+        # assigns on its own (the read-only saving throws of the
+        # chosen class, for instance) are already displayed.
+        self._refresh_sections()
 
     # ------------------------------------------------------------------
     # Public API
@@ -159,10 +167,14 @@ class CharacterCreationDialog(QDialog):
         Empty widgets are skipped (a blank text, an unselected
         single-choice option or an unrolled die stay unanswered), so
         the steps keep enforcing their own required/optional rules.
+        Read-only fields are skipped too: the value they display is
+        computed by its step, it is not an answer of the player.
         """
         answers: dict[str, Any] = {}
         for section in self._sections:
             for field, widget in section.rows:
+                if field.kind is InputKind.READONLY:
+                    continue
                 value = widget.value()
                 if value is None:
                     continue
@@ -313,6 +325,11 @@ class CharacterCreationDialog(QDialog):
                     new_field = described.get(field.key)
                     if new_field is not None:
                         widget.set_options(new_field.options)
+                elif isinstance(widget, ReadOnlyField):
+                    # Assigned values (saving throws) follow the state.
+                    new_field = described.get(field.key)
+                    if new_field is not None:
+                        widget.set_value(new_field.value)
         if changed:
             self._builder.arrange(self._form_layout, self._sections)
 

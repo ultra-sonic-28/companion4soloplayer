@@ -42,6 +42,7 @@ The engine covers the functional requirements as follows:
 | Race optional | `SelectionStep` with `optional: true`, or no step at all / no catalog |
 | Class optional | same as race |
 | Attributes: random **or** manual (all or part) | `AttributeGenerationStep` with `random` / `manual` / `mixed` modes |
+| A different generation method per block (dice or assigned values) | `AttributeGenerationStep` per-block `mode` / `strategy` (`random` + `classic_4d6` for the attributes, `auto` + `class_saves` for the saving throws) |
 | Skills: free / inherited / none | `SkillSelectionStep` with `free` / `inherited` / `none` modes |
 | Bonuses & maluses (race, class, attributes, skills...) | Condition/Effect rules evaluated after each step |
 | Identity (name, background) | `IdentityStep` |
@@ -172,7 +173,7 @@ earlier ones (chaining).
 
 ## Attribute generation strategies
 
-`AttributeGenerationStep` supports three modes:
+`AttributeGenerationStep` supports four modes:
 
 - `random` — every attribute comes from a strategy, unless the provider
   already holds an answer for it (a die rolled in the Player dialog, a
@@ -180,7 +181,11 @@ earlier ones (chaining).
   sync;
 - `manual` — every attribute is asked to the player;
 - `mixed` — the attributes listed in `manual_attributes` are asked, the
-  others are rolled.
+  others are rolled;
+- `auto` — the strategy *assigns* the value (no answer, no die): the
+  step describes read-only fields displaying the effective value, and
+  `min_value`/`max_value` are not enforced (the values come from the
+  game data, not from the player).
 
 Strategies implement `AttributeGenerationStrategy.roll(attribute,
 roller)`. The core ships `RollStrategy` (e.g. `"4d6", keep=3`) and
@@ -192,6 +197,13 @@ params:
   mode: random
   strategy: classic_4d6      # FourSixKeepBestStrategy of the demo plugin
 ```
+
+A strategy producing **state dependent** values instead overrides
+`roll_for(attribute, roller, context)`, which receives the creation
+context: the default implementation delegates to `roll`, so a strategy
+ignoring the state never has to declare it. The demo `class_saves`
+strategy (registered as `"class_saves"`) reads `choices.class` that
+way and returns the saving throws declared by `classes.yaml`.
 
 ---
 
@@ -259,12 +271,38 @@ expanded into **one step per attribute block** declared in
 `system["attribute_blocks"]` (the level-1 entries of the plugin
 `attributes.yaml`), in declaration order. Each generated step takes the
 block id as its `step_id` and `block`, and stores its values under
-`values.<block id>`; the other parameters (mode, strategy, bounds) come
-from the template. This is how a game system declaring `attributes:`
-*and* `save:` in `attributes.yaml` gets one dialog block per entry
-without listing them in `workflow.yaml`. A workflow may also pin
-explicit `block: <id>` steps when it needs a specific block at a
-specific position.
+`values.<block id>`; the other parameters come from the template. This
+is how a game system declaring `attributes:` *and* `save:` in
+`attributes.yaml` gets one dialog block per entry without listing them
+in `workflow.yaml`. A workflow may also pin explicit `block: <id>`
+steps when it needs a specific block at a specific position.
+
+`mode`, `strategy`, `manual_attributes`, `min_value` and `max_value`
+accept a plain value (shared by every block) **or** a mapping keyed by
+block id (the `"*"` key matches any block left undeclared), so one
+single entry gives each *type* of block its own generation method:
+
+```yaml
+  - !pyclass
+    path: companion4soloplayer.core.creation:AttributeGenerationStep
+    params:
+      block: "*"                    # one step per attributes.yaml block
+      mode:
+        attributes: random          # the dice are rolled...
+        save: auto                  # ...while the saves are assigned
+      strategy:
+        attributes: classic_4d6
+        save: class_saves
+      min_value: 3
+      max_value: 18
+```
+
+The demo workflow therefore rolls the `attributes` block with
+`classic_4d6` and *assigns* the `save` block with `class_saves`: no
+dice are drawn during the creation, the base saving throws come from
+the `save` mapping of the chosen class (`classes.yaml`, e.g. `16` /
+`19` for an Adventurer) and are then modulated by the race and class
+bonuses declared in `creation_rules.yaml`.
 
 ---
 
@@ -301,7 +339,9 @@ The plugin declares, under `plugins/demo_plugin/`:
 - `datas/races.yaml`, `datas/classes.yaml`, `datas/skills.yaml`,
   `datas/spells.yaml` — the catalogs read through `system`; every race
   and class declares `can_cast_spells: true|false`, the flag gating
-  the spells of the character;
+  the spells of the character, and every class declares the `save`
+  mapping of its **base saving throws**, read by the `class_saves`
+  strategy;
 - `creation/strategies.py` — the named generation methods;
 - `creation/filters.py` — the availability filters (`skill_available`
   opening the skill catalog, `spell_available` built on
@@ -351,7 +391,12 @@ flowchart TD
   the answer keys and state paths keep the technical keys
   (`attributes.strength` / `save.magic`, `values.attributes.strength` /
   `values.save.magic`), and a non-empty `description` shows up as a
-  tooltip on the field.
+  tooltip on the field. The widgets of a block follow its mode: dice
+  buttons in `random` mode, number edits in `manual` mode, and
+  **read-only values** in `auto` mode — the "Saving Throws" block
+  displays the saving throws assigned for the chosen class and
+  refreshes them whenever a choice changes, without ever asking the
+  player to roll.
 - Each data item renders a widget matching its `InputKind`:
 
   | Kind | Widget | Example |
@@ -362,6 +407,7 @@ flowchart TD
   | `DICE` | label + die button | randomly generated attribute |
   | `CHOICE` | single-selection list | race, class |
   | `CHOICES` | multiple-selection list | skills, spells |
+  | `READONLY` | label + computed value | saving throw assigned from the class |
 
 - The sections are laid out on a **two-column grid**: a section
   describing several fields (identity, each attribute block) takes a
@@ -370,9 +416,11 @@ flowchart TD
   (race on the left and class on the right, skills on the left and
   spells on the right). Inside an attribute block the fields are spread
   over **two equal columns**. The dialog is at least 860 x 640 pixels.
-- Every widget starts **empty**, and the choice lists (race, class,
-  skills, spells) keep a fixed height showing **at least four rows**, so
-  a catalog stays readable without scrolling inside the list.
+- Every editable widget starts **empty** (the read-only values the game
+  system assigns are already displayed), and the choice lists (race,
+  class, skills, spells) keep a fixed height showing **at least four
+  rows**, so a catalog stays readable without scrolling inside the
+  list.
 - **Validate** collects the answers (empty widgets stay unanswered, so
   the steps keep enforcing their own required/optional rules), runs the
   pipeline and closes the dialog on success — `dialog.report` holds the

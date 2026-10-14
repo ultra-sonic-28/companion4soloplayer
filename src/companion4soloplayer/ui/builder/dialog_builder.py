@@ -9,8 +9,8 @@ box holding one field widget per data item.
 On top of that, :meth:`CharacterCreationDialogBuilder.arrange` lays the
 group boxes out on a two-column grid (full row for the multi-field
 sections, two single-field sections side by side), and a block made
-only of dice/number fields spreads its own fields over two equal
-columns.
+only of dice/number/read-only fields spreads its own fields over two
+equal columns.
 """
 
 from __future__ import annotations
@@ -30,7 +30,9 @@ from companion4soloplayer.core.creation import (
 from companion4soloplayer.ui.builder.fields import FieldWidget, create_field_widget
 
 #: Field kinds rendered as a compact two-column block (attribute blocks).
-COMPACT_KINDS: frozenset[InputKind] = frozenset({InputKind.DICE, InputKind.NUMBER})
+COMPACT_KINDS: frozenset[InputKind] = frozenset(
+    {InputKind.DICE, InputKind.NUMBER, InputKind.READONLY}
+)
 
 
 @dataclass(frozen=True)
@@ -159,10 +161,11 @@ class CharacterCreationDialogBuilder:
     ) -> tuple[tuple[InputField, FieldWidget], ...]:
         """Create the widgets of one section inside its group box.
 
-        A block made only of dice/number fields (an attribute block)
-        is displayed on **two equal columns**: the first half of the
-        fields goes to the left column, the rest to the right one. Any
-        other section stacks its fields on a single column.
+        A block made only of dice/number/read-only fields (an
+        attribute block) is displayed on **two equal columns**: the
+        first half of the fields goes to the left column, the rest to
+        the right one. Any other section stacks its fields on a single
+        column.
 
         Args:
             box: Group box hosting the section.

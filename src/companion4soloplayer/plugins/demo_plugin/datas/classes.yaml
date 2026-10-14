@@ -2,6 +2,10 @@
 # Original descriptions built on generic fantasy archetypes only.
 # can_cast_spells tells whether members of the class may cast spells:
 # it gates the spells block of the character creation dialog.
+# `save` declares the base saving throws of the class: they are
+# assigned (no dice drawn) to the `save` attribute block by the
+# class_saves strategy declared in workflow.yaml, then modulated by
+# the race/class bonuses of creation_rules.yaml.
 
 - name: Adventurer
   description: A generic adventurer exploring the dungeon
@@ -13,6 +17,10 @@
   abilities:
     - Basic Attack
     - Search
+  # Base saving throws
+  save:
+    poison: 16
+    magic: 19
 
 - name: Scout
   description: A keen-eyed explorer with cartographic skills
@@ -24,6 +32,10 @@
   abilities:
     - Mapping
     - Detect Trap
+  # Base saving throws
+  save:
+    poison: 16
+    magic: 19
 
 - name: Bruiser
   description: A heavy-hitting warrior built for front lines
@@ -35,6 +47,10 @@
   abilities:
     - Heavy Strike
     - Intimidate
+  # Base saving throws
+  save:
+    poison: 16
+    magic: 19
 
 - name: Scholar
   description: A learned individual versed in ancient lore
@@ -46,6 +62,10 @@
   abilities:
     - Identify
     - Decipher
+  # Base saving throws
+  save:
+    poison: 13
+    magic: 15
 
 - name: Wizard
   description: A master of the arcane arts
@@ -57,6 +77,10 @@
     - Fireball
     - Heal
     - Teleport
+  # Base saving throws
+  save:
+    poison: 14
+    magic: 12
 
 - name: Archer
   description: A graceful archer from the forests
@@ -67,3 +91,7 @@
   special_abilities:
     - Precision Shot
     - Archery's Expert
+  # Base saving throws
+  save:
+    poison: 16
+    magic: 19

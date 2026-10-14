@@ -30,6 +30,28 @@ rules:
         action: grant
         value: Stonewise
 
+  - id: dwarf_save_poison
+    description: Dwarves are hardy and resistant to toxins.
+    when:
+      - target: choices.race
+        operator: eq
+        value: Dwarf
+    effects:
+      - target: values.save.poison
+        action: add
+        value: 2
+
+  - id: dwarf_save_magic
+    description: Dwarves have an innate resistance to magic spells.
+    when:
+      - target: choices.race
+        operator: eq
+        value: Dwarf
+    effects:
+      - target: values.save.magic
+        action: add
+        value: 2
+
   - id: elf_grace
     description: Elves are agile (+2 dexterity).
     when:
@@ -63,6 +85,17 @@ rules:
         action: grant
         value: Stealth
 
+  - id: elf_save_magic
+    description: Elves have an innate resistance to magic spells.
+    when:
+      - target: choices.race
+        operator: eq
+        value: Elf
+    effects:
+      - target: values.save.magic
+        action: add
+        value: 2
+
   - id: gnome_learning
     description: Gnomes are clever (+2 intelligence).
     when:
@@ -84,6 +117,17 @@ rules:
       - target: values.skills
         action: grant
         value: Nature Lore
+
+  - id: gnome_save_magic
+    description: Gnomes have an innate resistance to magic spells.
+    when:
+      - target: choices.race
+        operator: eq
+        value: Gnome
+    effects:
+      - target: values.save.magic
+        action: add
+        value: 2
 
   - id: human_versatile
     description: Humans carry an extra wound of resolve (+1 hit point).

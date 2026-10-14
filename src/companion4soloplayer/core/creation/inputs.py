@@ -67,7 +67,12 @@ class InputKind(StrEnum):
     ``DICE``     ``ask_number``      label + die button (rolled value)
     ``CHOICE``   ``ask_choice``      single-selection list
     ``CHOICES``  ``ask_many``        multiple-selection list
+    ``READONLY`` (no answer)         read-only value computed by the
+                                     step (saving throws...)
     ===========  ==================  ====================================
+
+    A ``READONLY`` field collects nothing: it carries the value the
+    step computed (``InputField.value``) and the UI only displays it.
     """
 
     TEXT = "text"
@@ -76,6 +81,7 @@ class InputKind(StrEnum):
     DICE = "dice"
     CHOICE = "choice"
     CHOICES = "choices"
+    READONLY = "readonly"
 
 
 @dataclass(frozen=True)
@@ -104,6 +110,9 @@ class InputField:
             (None when no die is involved).
         description: Optional help text about the data item, shown by
             the UI as a tooltip (empty when the field declares none).
+        value: Value displayed by a ``READONLY`` field, computed by the
+            step from the current state (None while the step has not
+            produced it yet). Other kinds ignore this attribute.
     """
 
     key: str
@@ -117,6 +126,7 @@ class InputField:
     max_value: int | None = None
     roll: Callable[[], int] | None = None
     description: str = ""
+    value: int | str | None = None
 
 
 @runtime_checkable

@@ -7,6 +7,16 @@ resolves the configured strategy (instance, name looked up in
 once per randomly generated attribute; manual and mixed generation are
 handled by the step itself.
 
+Two entry points are available:
+
+- :meth:`AttributeGenerationStrategy.roll` is the historical,
+  context-free contract (attribute name + dice roller);
+- :meth:`AttributeGenerationStrategy.roll_for` additionally receives the
+  creation :class:`~companion4soloplayer.core.creation.context.CharacterCreationContext`,
+  which lets a strategy adapt to the state chosen so far (the class of
+  the character, for instance). It falls back on ``roll`` by default,
+  so a strategy only overrides it when it really needs the state.
+
 Strategies are pluggable: plugins subclass
 :class:`AttributeGenerationStrategy` to implement the methods of their
 game system (see
@@ -17,6 +27,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from companion4soloplayer.core.creation.context import CharacterCreationContext
 from companion4soloplayer.core.dice_expression import DiceExpression
 from companion4soloplayer.core.dice_roller import DiceRoller
 
@@ -38,6 +49,31 @@ class AttributeGenerationStrategy(ABC):
             The generated base value.
         """
         ...
+
+    def roll_for(
+        self,
+        attribute: str,
+        roller: DiceRoller,
+        context: CharacterCreationContext,
+    ) -> int:
+        """Generate the base value of one attribute for a given state.
+
+        The default implementation delegates to :meth:`roll`, so a
+        strategy that ignores the creation state never has to declare
+        it. Strategies producing *state dependent* values (saving
+        throws granted by the chosen class, for example) override this
+        method instead.
+
+        Args:
+            attribute: Attribute name.
+            roller: Dice roller to use.
+            context: Current creation state (choices made so far and
+                game data of ``context.system``).
+
+        Returns:
+            The generated base value.
+        """
+        return self.roll(attribute, roller)
 
 
 class RollStrategy(AttributeGenerationStrategy):

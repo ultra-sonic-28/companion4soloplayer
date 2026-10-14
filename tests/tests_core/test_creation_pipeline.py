@@ -22,7 +22,7 @@ from companion4soloplayer.core.creation import (
     build_workflow,
     build_workflow_from_yaml,
 )
-from companion4soloplayer.core.creation.inputs import InputProvider
+from companion4soloplayer.core.creation.inputs import InputKind, InputProvider
 from companion4soloplayer.core.creation.strategies import ConstantStrategy
 from companion4soloplayer.utils.yaml_loader import PyClassRef
 
@@ -457,3 +457,33 @@ def test_build_workflow_expansion_without_blocks_raises() -> None:
     """``block: "*"`` without declared blocks is a workflow error."""
     with pytest.raises(WorkflowError, match="attribute_blocks"):
         build_workflow(BLOCKS_WORKFLOW, base_module=__name__)
+
+
+def test_build_workflow_gives_each_block_its_own_strategy() -> None:
+    """The per-block mode/strategy are resolved for every expanded block.
+
+    The attributes keep rolling dice while the saving throws are
+    assigned by their own strategy, from one single workflow entry.
+    """
+    workflow: dict[str, Any] = {
+        "steps": [
+            PyClassRef(
+                path="companion4soloplayer.core.creation:AttributeGenerationStep",
+                params={
+                    "block": "*",
+                    "mode": {"attributes": "random", "save": "auto"},
+                    "strategy": {"attributes": "fixed", "save": "fixed"},
+                    "min_value": 3,
+                    "max_value": 18,
+                },
+            ),
+        ]
+    }
+    pipeline = build_workflow(workflow, base_module=__name__, system=BLOCKS_SYSTEM)
+    attributes, save = pipeline.steps
+    context = pipeline.create_context()
+    assert [field.kind for field in attributes.describe_inputs(context)] == [InputKind.DICE]
+    assert [field.kind for field in save.describe_inputs(context)] == [InputKind.READONLY]
+    assert pipeline.run(context, MappingInputProvider({})).ok
+    assert context.get("values.attributes.strength") == 12
+    assert context.get("values.save.magic") == 12

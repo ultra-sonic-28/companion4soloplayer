@@ -7,6 +7,7 @@ import pytest
 
 from companion4soloplayer.core.creation.context import CharacterCreationContext
 from companion4soloplayer.core.creation.inputs import (
+    InputKind,
     InvalidAnswerError,
     MappingInputProvider,
     MissingInputError,
@@ -20,6 +21,7 @@ from companion4soloplayer.core.creation.steps import (
     StepConfigurationError,
 )
 from companion4soloplayer.core.creation.strategies import (
+    AttributeGenerationStrategy,
     ConstantStrategy,
     RollStrategy,
 )
@@ -429,6 +431,145 @@ def test_attribute_step_validate_reports_missing_and_invalid_values() -> None:
     errors = step.validate(context)
     assert any("integer" in error for error in errors)
     assert any("<= 18" in error for error in errors)
+
+
+def test_attribute_step_auto_mode_assigns_read_only_values() -> None:
+    """Auto mode asks nothing and describes read-only fields."""
+    step = AttributeGenerationStep(mode="auto", strategy="fixed", min_value=3, max_value=18)
+    context = make_context()
+    # Nothing computed yet: the fields are read-only and empty.
+    fields = step.describe_inputs(context)
+    assert [field.kind for field in fields] == [InputKind.READONLY, InputKind.READONLY]
+    assert [field.value for field in fields] == [None, None]
+    assert all(field.roll is None for field in fields)
+
+    # The strategy assigns the values, no answer is needed at all.
+    step.execute(context, MappingInputProvider({}))
+    assert context.get("values.attributes.strength") == 12
+    assert step.validate(context) == []
+    # The displayed value follows the computed state.
+    assert [field.value for field in step.describe_inputs(context)] == [12, 12]
+
+
+def test_attribute_step_auto_mode_ignores_answers_and_bounds() -> None:
+    """An assigned value comes from the strategy, out of the bounds."""
+    step = AttributeGenerationStep(mode="auto", strategy="fixed", min_value=3, max_value=18)
+    context = make_context()
+    # A recorded answer never wins in auto mode.
+    step.execute(context, MappingInputProvider({"attributes.strength": 15}))
+    assert context.get("values.attributes.strength") == 12
+    # The bounds constrain the player, not the game data.
+    context.set("values.attributes.charm", 19)
+    assert step.validate(context) == []
+
+
+def test_attribute_step_declares_mode_and_strategy_per_block() -> None:
+    """Each block type gets the mode and strategy declared for it."""
+    blocks = {
+        "attributes": {
+            "id": "attributes",
+            "title": "Attributes",
+            "list": [{"id": "strength", "name": "Strength"}],
+        },
+        "save": {
+            "id": "save",
+            "title": "Saving Throws",
+            "list": [{"id": "magic", "name": "Magic"}],
+        },
+    }
+    mode = {"attributes": "random", "save": "auto"}
+    strategy = {"attributes": "fixed", "save": "fixed"}
+    context = make_context(attribute_blocks=blocks)
+
+    rolled = AttributeGenerationStep(
+        step_id="attributes", block="attributes", mode=mode, strategy=strategy
+    )
+    assigned = AttributeGenerationStep(
+        step_id="save", block="save", target="values.save", mode=mode, strategy=strategy
+    )
+    (rolled_field,) = rolled.describe_inputs(context)
+    assert rolled_field.kind is InputKind.DICE
+    (assigned_field,) = assigned.describe_inputs(context)
+    assert assigned_field.kind is InputKind.READONLY
+
+    assigned.execute(context, MappingInputProvider({}))
+    assert context.get("values.save.magic") == 12
+
+
+def test_attribute_step_per_block_parameters_fall_back_on_the_wildcard() -> None:
+    """The "*" entry applies to every block left undeclared."""
+    step = AttributeGenerationStep(
+        step_id="save",
+        block="save",
+        target="values.save",
+        mode={"*": "auto"},
+        strategy={"*": "fixed"},
+    )
+    context = make_context(
+        attribute_blocks={"save": {"id": "save", "title": "Saving Throws", "list": ["magic"]}}
+    )
+    (field,) = step.describe_inputs(context)
+    assert field.kind is InputKind.READONLY
+    step.execute(context, MappingInputProvider({}))
+    assert context.get("values.save.magic") == 12
+
+
+def test_attribute_step_per_block_parameter_requires_a_bound_block() -> None:
+    """A per-block value cannot be used by a step bound to no block."""
+    with pytest.raises(StepConfigurationError, match="binds no attribute block"):
+        AttributeGenerationStep(strategy={"save": "fixed"})
+
+
+def test_attribute_step_per_block_parameter_rejects_an_unknown_block() -> None:
+    """A block with no entry (and no wildcard) is a configuration error."""
+    with pytest.raises(StepConfigurationError, match="no value for block"):
+        AttributeGenerationStep(block="save", strategy={"attributes": "fixed"})
+
+
+def test_attribute_step_forwards_the_context_to_the_strategy() -> None:
+    """A strategy may adapt its value to the state chosen so far."""
+
+    class ClassBasedStrategy(AttributeGenerationStrategy):
+        """Return a value depending on the chosen class."""
+
+        def roll(self, attribute: str, roller: DiceRoller) -> int:
+            """Return the value used while no class is chosen.
+
+            Args:
+                attribute: Attribute name (unused).
+                roller: Dice roller (unused).
+
+            Returns:
+                The classless value.
+            """
+            return 3
+
+        def roll_for(
+            self,
+            attribute: str,
+            roller: DiceRoller,
+            context: CharacterCreationContext,
+        ) -> int:
+            """Return the value of the chosen class.
+
+            Args:
+                attribute: Attribute name (unused).
+                roller: Dice roller (unused).
+                context: Creation state read for the class choice.
+
+            Returns:
+                14 for a Wizard, 3 otherwise.
+            """
+            return 14 if context.peek("choices.class") == "Wizard" else 3
+
+    step = AttributeGenerationStep(strategy=ClassBasedStrategy())
+    context = make_context()
+    step.execute(context, MappingInputProvider({}))
+    assert context.get("values.attributes.strength") == 3
+
+    context.set("choices.class", "Wizard")
+    step.execute(context, MappingInputProvider({}))
+    assert context.get("values.attributes.strength") == 14
 
 
 # ----------------------------------------------------------------------

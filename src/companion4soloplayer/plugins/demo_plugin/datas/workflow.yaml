@@ -35,8 +35,16 @@ steps:
     path: companion4soloplayer.core.creation:AttributeGenerationStep
     params:
       block: "*"                    # one step per block of attributes.yaml
-      mode: random                      # random | manual | mixed
-      strategy: classic_4d6             # named in the system data
+      # Generation mode and strategy are declared PER BLOCK, so each
+      # type of block gets its own generation method: the attributes
+      # are rolled with dice while the saving throws are assigned from
+      # the class chosen in classes.yaml (no dice draw at creation).
+      mode:
+        attributes: random              # random | manual | mixed | auto
+        save: auto                      # assigned, never asked
+      strategy:                         # named in the system data
+        attributes: classic_4d6
+        save: class_saves
       min_value: 3
       max_value: 18
 

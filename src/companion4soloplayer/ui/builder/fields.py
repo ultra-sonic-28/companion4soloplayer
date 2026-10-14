@@ -12,9 +12,15 @@ Widget                 Field kind
 :class:`DiceField`     ``DICE`` (attribute rolled with a die)
 :class:`ChoiceField`   ``CHOICE`` / ``CHOICES`` (race, class,
                        skills, spells...)
+:class:`ReadOnlyField` ``READONLY`` (value assigned by the game
+                       system, saving throws...)
 =====================  ==========================================
 
 Every widget starts **empty**: the dialog never pre-fills an answer.
+The read-only widget is the exception: it displays the value carried
+by its field (``InputField.value``), refreshed by the dialog whenever
+the state changes, and contributes no answer.
+
 A widget emits :attr:`FieldWidget.changed` when the value edited by
 the player changes, which lets the dialog re-evaluate the dependent
 option lists (for example the spells filtered by the chosen class).
@@ -316,6 +322,65 @@ class DiceField(FieldWidget):
         self.changed.emit()
 
 
+class ReadOnlyField(FieldWidget):
+    """Label and computed value the player cannot edit.
+
+    Used by the blocks whose values the game system assigns itself
+    (the saving throws granted by the chosen class, for instance): the
+    dialog shows the effective value recomputed by the step after each
+    change, and the widget collects no answer.
+    """
+
+    def __init__(self, field: InputField, parent: QWidget | None = None) -> None:
+        """Initialize the read-only field.
+
+        Args:
+            field: Field described by the creation step; its
+                ``value`` is displayed as-is.
+            parent: Owning widget.
+        """
+        super().__init__(field, parent)
+        self._value: int | str | None = None
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.label = QLabel(field.label)
+        self.label.setMinimumWidth(LABEL_WIDTH)
+        self.value_label = QLabel()
+        self.value_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self.value_label.setMinimumWidth(40)
+        self.value_label.setAccessibleName(field.label)
+        layout.addWidget(self.label)
+        layout.addStretch()
+        layout.addWidget(self.value_label)
+        self.set_value(field.value)
+
+    @property
+    def displayed_value(self) -> int | str | None:
+        """Return the value currently displayed by the widget."""
+        return self._value
+
+    def value(self) -> int | str | None:
+        """Return the displayed value.
+
+        Returns:
+            The computed value shown by the widget. The dialog skips
+            read-only fields when it collects the answers, so this
+            value is informational only.
+        """
+        return self._value
+
+    def set_value(self, value: int | str | None) -> None:
+        """Display a freshly computed value.
+
+        Args:
+            value: Value to display (None empties the widget).
+        """
+        if value == self._value:
+            return
+        self._value = value
+        self.value_label.setText("" if value is None else str(value))
+
+
 class ChoiceField(FieldWidget):
     """Labelled option list, single or multiple selection.
 
@@ -426,6 +491,7 @@ def create_field_widget(field: InputField, parent: QWidget | None = None) -> Fie
         InputKind.DICE: DiceField,
         InputKind.CHOICE: ChoiceField,
         InputKind.CHOICES: ChoiceField,
+        InputKind.READONLY: ReadOnlyField,
     }.get(field.kind)
     if widget_class is None:
         raise ValueError(f"No widget implemented for input kind {field.kind!r}")

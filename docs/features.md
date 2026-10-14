@@ -83,10 +83,10 @@ Each character is represented as a strongly-typed `Character` record comprising:
 Characters are built by the generic creation engine (`companion4soloplayer.core.creation`), a data-driven pipeline of ordered steps:
 
 - **State container**: raw player *choices* (`choices.*`) and step-computed *values* (`values.*`) with rule-layered effective values.
-- **Steps**: identity (name/background), race and class selection (both optional), attribute generation (random dice strategies, manual entry or a mix of both), skill selection (free picks, inherited from race/class, or absent) and spell selection (filtered list or automatic grants).
+- **Steps**: identity (name/background), race and class selection (both optional), attribute generation (random dice strategies, manual entry, a mix of both, or values assigned by the game system — the saving throws of the chosen class, no dice drawn), skill selection (free picks, inherited from race/class, or absent) and spell selection (filtered list or automatic grants).
 - **Condition/Effect rules**: declarative bonuses and maluses ("if Race=Dwarf then +2 Constitution", attribute thresholds, grants from other skills) evaluated automatically after every step.
-- **Workflow configuration**: each game system declares its own step order in its plugin `workflow.yaml` (see the demo plugin).
-- **Player dialog**: the **Manage > Player** menu (right above *Manage > Plugins*) opens the dynamic creation form (`companion4soloplayer.ui.builder`) built from those steps — one section per step, one widget per data item (text field, die button or choice list), everything starting empty, *Validate* running the pipeline with the collected answers and *Cancel* discarding them.
+- **Workflow configuration**: each game system declares its own step order in its plugin `workflow.yaml` (see the demo plugin), together with the **generation mode and strategy of every attribute block**, so each block type gets its own method (`classic_4d6` for the attributes, `class_saves` for the saving throws).
+- **Player dialog**: the **Manage > Player** menu (right above *Manage > Plugins*) opens the dynamic creation form (`companion4soloplayer.ui.builder`) built from those steps — one section per step, one widget per data item (text field, die button, choice list or read-only value assigned by the game system), every editable widget starting empty, *Validate* running the pipeline with the collected answers and *Cancel* discarding them.
 - **Reports**: every run returns per-step statuses (`executed`, `skipped`, `failed`) and the identifiers of the fired rules.
 
 See [Character Creation](character_creation.md) for the full design.

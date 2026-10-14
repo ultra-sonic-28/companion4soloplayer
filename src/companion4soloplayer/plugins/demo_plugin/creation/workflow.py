@@ -3,7 +3,11 @@
 The game-system specific parts of the feature live here and in the
 ``datas/`` directory:
 
-- ``datas/workflow.yaml`` declares the **order of the steps**;
+- ``datas/workflow.yaml`` declares the **order of the steps** and the
+  generation mode/strategy of every attribute block (``classic_4d6``
+  for the attributes, ``class_saves`` for the saving throws);
+- ``datas/classes.yaml`` declares the base saving throws of each class
+  (``save`` mapping read by the ``class_saves`` strategy);
 - ``datas/creation_rules.yaml`` declares the bonuses and maluses
   ("if Race=Dwarf then +2 Constitution", skill inheritance, automatic
   spell grants...);
@@ -28,7 +32,7 @@ from companion4soloplayer.core.creation import (
 from companion4soloplayer.core.creation.strategies import RollStrategy
 
 from ..data import DATA_DIR, load_data
-from .strategies import FourSixKeepBestStrategy
+from .strategies import ClassSavesStrategy, FourSixKeepBestStrategy
 
 #: Data file declaring the player attributes of the game system.
 ATTRIBUTES_FILE = "attributes.yaml"
@@ -132,9 +136,13 @@ def build_system() -> dict[str, Any]:
         "skills": load_data("skills.yaml"),
         "spells": load_data("spells.yaml"),
         "strategies": {
+            # The attributes are rolled with dice...
             "classic_4d6": FourSixKeepBestStrategy(),
             "3d6": RollStrategy("3d6"),
             "4d6_drop_lowest": RollStrategy("4d6", keep=3),
+            # ... while the saving throws are assigned from the class
+            # chosen in classes.yaml (no dice draw at creation).
+            "class_saves": ClassSavesStrategy(),
         },
     }
 
