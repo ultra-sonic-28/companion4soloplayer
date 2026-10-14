@@ -30,7 +30,7 @@ flowchart TD
     S["system data<br/>(catalogs, attributes, strategies)"] --> P
     P --> C["CharacterCreationContext<br/>choices.* / values.*"]
     I["InputProvider<br/>(UI or scripted answers)"] --> P
-    P -->|after every executed step| E["RulesEngine<br/>rebuilds bonuses/grants"]
+    P -->|"after every executed step"| E["RulesEngine<br/>rebuilds bonuses/grants"]
     E --> C
     C --> X["export(): final character"]
 ```
@@ -550,7 +550,7 @@ every time the Manage menu opens).
 ```mermaid
 flowchart TD
     W["workflow.yaml (plugin)"] --> P["CharacterCreationPipeline"]
-    P -->|describe_inputs() per step| B["CharacterCreationDialogBuilder"]
+    P -->|"describe_inputs() per step"| B["CharacterCreationDialogBuilder"]
     B --> D["CharacterCreationDialog<br/>sections of empty widgets"]
     D -->|Validate| R["pipeline.run(collected answers)"]
     R -->|ok| OK["accepted: report + context"]
