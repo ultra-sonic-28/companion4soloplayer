@@ -12,3 +12,4 @@ dialog:
   - character_creation_dialog:
     width: 860    # minimum width of the player creation dialog, in pixels
     height: 800   # minimum height of the player creation dialog, in pixels
+    attributes_columns: 3  # number of columns for attribute display

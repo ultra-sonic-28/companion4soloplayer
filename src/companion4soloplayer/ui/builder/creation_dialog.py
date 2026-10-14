@@ -83,7 +83,10 @@ class CharacterCreationDialog(QDialog):
     The sections are laid out on a two-column grid: a multi-field
     section (identity, an attribute block) takes a whole row while two
     consecutive single-field sections (race + class, skills + spells)
-    sit side by side. The minimum size of the dialog comes from the
+    sit side by side. Inside an attribute block (a block made only of
+    dice/number/read-only fields) the fields spread over ``n`` equal
+    columns, ``n`` being the ``attributes_columns`` entry of the plugin
+    configuration. The minimum size of the dialog comes from the
     ``dialog.character_creation_dialog`` section of the plugin
     configuration (``datas/config.yaml`` of the loaded plugin), and
     falls back on 860 x 800 pixels when the plugin declares none.
@@ -118,7 +121,13 @@ class CharacterCreationDialog(QDialog):
         """
         super().__init__(parent)
         self._pipeline = pipeline
-        self._builder = CharacterCreationDialogBuilder(pipeline)
+        # Number of columns of the attribute blocks, driven by the
+        # plugin configuration (datas/config.yaml) with the application
+        # default as fallback.
+        attributes_columns = (
+            PluginConfigRegistry.instance().character_creation_dialog_attributes_columns(plugin_name)
+        )
+        self._builder = CharacterCreationDialogBuilder(pipeline, attributes_columns=attributes_columns)
         self._sections: list[StepSection] = []
         self._report: CreationReport | None = None
         self._context: CharacterCreationContext | None = None

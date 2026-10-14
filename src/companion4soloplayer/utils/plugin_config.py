@@ -22,6 +22,7 @@ Document shape::
       - character_creation_dialog:
         width: 860
         height: 800
+        attributes_columns: 3
 
 Every section is optional: a missing file, a missing section or a
 missing entry falls back on the application default.
@@ -56,6 +57,11 @@ CHARACTER_CREATION_DIALOG = "character_creation_dialog"
 #: used when no plugin configuration declares one.
 DEFAULT_CREATION_DIALOG_WIDTH = 860
 DEFAULT_CREATION_DIALOG_HEIGHT = 800
+
+#: Default number of columns an attribute block of the character
+#: creation dialog spreads over, used when no plugin configuration
+#: declares one.
+DEFAULT_ATTRIBUTES_COLUMNS = 2
 
 
 def find_plugin_config(directories: Iterable[Path]) -> Path | None:
@@ -289,3 +295,21 @@ class PluginConfigRegistry:
             _positive_int(settings.get("width"), DEFAULT_CREATION_DIALOG_WIDTH),
             _positive_int(settings.get("height"), DEFAULT_CREATION_DIALOG_HEIGHT),
         )
+
+    def character_creation_dialog_attributes_columns(self, plugin_name: str | None = None) -> int:
+        """Return the number of columns of the attribute blocks.
+
+        Reads the ``attributes_columns`` entry of the
+        ``character_creation_dialog`` entry of the ``dialog`` section of
+        the plugin configuration. A missing or invalid entry falls back
+        on the application default (2 columns).
+
+        Args:
+            plugin_name: Plugin whose configuration is consulted, ``None``
+                for the first registered plugin.
+
+        Returns:
+            Number of columns the attribute blocks spread over.
+        """
+        settings = self.dialog_settings(CHARACTER_CREATION_DIALOG, plugin_name)
+        return _positive_int(settings.get("attributes_columns"), DEFAULT_ATTRIBUTES_COLUMNS)

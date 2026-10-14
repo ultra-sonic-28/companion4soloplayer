@@ -9,8 +9,10 @@ box holding one field widget per data item.
 On top of that, :meth:`CharacterCreationDialogBuilder.arrange` lays the
 group boxes out on a two-column grid (full row for the multi-field
 sections, two single-field sections side by side), and a block made
-only of dice/number/read-only fields spreads its own fields over two
-equal columns.
+only of dice/number/read-only fields spreads its own fields over ``n``
+equal columns (``n`` comes from the ``attributes_columns`` entry of the
+plugin configuration, see
+:class:`~companion4soloplayer.utils.plugin_config.PluginConfigRegistry`).
 """
 
 from __future__ import annotations
@@ -28,8 +30,9 @@ from companion4soloplayer.core.creation import (
     InputKind,
 )
 from companion4soloplayer.ui.builder.fields import FieldWidget, create_field_widget
+from companion4soloplayer.utils.plugin_config import DEFAULT_ATTRIBUTES_COLUMNS
 
-#: Field kinds rendered as a compact two-column block (attribute blocks).
+#: Field kinds rendered as a compact multi-column block (attribute blocks).
 COMPACT_KINDS: frozenset[InputKind] = frozenset(
     {InputKind.DICE, InputKind.NUMBER, InputKind.READONLY}
 )
@@ -68,13 +71,28 @@ class CharacterCreationDialogBuilder:
             step order in ``workflow.yaml``.
     """
 
-    def __init__(self, pipeline: CharacterCreationPipeline) -> None:
+    def __init__(
+        self,
+        pipeline: CharacterCreationPipeline,
+        *,
+        attributes_columns: int = DEFAULT_ATTRIBUTES_COLUMNS,
+    ) -> None:
         """Initialize the builder.
 
         Args:
             pipeline: Creation pipeline of the game system.
+            attributes_columns: Number of columns an attribute block
+                (dice/number/read-only fields) spreads over; comes from
+                the ``attributes_columns`` entry of the plugin
+                configuration (``datas/config.yaml``).
         """
         self._pipeline = pipeline
+        self._attributes_columns = max(1, attributes_columns)
+
+    @property
+    def attributes_columns(self) -> int:
+        """Return the number of columns an attribute block spreads over."""
+        return self._attributes_columns
 
     @property
     def pipeline(self) -> CharacterCreationPipeline:
@@ -154,17 +172,19 @@ class CharacterCreationDialogBuilder:
             rows=rows,
         )
 
-    @staticmethod
     def _fill_section(
+        self,
         box: QGroupBox,
         fields: Sequence[InputField],
     ) -> tuple[tuple[InputField, FieldWidget], ...]:
         """Create the widgets of one section inside its group box.
 
         A block made only of dice/number/read-only fields (an
-        attribute block) is displayed on **two equal columns**: the
-        first half of the fields goes to the left column, the rest to
-        the right one. Any other section stacks its fields on a single
+        attribute block) is displayed on **n equal columns** (``n`` is
+        :attr:`attributes_columns`): the fields are dealt column by
+        column, the first columns getting one extra field when the
+        count does not divide evenly, so the columns differ by at most
+        one row. Any other section stacks its fields on a single
         column.
 
         Args:
@@ -175,16 +195,29 @@ class CharacterCreationDialogBuilder:
             The ``(field, widget)`` pairs, in display order.
         """
         rows: list[tuple[InputField, FieldWidget]] = []
-        if all(field.kind in COMPACT_KINDS for field in fields):
+        if all(field.kind in COMPACT_KINDS for field in fields) and fields:
             layout = QGridLayout(box)
-            half = (len(fields) + 1) // 2
+            columns = min(self._attributes_columns, len(fields))
+            base, extra = divmod(len(fields), columns)
+            # Row where each column starts, and how many rows it holds.
+            starts: list[int] = []
+            start = 0
+            for column in range(columns):
+                starts.append(start)
+                start += base + (1 if column < extra else 0)
             for position, field in enumerate(fields):
                 widget = create_field_widget(field, box)
-                if position < half:
-                    layout.addWidget(widget, position, 0)
-                else:
-                    layout.addWidget(widget, position - half, 1)
+                column = 0
+                for candidate in range(columns):
+                    size = base + (1 if candidate < extra else 0)
+                    if position < starts[candidate] + size:
+                        column = candidate
+                        break
+                layout.addWidget(widget, position - starts[column], column)
                 rows.append((field, widget))
+            # Every column stretches evenly.
+            for column in range(columns):
+                layout.setColumnStretch(column, 1)
         else:
             stack = QVBoxLayout(box)
             for field in fields:

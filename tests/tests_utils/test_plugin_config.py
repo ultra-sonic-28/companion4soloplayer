@@ -15,6 +15,7 @@ import pytest
 from companion4soloplayer.plugins.demo_plugin.data import DATA_DIR
 from companion4soloplayer.utils.plugin_config import (
     CHARACTER_CREATION_DIALOG,
+    DEFAULT_ATTRIBUTES_COLUMNS,
     DEFAULT_CREATION_DIALOG_HEIGHT,
     DEFAULT_CREATION_DIALOG_WIDTH,
     PluginConfigRegistry,
@@ -127,9 +128,13 @@ def test_load_plugin_config_ignores_empty_documents(tmp_path: Path) -> None:
 
 
 def test_demo_plugin_ships_a_configuration_file() -> None:
-    """The demo plugin declares its dialog size in ``datas/config.yaml``."""
+    """The demo plugin declares its dialog settings in ``datas/config.yaml``."""
     config = load_plugin_config([DATA_DIR])
-    assert dialog_settings(config, CHARACTER_CREATION_DIALOG) == {"width": 860, "height": 800}
+    assert dialog_settings(config, CHARACTER_CREATION_DIALOG) == {
+        "width": 860,
+        "height": 800,
+        "attributes_columns": 3,
+    }
 
 
 # ----------------------------------------------------------------------
@@ -270,3 +275,45 @@ def test_character_creation_dialog_size_ignores_invalid_values() -> None:
         DEFAULT_CREATION_DIALOG_WIDTH,
         DEFAULT_CREATION_DIALOG_HEIGHT,
     )
+
+
+def test_character_creation_dialog_attributes_columns_uses_the_plugin_value() -> None:
+    """The ``attributes_columns`` entry drives the column count."""
+    registry = PluginConfigRegistry.instance()
+    registry.register(
+        "demo", {"dialog": [{"character_creation_dialog": None, "attributes_columns": 4}]}
+    )
+
+    assert registry.character_creation_dialog_attributes_columns("demo") == 4
+    # No name: the first registered plugin applies.
+    assert registry.character_creation_dialog_attributes_columns() == 4
+
+
+def test_character_creation_dialog_attributes_columns_falls_back_on_the_default() -> None:
+    """No registry, unknown plugin or no entry -> the application default."""
+    registry = PluginConfigRegistry.instance()
+
+    assert registry.character_creation_dialog_attributes_columns() == DEFAULT_ATTRIBUTES_COLUMNS
+    registry.register("demo", {})
+    assert (
+        registry.character_creation_dialog_attributes_columns("demo")
+        == DEFAULT_ATTRIBUTES_COLUMNS
+    )
+    assert (
+        registry.character_creation_dialog_attributes_columns("unknown")
+        == DEFAULT_ATTRIBUTES_COLUMNS
+    )
+
+
+def test_character_creation_dialog_attributes_columns_ignores_invalid_values() -> None:
+    """Invalid entries (zero, negative, non-integer) fall back on the default."""
+    registry = PluginConfigRegistry.instance()
+
+    for value in (0, -2, "three", True):
+        registry.register(
+            "demo", {"dialog": [{"character_creation_dialog": None, "attributes_columns": value}]}
+        )
+        assert (
+            registry.character_creation_dialog_attributes_columns("demo")
+            == DEFAULT_ATTRIBUTES_COLUMNS
+        )

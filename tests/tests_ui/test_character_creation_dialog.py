@@ -597,6 +597,63 @@ def test_attributes_block_spreads_over_two_equal_columns(
     assert layout.itemAtPosition(3, 1) is None
 
 
+def test_attributes_block_follows_the_plugin_configuration(
+    qtbot: QtBot,
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """The ``attributes_columns`` entry drives the block layout (3 columns).
+
+    With ``attributes_columns: 3``, the six attributes are dealt column
+    by column over three equal columns (2/2/2), and the two read-only
+    saving throws keep one field per column (a column is never kept
+    empty: the block uses ``min(n, field count)`` columns).
+    """
+    PluginConfigRegistry.instance().register(
+        "demo",
+        {
+            "dialog": [
+                {
+                    "character_creation_dialog": None,
+                    "attributes_columns": 3,
+                }
+            ]
+        },
+    )
+    dialog = CharacterCreationDialog(pipeline, plugin_name="demo")
+    qtbot.addWidget(dialog)
+    sections = {section.step_id: section for section in dialog.sections}
+
+    def label_at(layout: QGridLayout, row: int, column: int) -> str:
+        """Return the field label shown at a grid cell."""
+        item = layout.itemAtPosition(row, column)
+        assert item is not None
+        widget = item.widget()
+        assert isinstance(widget, (DiceField, ReadOnlyField))
+        return widget.label.text()
+
+    # Six attributes over three columns: 2 rows x 3 columns, dealt by
+    # column (columns differ by at most one row).
+    layout = sections["attributes"].box.layout()
+    assert isinstance(layout, QGridLayout)
+    assert label_at(layout, 0, 0) == "Strength"
+    assert label_at(layout, 1, 0) == "Dexterity"
+    assert label_at(layout, 0, 1) == "Constitution"
+    assert label_at(layout, 1, 1) == "Intelligence"
+    assert label_at(layout, 0, 2) == "Wisdom"
+    assert label_at(layout, 1, 2) == "Charisma"
+    # Equal distribution: no third row.
+    assert layout.itemAtPosition(2, 0) is None
+    assert layout.itemAtPosition(2, 1) is None
+    assert layout.itemAtPosition(2, 2) is None
+
+    # Two saving throws: one per column, no empty third column.
+    save_layout = sections["save"].box.layout()
+    assert isinstance(save_layout, QGridLayout)
+    assert label_at(save_layout, 0, 0) == "Magic"
+    assert label_at(save_layout, 0, 1) == "Poison"
+    assert save_layout.itemAtPosition(1, 0) is None
+
+
 def test_each_attributes_yaml_block_gets_its_own_section(
     qtbot: QtBot,
     pipeline: CharacterCreationPipeline,

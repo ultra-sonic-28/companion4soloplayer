@@ -122,7 +122,14 @@ def test_load_plugin_publishes_its_configuration(loader: PluginLoader) -> None:
         assert plugin is not None
         config = PluginConfigRegistry.instance().config("demo")
         assert config == {
-            "dialog": [{"character_creation_dialog": None, "width": 860, "height": 800}]
+            "dialog": [
+                {
+                    "character_creation_dialog": None,
+                    "width": 860,
+                    "height": 800,
+                    "attributes_columns": 3,
+                }
+            ]
         }
     finally:
         PluginConfigRegistry.reset()
