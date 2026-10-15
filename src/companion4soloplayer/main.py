@@ -9,6 +9,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon
+from qt_material import apply_stylesheet  # type: ignore[import-untyped]
 
 from companion4soloplayer import APPLICATION_NAME, ORGANIZATION_NAME, __version__
 from companion4soloplayer.app.application import CompanionApplication
@@ -28,6 +29,9 @@ def main() -> None:
 
     # The same configuration instance is shared application-wide.
     app = CompanionApplication(sys.argv, config=config)
+
+    # Apply a built-in theme
+    apply_stylesheet(app, theme='light_blue.xml')
 
     splash = SplashScreen(duration_ms=SPLASH_DURATION_MS)
     splash.show()
