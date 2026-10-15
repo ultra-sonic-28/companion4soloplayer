@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Companion4SoloPlayer (C4SP)** is a free, non-profit, open-source companion application designed to make it easy to manage dungeon crawler style board game sessions. The application is modular and can support several games through a plugin system.
+**Companion4SoloPlayer (C4SP)** is a modular, open-source desktop companion application designed for tabletop dungeon crawler board games and solo/co-op tabletop role-playing games (TTRPGs). It assists players and Game Masters alike by automating tedious bookkeeping, generating dynamic dungeon scenarios, rolling dice, tracking quest progression, resolving combat encounters, and supporting multiple game systems through a clean plugin architecture.
 
 **GitHub repository**: [to be created]
 **License**: MIT
@@ -567,5 +567,5 @@ For any legal or technical question:
 
 ---
 
-**Last updated**: 2026-10-06
-**Document version**: 1.3.0
+**Last updated**: 2026-10-15
+**Document version**: 1.3.1

@@ -1,10 +1,10 @@
 # Companion4SoloPlayer (C4SP)
 
-Open-source companion application for dungeon crawler style board games.
+Open-source companion application for dungeon crawler style board games and solo/co-op tabletop role-playing games (TTRPGs).
 
 ## Description
 
-**Companion4SoloPlayer** is a free, non-profit tool designed to make it easy to manage dungeon crawler style board game sessions. The application is modular and can support several games through a plugin system.
+**Companion4SoloPlayer (C4SP)** is a modular, open-source desktop companion application designed for tabletop dungeon crawler board games and solo/co-op tabletop role-playing games (TTRPGs). It assists players and Game Masters alike by automating tedious bookkeeping, generating dynamic dungeon scenarios, rolling dice, tracking quest progression, resolving combat encounters, and supporting multiple game systems through a clean plugin architecture.
 
 ## Legal Disclaimer
 
@@ -28,7 +28,7 @@ All visual assets are either created specifically for this project or distribute
 - Combat resolution
 - Quest and objective tracking
 - Multi-game support via plugins
-- Modern and responsive user interface
+- Modern user interface with material-like stylesheets
 
 ## Installation
 
@@ -45,12 +45,12 @@ Open a terminal and run the following commands:
     git clone https://github.com/your-username/companion4soloplayer.git
     cd companion4soloplayer
 
-    # Create a virtual environment
-    python -m venv .venv
+    # Create a virtual environment and install development dependencies
+    nox -s setup-dev
+
+    # Activate virtual environnement for coding and tooling support in editors
     .venv\Scripts\activate
 
-    # Install development dependencies
-    nox -s setup-dev
 
     # Start coding
     # using your favorite code editor
@@ -88,24 +88,52 @@ See the [CONTEXT.md](CONTEXT.md) file for the complete development guide.
 ### Project structure
 
     companion4soloplayer/
-    ├── src/companion4soloplayer/   # Python sources (importable package)
-    │   ├── main.py
-    │   ├── core/       # Generic engine
-    │   ├── plugins/    # Game plugins
-    │   └── ui/         # User interface
-    ├── assets/         # Assets (CC0)
-    ├── tests/          # Unit tests
-    └── docs/           # Documentation
+    ├── src/companion4soloplayer/                # Python sources (importable package)
+    │   ├── main.py                              # Main entry point for Companion4SoloPlayer
+    │   ├── app/                                 # Qt application
+    │   ├── core/                                # Generic engine
+    │   │   ├── interface/                       # Generic game interfaces
+    │   │   ├── creation/                        # Character creation engine
+    │   │   │   └── steps/                       # Generic creation steps
+    │   │   └── rules/                           # Shared rule elements
+    │   ├── plugins/                             # Game-specific modules
+    │   │   └── demo_plugin/                     # Demo plugin
+    │   │       ├── rules/                       # Plugin specific rules
+    │   │       ├── creation/                    # Character creation (game system side)
+    │   │       └── datas/                       # Plugin specific datas
+    │   ├── utils/                               # Shared helpers
+    │   └── ui/                                  # User interface
+    │       ├── builder/                         # Dynamic player creation dialog
+    │       └── dialogs/                         # Dialog windows
+    ├── companion4soloplayer.spec                # PyInstaller build recipe
+    ├── companion4soloplayer.code-workspace      # VS Code workspace file
+    ├── pyproject.toml                           # Project configuration
+    ├── README.md                                # Main README with disclaimer
+    ├── CONTEXT.md                               # Complete development guide
+    ├── LICENSE                                  # MIT license
+    ├── .gitignore                               # Git ignore
+    ├── .vscode/                                 # Visual Studio Code workspace settings
+    ├── assets/                                  # Shared assets (CC0 only)
+    ├── data/                                    # User data
+    │   └── config/                              # config.toml (window, logging, appearance)
+    ├── tests/                                   # Tests folders
+    |   ├── test_core/                           # Core unit tests
+    |   ├── test_ui/                             # Core UI tests
+    │   ├── tests_utils/                         # Utils tests (config, logger, plugin loader, resources, yaml)
+    |   └── test_plugins/                        # Plugins tests
+    ├── docs/                                    # Technical documentation
+    ├── scripts/                                 # Project scripts
+    ├── build/                                   # Build folder, PyInstaller output (generated)
+    └── dist/                                    # Release folder, PyInstaller output (generated)
 
 ### Tests
 
     # Run tests
-    pytest
-
-    # With coverage (terminal + HTML report generated in htmlcov/)
-    pytest --cov=companion4soloplayer.core --cov=companion4soloplayer.plugins
+    nox -s tests-unit
+    nox -s tests-ui
 
     # Open the HTML coverage report
+    # Or open 'htmlcov/index.html' with your favorite browser
     start htmlcov/index.html
 
 ## Contributing
@@ -116,12 +144,6 @@ Contributions are welcome! Please see the development guide in [CONTEXT.md](CONT
 
 This project is licensed under the MIT license. See the [LICENSE](LICENSE) file for more details.
 
-## Resources
-
-- [Legal documentation](docs/legal_guidelines.md)
-- [Plugin development guide](docs/plugin_development.md)
-- [User guide](docs/user_guide.md)
-
 ---
 
-**Last updated**: 2026-09-11
+**Last updated**: 2026-10-15
