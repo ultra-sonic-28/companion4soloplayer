@@ -568,6 +568,7 @@ def stats(session: nox.Session) -> None:
 
     cloc_executable =  f"{os.getcwd()}/.bintools/cloc/cloc-2.06.exe"
     report_file = './stats.txt'
+    history_file = './stats_histo.txt'
 
     # Force UTF-8 for every child Python process: the default cp1252
     # console encoding on Windows crashes scripts printing non-ASCII
@@ -601,3 +602,43 @@ def stats(session: nox.Session) -> None:
         with open(report_file, encoding='utf-8') as file:
             content = file.read()
             print(content)
+
+        # --- Gestion de l'historique ---
+        now = datetime.now()
+        date_time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+        date_str = now.strftime("%Y-%m-%d")
+
+        # Format de la nouvelle entrée (précédée de la date et l'heure)
+        new_entry = f"=== {date_time_str} ===\n{content}\n\n"
+
+        existing_entries = []
+        if os.path.exists(history_file):
+            with open(history_file, encoding='utf-8') as f:
+                histo_content = f.read()
+
+            # Découpe le fichier en utilisant le marqueur de date/heure comme délimiteur.
+            # Les parenthèses () dans re.split permettent de conserver le délimiteur dans la liste.
+            parts = re.split(r'(=== \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} ===\n)', histo_content)
+
+            # Reconstruction des entrées (une entrée = entête + corps)
+            for i in range(1, len(parts), 2):
+                header = parts[i]
+                body = parts[i+1] if i+1 < len(parts) else ""
+                existing_entries.append(header + body)
+
+        # Filtrage : on retire l'ancienne entrée si elle est à la même date (jour)
+        filtered_entries = []
+        for entry in existing_entries:
+            match = re.match(r'=== (\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2} ===', entry)
+            if match:
+                entry_date = match.group(1)
+                if entry_date == date_str:
+                    continue # On ignore l'ancienne entrée du jour pour la remplacer
+            filtered_entries.append(entry)
+
+        # Insertion de la nouvelle entrée au début de la liste
+        filtered_entries.insert(0, new_entry)
+
+        # Réécriture du fichier historique
+        with open(history_file, 'w', encoding='utf-8') as f:
+            f.write("".join(filtered_entries))

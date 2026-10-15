@@ -75,3 +75,4 @@ data/config/config.toml
 .tmp/
 site/
 stats.txt
+stats_histo.txt
