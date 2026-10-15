@@ -56,7 +56,7 @@ sequenceDiagram
     participant W as MainWindow
 
     M->>F: ConfigManager(): read or create
-    F-->>M: configuration tables ([window], [logging])
+    F-->>M: configuration tables ([window], [logging], [appearance])
     M->>A: CompanionApplication(sys.argv, config=config)
     A-->>A: self.config = config (read once)
 

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from companion4soloplayer.utils.config_manager import (
     CONFIG_FILENAME,
+    DEFAULT_THEME,
     ConfigManager,
     default_config_path,
 )
@@ -79,3 +80,55 @@ def test_default_logging_settings(tmp_path: Path) -> None:
     assert settings["level"] == "DEBUG"
     assert settings["file"] == "./companion4soloplayer.log"
     assert settings["mode"] == "write"
+
+
+def test_default_appearance_settings(tmp_path: Path) -> None:
+    """The [appearance] section is created with the default theme."""
+    config = ConfigManager(tmp_path / "config.toml")
+    settings = config.appearance()
+
+    assert settings["theme"] == "light_blue.xml"
+    assert settings["theme"] == DEFAULT_THEME
+
+
+def test_created_file_contains_appearance_section(tmp_path: Path) -> None:
+    """A brand new file documents the [appearance] table."""
+    path = tmp_path / "config.toml"
+
+    ConfigManager(path)
+
+    content = path.read_text(encoding="utf-8")
+    assert "[appearance]" in content
+    assert 'theme = "light_blue.xml"' in content
+
+
+def test_reload_keeps_default_theme_when_absent(tmp_path: Path) -> None:
+    """A file without [appearance] still yields the default theme."""
+    path = tmp_path / "config.toml"
+    path.write_text("[window]\nx = 10\ny = 20\n", encoding="utf-8")
+
+    settings = ConfigManager(path).appearance()
+
+    assert settings["theme"] == "light_blue.xml"
+
+
+def test_reload_keeps_default_theme_for_missing_key(tmp_path: Path) -> None:
+    """An [appearance] table without ``theme`` keeps the default value."""
+    path = tmp_path / "config.toml"
+    path.write_text('[appearance]\nfont_size = 12\n', encoding="utf-8")
+
+    settings = ConfigManager(path).appearance()
+
+    assert settings["theme"] == "light_blue.xml"
+
+
+def test_theme_round_trip(tmp_path: Path) -> None:
+    """A theme written by one manager is read back by a new one."""
+    path = tmp_path / "config.toml"
+
+    config = ConfigManager(path)
+    config.appearance()["theme"] = "dark_teal.xml"
+    config.save()
+
+    reloaded = ConfigManager(path).appearance()
+    assert reloaded["theme"] == "dark_teal.xml"

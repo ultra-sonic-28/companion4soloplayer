@@ -30,8 +30,8 @@ def main() -> None:
     # The same configuration instance is shared application-wide.
     app = CompanionApplication(sys.argv, config=config)
 
-    # Apply a built-in theme
-    apply_stylesheet(app, theme='light_blue.xml')
+    # Apply the theme configured in the [appearance] table
+    apply_stylesheet(app, theme=str(config.appearance()["theme"]))
 
     splash = SplashScreen(duration_ms=SPLASH_DURATION_MS)
     splash.show()

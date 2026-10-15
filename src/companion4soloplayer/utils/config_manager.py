@@ -11,6 +11,10 @@ from tomlkit.items import Table
 CONFIG_SUBDIR = Path("data") / "config"
 CONFIG_FILENAME = "config.toml"
 
+# qt_material stylesheet applied at startup when the configuration does not
+# specify another one.
+DEFAULT_THEME = "light_blue.xml"
+
 
 def default_config_path() -> Path:
     """Resolve the path of the configuration file.
@@ -63,6 +67,10 @@ class ConfigManager:
             # "write" -> recreate the file, "append" -> keep its content.
             "mode": "write",
         }
+        self.data["appearance"] = {
+            # qt_material stylesheet applied by main() at startup.
+            "theme": DEFAULT_THEME,
+        }
 
         # Load or create the file
         if self.filename.exists():
@@ -94,6 +102,10 @@ class ConfigManager:
     def logging(self) -> Table:
         """Return the ``[logging]`` table."""
         return cast(Table, self.data["logging"])
+
+    def appearance(self) -> Table:
+        """Return the ``[appearance]`` table."""
+        return cast(Table, self.data["appearance"])
 
     @staticmethod
     def _deep_update(base: MutableMapping[str, Any], updates: Mapping[str, Any]) -> None:

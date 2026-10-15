@@ -24,7 +24,8 @@ flowchart TD
     Start --> ReadConfig["ConfigManager()<br/>read or create data/config/config.toml"]:::file
     ReadConfig --> SetupLogging["setup_logging(config)<br/>apply the [logging] table"]:::process
     SetupLogging --> CreateApp["CompanionApplication(sys.argv, config=config)<br/>same configuration instance, shared app-wide"]:::qt
-    CreateApp --> Splash["SplashScreen(duration_ms).show()<br/>app.processEvents()"]:::qt
+    CreateApp --> ApplyTheme["apply_stylesheet(app, theme)<br/>apply the [appearance] table"]:::process
+    ApplyTheme --> Splash["SplashScreen(duration_ms).show()<br/>app.processEvents()"]:::qt
     Splash --> AppMeta["setApplicationName(...)<br/>setApplicationVersion(__version__)"]:::process
     AppMeta --> CreateWindow["MainWindow()<br/>restores geometry and maximized state"]:::qt
     CreateWindow --> Timer["QTimer.singleShot(SPLASH_DURATION_MS, window.show)"]:::process
@@ -57,6 +58,8 @@ sequenceDiagram
 
     M->>A: CompanionApplication(sys.argv, config=config)
     A-->>A: self.config = config (read once)
+
+    M->>A: apply_stylesheet(app, theme from [appearance])
 
     M->>S: SplashScreen.show()
     M->>A: processEvents()

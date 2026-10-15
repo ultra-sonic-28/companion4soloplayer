@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 from PySide6.QtGui import QAction, QIcon
 from pytestqt.qtbot import QtBot
+from qt_material import build_stylesheet  # type: ignore[import-untyped]
 
 from companion4soloplayer import APPLICATION_NAME, ORGANIZATION_NAME, __version__
 from companion4soloplayer import main as main_module
@@ -39,6 +40,17 @@ class _StubApplication:
         self.application_version: str | None = None
         self.organization_name: str | None = None
         self.window_icon: QIcon | None = None
+        # qt_material's apply_stylesheet() targets the application object.
+        self.style_name: str | None = None
+        self.style_sheets: list[str] = []
+
+    def setStyle(self, style: object) -> None:  # noqa: N802
+        """Record the Qt style requested by qt_material (Qt naming kept)."""
+        self.style_name = str(style)
+
+    def setStyleSheet(self, style_sheet: str) -> None:  # noqa: N802
+        """Record the stylesheet applied by qt_material (Qt naming kept)."""
+        self.style_sheets.append(style_sheet)
 
     def setApplicationName(self, name: str) -> None:  # noqa: N802
         """Record the application name (Qt naming convention kept)."""
@@ -130,6 +142,9 @@ def test_main_entry_point_launches_and_exits(
     the event loop must be logged before the process ends.
     """
     config = ConfigManager(tmp_path / "config.toml")
+    # A non-default theme proves main() reads it from the [appearance] table
+    # instead of applying a hard-coded value.
+    config.appearance()["theme"] = "dark_teal.xml"
     created: list[_StubApplication] = []
     setup_calls: list[ConfigManager] = []
 
@@ -164,5 +179,9 @@ def test_main_entry_point_launches_and_exits(
     assert setup_calls == [config]
     # ...and the application shares that same configuration.
     assert created[0].config is config
+    # The qt_material stylesheet applied is the one built from the theme
+    # configured in the [appearance] table, not from a hard-coded value.
+    assert created[0].style_name == "Fusion"
+    assert created[0].style_sheets == [build_stylesheet("dark_teal.xml")]
     # The session is closed with a logged message.
     assert "Application exiting with code 0" in caplog.text

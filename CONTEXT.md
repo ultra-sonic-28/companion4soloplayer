@@ -176,7 +176,7 @@ The complete disclaimer is available in the main README.md file.
     ├── data/                                    # User data
     │   ├── saves/                               # Game saves
     │   ├── custom_quests/                       # Custom quests
-    │   └── config/                              # config.toml (window, logging)
+    │   └── config/                              # config.toml (window, logging, appearance)
     │
     ├── tests/                                   # Tests
     │   ├── tests_core/                          # Core unit tests
@@ -251,6 +251,7 @@ configuration, and both must be ready before any Qt object is built.
       ├──> ConfigManager()                read/creates data/config/config.toml
       ├──> setup_logging(config)          applies the [logging] table
       ├──> CompanionApplication(...)      carries the config application-wide
+      ├──> apply_stylesheet(app, theme)   applies the [appearance] table
       ├──> MainWindow()                   applies the [window] table
       └──> app.exec()                     logs the last message on return
 
@@ -266,12 +267,13 @@ configuration, and both must be ready before any Qt object is built.
   with the default tables, and `save()` creates the missing parent folders.
   The file is local configuration: it is listed in `.gitignore`.
 - **Loading**: the file is merged *over* the defaults, table by table
-  (`[window]`, `[logging]`). A partial or hand-edited file keeps the default
-  values for the keys it does not define; a corrupted file is rewritten with
-  the defaults.
-- **Access**: `window()` and `logging()` return live tomlkit tables. Writing
-  a key updates the in-memory configuration, `save()` persists it. This is
-  how `MainWindow` stores the geometry when the application closes.
+  (`[window]`, `[logging]`, `[appearance]`). A partial or hand-edited file
+  keeps the default values for the keys it does not define; a corrupted file
+  is rewritten with the defaults.
+- **Access**: `window()`, `logging()` and `appearance()` return live tomlkit
+  tables. Writing a key updates the in-memory configuration, `save()`
+  persists it. This is how `MainWindow` stores the geometry when the
+  application closes.
 - A **single** instance is created in `main()` and shared application-wide
   through `CompanionApplication` (see 3.3).
 
@@ -289,6 +291,9 @@ Default file:
     level = "DEBUG"
     file = "./companion4soloplayer.log"
     mode = "write"      # write -> overwrite, append -> keep previous content
+
+    [appearance]
+    theme = "light_blue.xml"    # qt_material stylesheet applied at startup
 
 #### 3.2 utils/logger.py — logging
 
