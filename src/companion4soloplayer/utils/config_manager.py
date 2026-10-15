@@ -107,6 +107,16 @@ class ConfigManager:
         """Return the ``[appearance]`` table."""
         return cast(Table, self.data["appearance"])
 
+    def theme(self) -> str:
+        """Return the qt_material theme stored in the configuration.
+
+        Returns:
+            The configured theme, or :data:`DEFAULT_THEME` when the key is
+            missing or empty.
+        """
+        theme = str(self.appearance().get("theme", DEFAULT_THEME))
+        return theme or DEFAULT_THEME
+
     @staticmethod
     def _deep_update(base: MutableMapping[str, Any], updates: Mapping[str, Any]) -> None:
         """Perform a recursive update of the TOML tables."""

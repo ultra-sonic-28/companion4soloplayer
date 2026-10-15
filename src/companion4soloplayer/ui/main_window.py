@@ -6,6 +6,7 @@ Contains the primary application window.
 from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QAction, QCloseEvent, QGuiApplication, QIcon
 from PySide6.QtWidgets import (
+    QApplication,
     QLabel,
     QMainWindow,
     QMessageBox,
@@ -14,6 +15,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from qt_material import apply_stylesheet  # type: ignore[import-untyped]
 
 from companion4soloplayer import APPLICATION_NAME
 from companion4soloplayer.app.application import application_config
@@ -23,7 +25,7 @@ from companion4soloplayer.ui.dialogs.about_dialog import AboutDialog
 from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.dialogs.quest_wizard import QuestWizard
 from companion4soloplayer.ui.dialogs.settings_dialog import SettingsDialog
-from companion4soloplayer.utils.config_manager import ConfigManager
+from companion4soloplayer.utils.config_manager import DEFAULT_THEME, ConfigManager
 from companion4soloplayer.utils.plugin_loader import PluginLoader
 from companion4soloplayer.utils.resource_manager import ResourceManager
 
@@ -278,9 +280,33 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def _show_settings(self) -> None:
-        """Show the Settings dialog."""
-        dialog = SettingsDialog(self)
+        """Show the Settings dialog.
+
+        Picking a theme in the dialog repaints the running application
+        straight away; the configuration is written only when the dialog is
+        saved, so re-applying the stored theme afterwards undoes the preview
+        of a dialog that was cancelled.
+        """
+        dialog = SettingsDialog(self, config=self._config)
+        dialog.theme_changed.connect(self._apply_theme)
         dialog.exec()
+        self._apply_theme(self._configured_theme())
+
+    def _apply_theme(self, theme: str) -> None:
+        """Apply a qt_material theme to the whole running application.
+
+        Args:
+            theme: Name of the qt_material stylesheet to apply (``*.xml``).
+        """
+        app = QApplication.instance()
+        if app is not None:
+            apply_stylesheet(app, theme=theme)
+
+    def _configured_theme(self) -> str:
+        """Return the theme stored in the configuration."""
+        if self._config is None:
+            return DEFAULT_THEME
+        return self._config.theme()
 
     def _show_quest(self) -> None:
         """Show the Quest wizard."""

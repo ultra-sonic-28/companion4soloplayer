@@ -273,7 +273,10 @@ configuration, and both must be ready before any Qt object is built.
 - **Access**: `window()`, `logging()` and `appearance()` return live tomlkit
   tables. Writing a key updates the in-memory configuration, `save()`
   persists it. This is how `MainWindow` stores the geometry when the
-  application closes.
+  application closes. `theme()` reads the qt_material stylesheet name
+  (falling back to the default when unset or empty): it is applied at
+  startup by `main()` and, at runtime, by **Manage > Settings**, which
+  previews the selection live and persists it on save.
 - A **single** instance is created in `main()` and shared application-wide
   through `CompanionApplication` (see 3.3).
 

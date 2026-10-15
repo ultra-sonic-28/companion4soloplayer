@@ -3,7 +3,7 @@ Settings dialog for Companion4SoloPlayer.
 Allows users to configure application preferences.
 """
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -17,22 +17,36 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from qt_material import list_themes  # type: ignore[import-untyped]
+
+from companion4soloplayer.app.application import application_config
+from companion4soloplayer.utils.config_manager import DEFAULT_THEME, ConfigManager
 
 
 class SettingsDialog(QDialog):
     """Settings dialog for application preferences."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    # Sent on every theme selection, so the caller can repaint the running
+    # application before the dialog is even saved.
+    theme_changed = Signal(str)
+
+    def __init__(
+        self, parent: QWidget | None = None, config: ConfigManager | None = None
+    ) -> None:
         """Initialize the settings dialog.
 
         Args:
-            parent: Parent widget
+            parent: Parent widget.
+            config: Configuration holding the appearance settings. Defaults
+                to the configuration attached to the running application.
         """
         super().__init__(parent)
+        self._config = config if config is not None else application_config()
         self.setWindowTitle("Settings")
         self.setMinimumSize(500, 400)
 
         self._setup_ui()
+        self._load_appearance()
 
     def _setup_ui(self) -> None:
         """Set up the settings interface."""
@@ -49,8 +63,11 @@ class SettingsDialog(QDialog):
         appearance_layout = QFormLayout(appearance_group)
 
         self.theme_combo = QComboBox()
-        self.theme_combo.addItems(["Light", "Dark", "System"])
+        # Every theme shipped with qt_material (list_themes() is sorted).
+        self.theme_combo.addItems(list_themes())
         appearance_layout.addRow("Theme:", self.theme_combo)
+        # Live preview: the caller repaints the application on each change.
+        self.theme_combo.currentTextChanged.connect(self._on_theme_changed)
 
         self.font_size_spin = QSpinBox()
         self.font_size_spin.setRange(8, 24)
@@ -89,6 +106,36 @@ class SettingsDialog(QDialog):
         button_layout.addWidget(self.cancel_button)
 
         layout.addLayout(button_layout)
+
+    def _load_appearance(self) -> None:
+        """Select the theme currently stored in the configuration."""
+        theme = self._config.theme() if self._config is not None else DEFAULT_THEME
+        index = self.theme_combo.findText(theme)
+        # The stored value may be missing from the installed themes (hand
+        # edited file, theme removed by an update): show it anyway instead
+        # of silently selecting another one.
+        self.theme_combo.blockSignals(True)
+        if index == -1:
+            self.theme_combo.insertItem(0, theme)
+            index = 0
+        self.theme_combo.setCurrentIndex(index)
+        self.theme_combo.blockSignals(False)
+
+    def _on_theme_changed(self, theme: str) -> None:
+        """Report the selected theme so that it can be previewed live."""
+        self.theme_changed.emit(theme)
+
+    def accept(self) -> None:
+        """Persist the selected theme, then close the dialog."""
+        self._save_appearance()
+        super().accept()
+
+    def _save_appearance(self) -> None:
+        """Store the selected theme in the configuration file."""
+        if self._config is None:
+            return
+        self._config.appearance()["theme"] = self.theme_combo.currentText()
+        self._config.save()
 
     def get_settings(self) -> dict:
         """Get the current settings.

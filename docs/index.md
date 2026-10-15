@@ -68,7 +68,7 @@ Desktop front-end built on **PySide6 (Qt for Python)**:
 - **[Main Window](companion4soloplayer/ui/main_window.md)**: Multi-tab desktop application interface (Characters, Quests, Dungeon, Plugins), menu bars, and status updates.
 - **Dialogs**:
 	- **[About Dialog](companion4soloplayer/ui/dialogs/about_dialog.md)**: Application branding, version information, compilation timestamp, and legal notices.
-	- **[Settings Dialog](companion4soloplayer/ui/dialogs/settings_dialog.md)**: Preferences for UI themes (Light/Dark/System), font sizing, auto-save, sound effects, and animations.
+	- **[Settings Dialog](companion4soloplayer/ui/dialogs/settings_dialog.md)**: Preferences for the Qt-Material theme (selected from `list_themes()`, previewed live and stored in `config.toml`), font sizing, auto-save, sound effects, and animations.
 	- **[Quest Wizard](companion4soloplayer/ui/dialogs/quest_wizard.md)**: Interactive modal dialog guiding users through creating customized quests with room counts and difficulty levels.
 
 ### 6. Shared Utilities (`utils`)

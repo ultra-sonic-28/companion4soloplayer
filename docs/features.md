@@ -292,7 +292,7 @@ The `MainWindow` centralizes session management across three intuitive functiona
 ### Settings Dialog
 The `SettingsDialog` lets players personalize their desktop experience:
 
-- **Appearance**: Toggle between **Light**, **Dark**, and **System** themes; customize font size (8 pt to 24 pt) for high-DPI displays or projector usage.
+- **Appearance**: Pick any **Qt-Material** theme in the `Theme` combo box (every theme returned by `qt_material.list_themes()`, e.g. `light_blue.xml`, `dark_teal.xml`). The selection is previewed **live** on the whole application as soon as it is picked; it is written to the `theme` key of the `[appearance]` table in `config.toml` when the dialog is saved, while cancelling restores the theme stored in the configuration. Customize font size (8 pt to 24 pt) for high-DPI displays or projector usage.
 - **Gameplay Options**:
 	- Toggle automatic background game saves.
 	- Toggle sound effect cues for dice rolls and events.

@@ -31,7 +31,7 @@ def main() -> None:
     app = CompanionApplication(sys.argv, config=config)
 
     # Apply the theme configured in the [appearance] table
-    apply_stylesheet(app, theme=str(config.appearance()["theme"]))
+    apply_stylesheet(app, theme=config.theme())
 
     splash = SplashScreen(duration_ms=SPLASH_DURATION_MS)
     splash.show()
