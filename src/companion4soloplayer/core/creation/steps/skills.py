@@ -183,7 +183,8 @@ class SkillSelectionStep(CreationStep):
         currently removes every entry (before a race/class is chosen,
         for instance): a UI then renders the block with an *empty*
         option list, which fills in as soon as the state unlocks
-        skills.
+        skills. The options are sorted **alphabetically**, so the
+        dialog displays the skill list in alphabetical order.
 
         Args:
             context: Current creation state (provides the catalog and
@@ -205,7 +206,7 @@ class SkillSelectionStep(CreationStep):
                 key=self.step_id,
                 label=self._prompt,
                 kind=InputKind.CHOICES,
-                options=tuple(self.available(context)),
+                options=tuple(sorted(self.available(context))),
                 required=self._min_count > 0,
                 min_count=self._min_count,
                 max_count=self._max_count,

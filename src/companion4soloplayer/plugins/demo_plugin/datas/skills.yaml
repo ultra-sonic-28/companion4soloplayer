@@ -1,32 +1,103 @@
 # Skills ----------------------------------------------------------------
-# Generic fantasy skill names, usable by every class.
+# Generic fantasy skill names.
 
+# Class abilities
 - name: Athletics
-  description: Running, climbing, swimming and wrestling.
+  description: Running, climbing and wrestling.
+  type: class
+  classes: [Warrior]
 
 - name: Stealth
   description: Moving unseen and picking locks without a sound.
+  type: class
+  classes: [Rogue]
 
 - name: Perception
   description: Spotting hidden details and listening carefully.
+  type: class
+  classes: [Rogue]
 
 - name: Arcane Lore
-  description: Knowledge of spells, runes and magical traditions.
+  description: Knowledge of magical traditions.
+  type: class
+  classes: [Wizard]
 
 - name: Nature Lore
-  description: Knowledge of plants, beasts and wild places.
+  description: Knowledge of beasts and wild places.
+  type: class
+  classes: [Priest, Warrior]
 
 - name: Medicine
   description: Treating wounds and spotting afflictions.
-
-- name: Diplomacy
-  description: Persuading, deceiving and reading intentions.
+  type: class
+  classes: [Priest]
 
 - name: Survival
   description: Foraging, tracking and enduring the wilderness.
+  type: class
+  classes: [Warrior]
 
 - name: Thievery
   description: Picking pockets and disarming simple traps.
+  type: class
+  classes: [Rogue]
 
+- name: Blind-fighting
+  description: Fighting in darkness and sensing foes.
+  type: class
+  classes: [Warrior]
+
+- name: Herbalism
+  description: Knowledge of herbs and plants and how to use them for healing or harm.
+  type: class
+  classes: [Priest]
+
+- name: Spellcraft
+  description: Understanding the workings of magic, identifying spells and magical items.
+  type: class
+  classes: [Wizard]
+
+# Race abilities
 - name: Stonewise
   description: A racial knack for stonework, caves and craftsmanship.
+  type: race
+  races: [Dwarf]
+
+- name: Infravision
+  description: The ability to see in the dark, especially in caves and dungeons.
+  type: race
+  races: [Dwarf, Elf]
+
+# General abilities
+- name: Agriculture
+  description: Knowledge of farming, animal husbandry and food production.
+  type: general
+
+- name: Carpentry
+  type: general
+  description: Knowledge of woodworking, construction and furniture making.
+
+- name: Diplomacy
+  description: Persuading, deceiving and reading intentions.
+  type: general
+
+- name: Fishing
+  type: general
+  description: Knowledge of fishing techniques, aquatic life and watercraft.
+
+- name: Mining
+  type: general
+  description: Knowledge of mining, geology and extracting minerals.
+
+- name: Swimming
+  description: Ability to swim, float and navigate water safely.
+  type: general
+
+# Monster abilities
+- name: Sneak Attack
+  description: A sudden, precise strike that catches the target off guard.
+  type: monster
+
+- name: Berserker Rage
+  description: A frenzied state of heightened strength and aggression.
+  type: monster

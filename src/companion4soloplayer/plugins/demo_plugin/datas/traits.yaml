@@ -1,0 +1,23 @@
+# Traits ----------------------------------------------------------------
+# Generic fantasy traits, usable by every race.
+
+- name: Versatile
+  description: Adaptable to various situations and environments.
+
+- name: Ambitious
+  description: Driven to achieve goals and seek advancement.
+
+- name: Hardy
+  description: Resilient and able to endure harsh conditions.
+
+- name: Graceful
+  description: Possessing elegance and poise in movement.
+
+- name: Keen-eared
+  description: Having acute hearing and awareness of surroundings.
+
+- name: Curious
+  description: Eager to explore, learn, and discover new things.
+
+- name: Tinker
+  description: Skilled in crafting, inventing, and manipulating mechanical devices.

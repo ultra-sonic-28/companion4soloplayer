@@ -15,7 +15,6 @@
   can_cast_spells: false
   traits:
     - Hardy
-    - Stonewise
 
 - name: Elf
   description: Graceful woodland folk with keen senses.

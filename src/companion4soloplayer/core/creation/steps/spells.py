@@ -173,7 +173,9 @@ class SpellSelectionStep(CreationStep):
 
         The option list goes through the configured ``spell_filter``
         with the given context, so it only proposes the spells this
-        character may pick.
+        character may pick. The remaining options are sorted
+        **alphabetically**, so the dialog displays the spell list in
+        alphabetical order.
 
         Args:
             context: Current creation state (provides the catalog and
@@ -198,7 +200,7 @@ class SpellSelectionStep(CreationStep):
                 key=self.step_id,
                 label=self._prompt,
                 kind=InputKind.CHOICES,
-                options=tuple(options),
+                options=tuple(sorted(options)),
                 required=self._min_count > 0,
                 min_count=self._min_count,
                 max_count=self._max_count,

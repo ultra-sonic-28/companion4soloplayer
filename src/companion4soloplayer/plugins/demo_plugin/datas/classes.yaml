@@ -7,91 +7,118 @@
 # class_saves strategy declared in workflow.yaml, then modulated by
 # the race/class bonuses of creation_rules.yaml.
 
-- name: Adventurer
-  description: A generic adventurer exploring the dungeon
+# Warrior class
+- name: Warrior
+  description: A heavily armored melee combatant specializing in physical strength, weapon mastery, and battlefield endurance.
   can_cast_spells: false
+  # Class Ability Minimums
   base_stats:
-    combat: 3
-    exploration: 3
-    survival: 3
-  abilities:
-    - Basic Attack
-    - Search
+    strength:
+      mini: 9
+      maxi: 18
+    dexterity:
+      mini: 3
+      maxi: 18
+    constitution:
+      mini: 3
+      maxi: 18
+    intelligence:
+      mini: 3
+      maxi: 18
+    wisdom:
+      mini: 3
+      maxi: 18
+    charisma:
+      mini: 3
+      maxi: 18
   # Base saving throws
   save:
     poison: 16
     magic: 19
 
-- name: Scout
-  description: A keen-eyed explorer with cartographic skills
-  can_cast_spells: false
+# Priest class
+- name: Priest
+  description: A divine spellcaster dedicated to healing allies, providing support, and wielding holy magic.
+  can_cast_spells: true
+  # Class Ability Minimums
   base_stats:
-    combat: 2
-    exploration: 5
-    survival: 3
-  abilities:
-    - Mapping
-    - Detect Trap
+    strength:
+      mini: 3
+      maxi: 18
+    dexterity:
+      mini: 3
+      maxi: 18
+    constitution:
+      mini: 3
+      maxi: 18
+    intelligence:
+      mini: 3
+      maxi: 18
+    wisdom:
+      mini: 9
+      maxi: 18
+    charisma:
+      mini: 3
+      maxi: 18
   # Base saving throws
   save:
-    poison: 16
-    magic: 19
-
-- name: Bruiser
-  description: A heavy-hitting warrior built for front lines
-  can_cast_spells: false
-  base_stats:
-    combat: 5
-    exploration: 2
-    survival: 3
-  abilities:
-    - Heavy Strike
-    - Intimidate
-  # Base saving throws
-  save:
-    poison: 16
-    magic: 19
-
-- name: Scholar
-  description: A learned individual versed in ancient lore
-  can_cast_spells: false
-  base_stats:
-    combat: 2
-    exploration: 4
-    survival: 4
-  abilities:
-    - Identify
-    - Decipher
-  # Base saving throws
-  save:
-    poison: 13
+    poison: 10
     magic: 15
 
+# Wizard class
 - name: Wizard
-  description: A master of the arcane arts
+  description: A scholarly arcane magic user who commands powerful elemental, mystical, and reality-bending forces.
   can_cast_spells: true
+  # Class Ability Minimums
   base_stats:
-    body: 4
-    mind: 6
-  special_abilities:
-    - Fireball
-    - Heal
-    - Teleport
+    strength:
+      mini: 3
+      maxi: 18
+    dexterity:
+      mini: 3
+      maxi: 18
+    constitution:
+      mini: 3
+      maxi: 18
+    intelligence:
+      mini: 9
+      maxi: 18
+    wisdom:
+      mini: 3
+      maxi: 18
+    charisma:
+      mini: 3
+      maxi: 18
   # Base saving throws
   save:
     poison: 14
     magic: 12
 
-- name: Archer
-  description: A graceful archer from the forests
+# Rogue class
+- name: Rogue
+  description: A stealthy, agile skirmisher adept at subterfuge, precision strikes, and cunning tactical maneuvers.
   can_cast_spells: false
+  # Class Ability Minimums
   base_stats:
-    body: 5
-    mind: 5
-  special_abilities:
-    - Precision Shot
-    - Archery's Expert
+    strength:
+      mini: 3
+      maxi: 18
+    dexterity:
+      mini: 9
+      maxi: 18
+    constitution:
+      mini: 3
+      maxi: 18
+    intelligence:
+      mini: 3
+      maxi: 18
+    wisdom:
+      mini: 3
+      maxi: 18
+    charisma:
+      mini: 3
+      maxi: 18
   # Base saving throws
   save:
-    poison: 16
-    magic: 19
+    poison: 13
+    magic: 15

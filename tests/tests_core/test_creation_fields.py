@@ -191,6 +191,13 @@ def test_inherited_and_missing_skills_describe_nothing() -> None:
     assert SkillSelectionStep().describe_inputs(make_context(skills=None)) == ()
 
 
+def test_free_skills_options_are_sorted_alphabetically() -> None:
+    """The described skill options come back in alphabetical order."""
+    step = SkillSelectionStep(mode="free")
+    fields = step.describe_inputs(make_context(skills=["Stealth", "Athletics"]))
+    assert fields[0].options == ("Athletics", "Stealth")
+
+
 # ----------------------------------------------------------------------
 # SpellSelectionStep
 # ----------------------------------------------------------------------
@@ -230,6 +237,13 @@ def test_chosen_spells_describe_a_filtered_multiple_choice() -> None:
 def test_automatic_spells_describe_nothing() -> None:
     """An automatic spell attribution asks nothing."""
     assert SpellSelectionStep(mode="auto").describe_inputs(make_context()) == ()
+
+
+def test_chosen_spells_options_are_sorted_alphabetically() -> None:
+    """The described spell options come back in alphabetical order."""
+    step = SpellSelectionStep(mode="choice")
+    fields = step.describe_inputs(make_context())
+    assert fields[0].options == ("Fireball", "Light")
 
 
 # ----------------------------------------------------------------------

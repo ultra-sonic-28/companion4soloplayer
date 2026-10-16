@@ -11,7 +11,7 @@
 - name: Mend
   level: 1
   school: Restoration
-  classes: [Wizard]
+  classes: [Priest]
   description: Knit superficial wounds closed with a warm glow.
 
 - name: Frost Touch
@@ -23,25 +23,43 @@
 - name: Light
   level: 1
   school: Illumination
-  classes: []
+  classes: [Wizard, Priest]
   description: A globe of soft light floats above your head.
 
 - name: Rune Ward
   level: 1
   school: Warding
-  classes: []
+  classes: [Wizard]
   requires_skill: Arcane Lore
   description: Trace a warding rune that discourages the unwary.
 
 - name: Nature's Whisper
   level: 1
   school: Divination
-  classes: []
+  classes: [Wizard, Priest]
   requires_skill: Nature Lore
   description: The wilds answer your silent question.
 
-- name: Fireball
+- name: Blindness
   level: 2
+  school: Enchantment
+  classes: [Wizard]
+  description: A shimmering veil clouds the vision of a foe.
+
+- name: Spectral Hand
+  level: 2
+  school: Necromancy
+  classes: [Wizard]
+  description: A ghostly hand reaches out to touch a distant foe.
+
+- name: Spiritual Hammer
+  level: 2
+  school: Evocation
+  classes: [Priest]
+  description: A hammer of divine energy strikes a foe.
+
+- name: Fireball
+  level: 3
   school: Evocation
   classes: [Wizard]
   description: A roaring globe of flame bursts at a distant point.

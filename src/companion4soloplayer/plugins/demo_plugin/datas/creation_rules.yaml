@@ -19,17 +19,6 @@ rules:
         action: add
         value: 2
 
-  - id: dwarf_stonewise
-    description: Dwarves inherit the Stonewise skill.
-    when:
-      - target: choices.race
-        operator: eq
-        value: Dwarf
-    effects:
-      - target: values.skills
-        action: grant
-        value: Stonewise
-
   - id: dwarf_save_poison
     description: Dwarves are hardy and resistant to toxins.
     when:
@@ -74,17 +63,6 @@ rules:
         action: sub
         value: 1
 
-  - id: elf_stealth
-    description: Elves inherit the Stealth skill.
-    when:
-      - target: choices.race
-        operator: eq
-        value: Elf
-    effects:
-      - target: values.skills
-        action: grant
-        value: Stealth
-
   - id: elf_save_magic
     description: Elves have an innate resistance to magic spells.
     when:
@@ -106,17 +84,6 @@ rules:
       - target: values.attributes.intelligence
         action: add
         value: 2
-
-  - id: gnome_nature
-    description: Gnomes inherit the Nature Lore skill.
-    when:
-      - target: choices.race
-        operator: eq
-        value: Gnome
-    effects:
-      - target: values.skills
-        action: grant
-        value: Nature Lore
 
   - id: gnome_save_magic
     description: Gnomes have an innate resistance to magic spells.
@@ -152,87 +119,6 @@ rules:
         action: add
         value: 2
 
-  - id: wizard_arcana
-    description: Wizards inherit the Arcane Lore skill.
-    when:
-      - target: choices.class
-        operator: eq
-        value: Wizard
-    effects:
-      - target: values.skills
-        action: grant
-        value: Arcane Lore
-
-  - id: wizard_grimoire
-    description: Wizards start with two first-level spells.
-    when:
-      - target: choices.class
-        operator: eq
-        value: Wizard
-    effects:
-      - target: values.spells
-        action: grant
-        value: Spark
-      - target: values.spells
-        action: grant
-        value: Mend
-
-  - id: scout_eye
-    description: Scouts are perceptive (+1 dexterity, Perception).
-    when:
-      - target: choices.class
-        operator: eq
-        value: Scout
-    effects:
-      - target: values.attributes.dexterity
-        action: add
-        value: 1
-      - target: values.skills
-        action: grant
-        value: Perception
-
-  - id: bruiser_brawn
-    description: Bruisers are strong (+2 strength, Athletics).
-    when:
-      - target: choices.class
-        operator: eq
-        value: Bruiser
-    effects:
-      - target: values.attributes.strength
-        action: add
-        value: 2
-      - target: values.skills
-        action: grant
-        value: Athletics
-
-  - id: scholar_lore
-    description: Scholars are learned (+1 intelligence, Nature Lore).
-    when:
-      - target: choices.class
-        operator: eq
-        value: Scholar
-    effects:
-      - target: values.attributes.intelligence
-        action: add
-        value: 1
-      - target: values.skills
-        action: grant
-        value: Nature Lore
-
-  - id: archer_eye
-    description: Archers are keen (+1 dexterity, Perception).
-    when:
-      - target: choices.class
-        operator: eq
-        value: Archer
-    effects:
-      - target: values.attributes.dexterity
-        action: add
-        value: 1
-      - target: values.skills
-        action: grant
-        value: Perception
-
   # --- Bonuses from attribute values ---------------------------------
   - id: sturdy
     description: A constitution of 14 or more grants +2 hit points.
@@ -257,17 +143,6 @@ rules:
         value: 1
 
   # --- Bonuses from other skills -------------------------------------
-  - id: arcane_initiate
-    description: Knowing Arcane Lore also grants the Light spell.
-    when:
-      - target: values.skills
-        operator: contains
-        value: Arcane Lore
-    effects:
-      - target: values.spells
-        action: grant
-        value: Light
-
   - id: iron_body
     description: Knowing Athletics grants +1 hit point.
     when:

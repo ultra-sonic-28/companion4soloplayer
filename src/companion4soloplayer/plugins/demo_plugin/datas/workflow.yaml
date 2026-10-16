@@ -57,7 +57,7 @@ steps:
       prompt: Choose 2 to 4 skills
       min_count: 2
       max_count: 4
-      skill_filter: !pyclass local:skill_available   # no race/class chosen yet -> empty list
+      skill_filter: !pyclass local:skill_available   # filtered by type/race/class; empty until a race or class is picked
 
   - !pyclass
     path: companion4soloplayer.core.creation:SpellSelectionStep

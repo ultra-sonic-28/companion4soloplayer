@@ -15,6 +15,8 @@ from companion4soloplayer.core.creation import (
     Action,
     CharacterCreationContext,
     CharacterCreationPipeline,
+    Condition,
+    CreationRule,
     Effect,
     InputKind,
     MappingInputProvider,
@@ -38,13 +40,15 @@ from companion4soloplayer.utils.yaml_loader import PyClassRef
 
 PLUGINS_SRC = Path(__file__).resolve().parents[2] / "src" / "companion4soloplayer" / "plugins"
 
-#: Answer keys of the reference character (see docs/character_creation.md).
+#: Answer keys of the reference character (see docs/character_creation.md):
+#: ``Diplomacy`` is a general skill and ``Arcane Lore`` a Wizard class
+#: skill, both available to a Dwarf Wizard.
 DWARF_WIZARD: dict[str, Any] = {
     "identity.name": "Brom",
     "identity.background": "Orphaned smith",
     "race": "Dwarf",
     "class": "Wizard",
-    "skills": ["Diplomacy", "Medicine"],
+    "skills": ["Diplomacy", "Arcane Lore"],
     "spells": ["Rune Ward"],
 }
 
@@ -110,9 +114,11 @@ def test_workflow_ships_its_yaml_documents() -> None:
         "workflow.yaml",
         "creation_rules.yaml",
         "attributes.yaml",
+        "classes.yaml",
         "races.yaml",
         "skills.yaml",
         "spells.yaml",
+        "traits.yaml",
     )
     for name in names:
         assert (DATA_DIR / name).is_file()
@@ -123,9 +129,7 @@ def test_creation_rules_document_parses() -> None:
     rules = load_creation_rules(DATA_DIR / "creation_rules.yaml")
     identifiers = [rule.id for rule in rules]
     assert len(identifiers) == len(set(identifiers))
-    assert {"dwarf_hardy", "elf_frail", "wizard_mind", "sturdy", "arcane_initiate"} <= set(
-        identifiers
-    )
+    assert {"dwarf_hardy", "elf_frail", "wizard_mind", "sturdy", "iron_body"} <= set(identifiers)
     dwarf = next(rule for rule in rules if rule.id == "dwarf_hardy")
     assert dwarf.when[0].operator is Operator.EQ
     assert dwarf.when[0].target == "choices.race"
@@ -140,7 +144,7 @@ def test_system_data_exposes_catalogs_and_strategies() -> None:
     """
     system = build_system()
     assert [race["name"] for race in system["races"]][:1] == ["Human"]
-    assert [klass["name"] for klass in system["classes"]][:1] == ["Adventurer"]
+    assert [klass["name"] for klass in system["classes"]][:1] == ["Warrior"]
     assert "Arcane Lore" in [skill["name"] for skill in system["skills"]]
     assert "Spark" in [spell["name"] for spell in system["spells"]]
     assert list(system["attribute_blocks"]) == ["attributes", "save"]
@@ -200,20 +204,40 @@ def test_steps_describe_an_empty_start_and_wait_for_the_right_choices(
     # ... and no spellcasting choice means no spells block at all.
     assert spells.describe_inputs(context) == ()
 
-    # A race opens the skill catalog; spells still wait for a caster.
+    # A race opens the skill catalog: the 6 general skills plus the
+    # racial ones (Stonewise and Infravision for a Dwarf); class skills
+    # still wait for a class and monster skills never show up. The list
+    # comes back sorted alphabetically.
     context.set("choices.race", "Dwarf")
-    assert len(skills.describe_inputs(context)[0].options) == 10
+    assert skills.describe_inputs(context)[0].options == (
+        "Agriculture",
+        "Carpentry",
+        "Diplomacy",
+        "Fishing",
+        "Infravision",
+        "Mining",
+        "Stonewise",
+        "Swimming",
+    )
     assert spells.describe_inputs(context) == ()
 
-    # A spellcasting class materializes the spells block.
+    # A spellcasting class materializes the spells block with every
+    # level-1 spell of that class, sorted alphabetically too.
     context.set("choices.class", "Wizard")
+    assert len(skills.describe_inputs(context)[0].options) == 10
     spell_fields = spells.describe_inputs(context)
     assert len(spell_fields) == 1
-    assert "Spark" in spell_fields[0].options
+    assert spell_fields[0].options == (
+        "Frost Touch",
+        "Light",
+        "Nature's Whisper",
+        "Rune Ward",
+        "Spark",
+    )
 
     # A non-casting combination hides it again.
     context.set("choices.race", "Human")
-    context.set("choices.class", "Bruiser")
+    context.set("choices.class", "Warrior")
     assert spells.describe_inputs(context) == ()
 
 
@@ -246,22 +270,25 @@ def test_dwarf_wizard_full_run(pipeline: CharacterCreationPipeline) -> None:
     assert isinstance(base_int, int)
     assert context.effective("values.attributes.intelligence") == base_int + 2
 
-    # Inherited skills layered over the free picks.
-    assert context.peek("values.skills") == ["Diplomacy", "Medicine"]
-    skills = context.effective("values.skills")
-    assert "Stonewise" in skills  # from the race
-    assert "Arcane Lore" in skills  # from the class
+    # Free picks stand alone: skills.yaml declares the class/race
+    # abilities of the catalog, no rule grants them anymore.
+    assert context.peek("values.skills") == ["Diplomacy", "Arcane Lore"]
+    assert context.effective("values.skills") == ["Diplomacy", "Arcane Lore"]
 
-    # Free spell pick + automatic grants (grimoire and skill bonus).
-    spells = context.effective("values.spells")
-    assert "Rune Ward" in spells  # picked, requires Arcane Lore
-    assert {"Spark", "Mend", "Light"} <= set(spells)
+    # Free spell pick only: Rune Ward is a level-1 spell of the Wizard.
+    assert context.peek("values.spells") == ["Rune Ward"]
+    assert context.effective("values.spells") == ["Rune Ward"]
 
     # The export exposes the effective values.
     exported = context.export()
     assert exported["choices"]["identity"]["name"] == "Brom"
     assert exported["values"]["attributes"]["constitution"] == base_con + 2
-    assert set(report.rules_fired) >= {"dwarf_hardy", "wizard_mind", "arcane_initiate"}
+    assert set(report.rules_fired) >= {
+        "dwarf_hardy",
+        "dwarf_save_poison",
+        "dwarf_save_magic",
+        "wizard_mind",
+    }
 
 
 def test_elf_gets_a_bonus_and_a_malus(pipeline: CharacterCreationPipeline) -> None:
@@ -276,7 +303,8 @@ def test_elf_gets_a_bonus_and_a_malus(pipeline: CharacterCreationPipeline) -> No
     assert context.effective("values.attributes.constitution") == (
         context.peek("values.attributes.constitution") - 1
     )
-    assert "Stealth" in context.effective("values.skills")
+    # No racial skill grant anymore: the free picks stand alone.
+    assert context.effective("values.skills") == ["Diplomacy", "Arcane Lore"]
     assert "elf_frail" in report.rules_fired
 
 
@@ -317,13 +345,13 @@ def test_free_skill_picks_grant_their_rule_bonuses(
         "identity.name": "Rowan",
         "identity.background": "Keen tracker",
         "race": "Human",
-        "class": "Scout",
-        "skills": ["Athletics", "Stealth"],
+        "class": "Warrior",
+        "skills": ["Athletics", "Survival"],
     }
     context = pipeline.create_context()
     report = pipeline.run(context, MappingInputProvider(answers))
     assert report.ok
-    assert context.peek("choices.skills") == ["Athletics", "Stealth"]
+    assert context.peek("choices.skills") == ["Athletics", "Survival"]
     # Athletics (free pick) grants its own bonus through the rules.
     assert "iron_body" in report.rules_fired
 
@@ -340,9 +368,8 @@ def test_system_without_races_skips_the_race_step() -> None:
     )
     answers = {
         "identity.name": "Nix",
-        "class": "Scout",
+        "class": "Rogue",
         "skills": ["Stealth", "Perception"],
-        "spells": ["Light"],
     }
     report = pipeline.run(pipeline.create_context(), MappingInputProvider(answers))
     assert report.ok
@@ -418,7 +445,13 @@ def test_mixed_attribute_workflow() -> None:
 
 
 def test_inherited_skills_and_automatic_spells_workflow() -> None:
-    """Inherited skills and automatic spells ask no question."""
+    """Inherited skills and automatic spells ask no question.
+
+    ``creation_rules.yaml`` no longer grants skills or spells (they now
+    come from the catalogs picked freely), so this alternate workflow
+    declares its own grant rules to cover the ``inherited`` and ``auto``
+    modes of the core steps.
+    """
     workflow = {
         "steps": [
             character_workflow_step("race", target="choices.race", catalog="races"),
@@ -427,9 +460,23 @@ def test_inherited_skills_and_automatic_spells_workflow() -> None:
             character_workflow_step("spells", mode="auto"),
         ]
     }
+    grant_rules = [
+        CreationRule(
+            id="elf_infravision",
+            description="Elves inherit the Infravision skill.",
+            when=(Condition("choices.race", Operator.EQ, "Elf"),),
+            effects=(Effect("values.skills", Action.GRANT, "Infravision"),),
+        ),
+        CreationRule(
+            id="wizard_spark",
+            description="Wizards start with the Spark spell.",
+            when=(Condition("choices.class", Operator.EQ, "Wizard"),),
+            effects=(Effect("values.spells", Action.GRANT, "Spark"),),
+        ),
+    ]
     pipeline = build_workflow(
         workflow,
-        rules=load_creation_rules(DATA_DIR / "creation_rules.yaml"),
+        rules=grant_rules,
         system=build_system(),
         base_module="companion4soloplayer.plugins.demo_plugin",
     )
@@ -442,8 +489,8 @@ def test_inherited_skills_and_automatic_spells_workflow() -> None:
     assert statuses["spells"].value == "skipped"
     # Only the grants remain: no free pick, no spell question.
     assert context.peek("values.skills") is None
-    assert context.effective("values.skills") == ["Stealth", "Arcane Lore"]
-    assert context.effective("values.spells") == ["Spark", "Mend", "Light"]
+    assert context.effective("values.skills") == ["Infravision"]
+    assert context.effective("values.spells") == ["Spark"]
 
 
 def test_minimal_workflow_without_optional_steps() -> None:
@@ -477,45 +524,74 @@ def test_can_cast_spells_follows_the_yaml_flags() -> None:
     assert can_cast_spells(context) is False
 
     context.set("choices.race", "Dwarf")
-    context.set("choices.class", "Bruiser")
+    context.set("choices.class", "Warrior")
     assert can_cast_spells(context) is False  # neither of them casts
 
     context.set("choices.class", "Wizard")
     assert can_cast_spells(context) is True  # the class can cast
 
     context.set("choices.race", "Gnome")
-    context.set("choices.class", "Scout")
+    context.set("choices.class", "Rogue")
     assert can_cast_spells(context) is True  # the race can cast
 
     context.set("choices.race", "Human")
-    context.set("choices.class", "Scout")
+    context.set("choices.class", "Rogue")
     assert can_cast_spells(context) is False
 
 
-def test_skill_available_waits_for_a_race_or_a_class() -> None:
-    """The skill catalog opens as soon as a race or a class is chosen."""
+def test_skill_available_filters_by_type_race_and_class() -> None:
+    """The skill list follows the entry type and the choices made.
+
+    With no race and no class the catalog stays closed; a chosen race
+    opens the general and matching racial skills, the class adds its
+    own skills, and monster abilities never show up for a player
+    character.
+    """
+    general = {"name": "Diplomacy", "type": "general"}
+    racial = {"name": "Stonewise", "type": "race", "races": ["Dwarf"]}
+    class_skill = {"name": "Spellcraft", "type": "class", "classes": ["Wizard"]}
+    monster = {"name": "Sneak Attack", "type": "monster"}
+
     context = CharacterCreationContext(system=build_system())
-    skill = {"name": "Athletics", "description": "Running, climbing..."}
-    assert skill_available(skill, context) is False  # nothing chosen yet
+    # Nothing chosen yet: the whole catalog stays closed.
+    assert skill_available(general, context) is False
+    assert skill_available(racial, context) is False
+    assert skill_available(class_skill, context) is False
+    assert skill_available(monster, context) is False
+
+    # A race opens the general skills; racial skills need a match and
+    # class skills still wait for a class.
+    context.set("choices.race", "Human")
+    assert skill_available(general, context) is True
+    assert skill_available(racial, context) is False  # not a Dwarf
+    assert skill_available(class_skill, context) is False  # no class yet
 
     context.set("choices.race", "Dwarf")
-    assert skill_available(skill, context) is True
+    assert skill_available(racial, context) is True
 
-    other = CharacterCreationContext(system=build_system())
-    other.set("choices.class", "Scout")
-    assert skill_available(skill, other) is True
+    # The class adds its class skills; racial skills still match and
+    # monster abilities stay hidden.
+    context.set("choices.class", "Wizard")
+    assert skill_available(class_skill, context) is True
+    assert skill_available(racial, context) is True
+    assert skill_available(general, context) is True
+    assert skill_available(monster, context) is False  # never for players
+
+    # Another class does not unlock its skills.
+    context.set("choices.class", "Warrior")
+    assert skill_available(class_skill, context) is False
 
 
-def test_spell_available_filters_by_casting_class_level_and_skill() -> None:
-    """The filter applies the casting, class, level and skill requirements."""
+def test_spell_available_filters_by_casting_class_and_level() -> None:
+    """The filter applies the casting flag, the class and the level."""
     context = CharacterCreationContext(system=build_system())
     wizard_spell = {"name": "Spark", "level": 1, "classes": ["Wizard"]}
     classless = {"name": "Light", "level": 1, "classes": []}
-    high_level = {"name": "Fireball", "level": 2, "classes": ["Wizard"]}
-    skilled = {
+    high_level = {"name": "Fireball", "level": 3, "classes": ["Wizard"]}
+    guarded = {
         "name": "Rune Ward",
         "level": 1,
-        "classes": [],
+        "classes": ["Wizard"],
         "requires_skill": "Arcane Lore",
     }
 
@@ -524,17 +600,19 @@ def test_spell_available_filters_by_casting_class_level_and_skill() -> None:
     assert spell_available(wizard_spell, context) is False
 
     context.set("choices.class", "Wizard")
-    # The Wizard casts: the classless spells come back with them.
+    # The Wizard casts: the classless spells come back with the class
+    # spells of level 1; a requires_skill guard never hides a spell.
     assert spell_available(classless, context) is True
     assert spell_available(wizard_spell, context) is True
+    assert spell_available(guarded, context) is True
     assert spell_available(high_level, context) is False
 
-    assert spell_available(skilled, context) is False
-    context.record("values.skills", Effect("values.skills", Action.GRANT, "Arcane Lore"))
-    assert spell_available(skilled, context) is True
+    # Another class only gets its own spells.
+    context.set("choices.class", "Priest")
+    assert spell_available(wizard_spell, context) is False
 
     # A non-casting class combination loses every spell again.
-    context.set("choices.class", "Scout")
+    context.set("choices.class", "Rogue")
     assert spell_available(classless, context) is False
     context.set("choices.race", "Gnome")
     assert spell_available(classless, context) is True  # the race casts
@@ -549,12 +627,10 @@ def test_classes_declare_base_saving_throws() -> None:
     """Every class of classes.yaml declares its base saving throws."""
     classes = load_data("classes.yaml")
     assert {entry["name"]: entry["save"] for entry in classes} == {
-        "Adventurer": {"poison": 16, "magic": 19},
-        "Scout": {"poison": 16, "magic": 19},
-        "Bruiser": {"poison": 16, "magic": 19},
-        "Scholar": {"poison": 13, "magic": 15},
+        "Warrior": {"poison": 16, "magic": 19},
+        "Priest": {"poison": 10, "magic": 15},
         "Wizard": {"poison": 14, "magic": 12},
-        "Archer": {"poison": 16, "magic": 19},
+        "Rogue": {"poison": 13, "magic": 15},
     }
 
 
@@ -576,12 +652,10 @@ def test_workflow_uses_a_different_strategy_per_block(
 @pytest.mark.parametrize(
     ("character_class", "magic", "poison"),
     [
-        ("Adventurer", 19, 16),
-        ("Scout", 19, 16),
-        ("Bruiser", 19, 16),
-        ("Archer", 19, 16),
-        ("Scholar", 15, 13),
+        ("Warrior", 19, 16),
+        ("Priest", 15, 10),
         ("Wizard", 12, 14),
+        ("Rogue", 15, 13),
     ],
 )
 def test_saving_throws_come_from_the_chosen_class(
@@ -599,7 +673,7 @@ def test_saving_throws_come_from_the_chosen_class(
                 "identity.name": "Solo",
                 "identity.background": "None",
                 "class": character_class,
-                "skills": ["Diplomacy", "Medicine"],
+                "skills": ["Diplomacy", "Swimming"],
             }
         ),
     )
@@ -619,16 +693,16 @@ def test_saving_throws_are_modulated_by_the_creation_rules(
                 "identity.name": "Brom",
                 "identity.background": "Orphaned smith",
                 "race": "Dwarf",
-                "class": "Scholar",
-                "skills": ["Diplomacy", "Medicine"],
+                "class": "Warrior",
+                "skills": ["Athletics", "Survival"],
             }
         ),
     )
     assert report.ok
-    # Base from classes.yaml (Scholar), then +2 / +2 for the Dwarf.
-    assert context.get("values.save") == {"magic": 15, "poison": 13}
-    assert context.effective("values.save.magic") == 17
-    assert context.effective("values.save.poison") == 15
+    # Base from classes.yaml (Warrior), then +2 / +2 for the Dwarf.
+    assert context.get("values.save") == {"magic": 19, "poison": 16}
+    assert context.effective("values.save.magic") == 21
+    assert context.effective("values.save.poison") == 18
 
 
 def test_saving_throws_fall_back_without_a_class(

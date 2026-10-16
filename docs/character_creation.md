@@ -130,7 +130,7 @@ inputs = MappingInputProvider({
     "identity.name": "Brom",
     "race": "Dwarf",
     "class": "Wizard",
-    "skills": ["Diplomacy", "Medicine"],
+    "skills": ["Diplomacy", "Arcane Lore"],
     "spells": ["Rune Ward"],
 })
 ```
@@ -527,8 +527,8 @@ The plugin declares, under `plugins/demo_plugin/`:
   strategy;
 - `creation/strategies.py` — the named generation methods;
 - `creation/filters.py` — the availability filters (`skill_available`
-  opening the skill catalog, `spell_available` built on
-  `can_cast_spells`);
+  filtering the skill catalog by type/race/class, `spell_available`
+  built on `can_cast_spells` + class + level);
 - `creation/workflow.py` — the assembly (catalogs + rules + workflow).
 
 ---
@@ -565,7 +565,9 @@ flowchart TD
   while the form is filled: the skills list starts **empty** until a
   race or a class is chosen, the spells block appears only when the
   chosen race/class may cast spells (the `can_cast_spells` flag), and
-  a system declaring no skills/spells never renders those blocks.
+  a system declaring no skills/spells never renders those blocks. The
+  **skills and spells options are always displayed in alphabetical
+  order** (the steps sort them when describing the field).
 - The **attribute blocks** are fully driven by the plugin
   `datas/attributes.yaml`: every level-1 entry of the document renders
   its own group box (the demo system shows "Attributes" then "Saving

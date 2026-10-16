@@ -170,12 +170,10 @@ def test_fields_match_the_declared_data_types(
     assert isinstance(race[1], ChoiceField)
     assert race[0].options == ("Human", "Dwarf", "Elf", "Gnome")
     assert rows["class"][0].options == (
-        "Adventurer",
-        "Scout",
-        "Bruiser",
-        "Scholar",
+        "Warrior",
+        "Priest",
         "Wizard",
-        "Archer",
+        "Rogue",
     )
 
     for key in ATTRIBUTE_KEYS:
@@ -280,10 +278,11 @@ def test_validate_creates_the_character(
     assert isinstance(race, ChoiceField)
     _select(race, "Dwarf")
 
-    # Choosing a race opens the skill catalog.
+    # Choosing a race opens the skill catalog: the general skills and
+    # the racial ones (no class skill and no monster skill yet).
     skills = _rows(dialog)["skills"][1]
     assert isinstance(skills, ChoiceField)
-    assert len(skills.options) == 10
+    assert len(skills.options) == 8
 
     character_class = _rows(dialog)["class"][1]
     assert isinstance(character_class, ChoiceField)
@@ -297,8 +296,10 @@ def test_validate_creates_the_character(
     rows = _rows(dialog)  # the Wizard class materialized the spells block
     skills = rows["skills"][1]
     assert isinstance(skills, ChoiceField)
-    _select(skills, "Athletics")
-    _select(skills, "Medicine")
+    # The class skills joined the list (Dwarf + Wizard picks).
+    assert len(skills.options) == 10
+    _select(skills, "Arcane Lore")
+    _select(skills, "Diplomacy")
 
     spells = rows["spells"][1]
     assert isinstance(spells, ChoiceField)
@@ -316,14 +317,14 @@ def test_validate_creates_the_character(
     assert context.peek("choices.identity.background") == "Orphaned smith\nof the far north"
     assert context.peek("choices.race") == "Dwarf"
     assert context.peek("choices.class") == "Wizard"
-    assert context.peek("choices.skills") == ["Athletics", "Medicine"]
+    assert context.peek("choices.skills") == ["Arcane Lore", "Diplomacy"]
     assert context.peek("choices.spells") == ["Spark"]
     strength = context.get("values.attributes.strength")
     assert isinstance(strength, int)
     assert 3 <= strength <= 18
     # The Dwarf/Wizard rules fired during the run.
     assert "dwarf_hardy" in dialog.report.rules_fired
-    assert "wizard_arcana" in dialog.report.rules_fired
+    assert "wizard_mind" in dialog.report.rules_fired
 
 
 def test_choice_lists_and_blocks_follow_the_selections(
@@ -340,27 +341,116 @@ def test_choice_lists_and_blocks_follow_the_selections(
     assert skills.options == ()
     assert "spells" not in _rows(dialog)
 
-    # A race opens the skill catalog; a non-casting race adds no spells.
+    # A non-casting race with no class opens the general skills only.
     race = _rows(dialog)["race"][1]
     assert isinstance(race, ChoiceField)
-    _select(race, "Dwarf")
-    assert len(skills.options) == 10
+    _select(race, "Human")
+    assert set(skills.options) == {
+        "Agriculture",
+        "Carpentry",
+        "Diplomacy",
+        "Fishing",
+        "Mining",
+        "Swimming",
+    }
     assert "spells" not in _rows(dialog)
 
-    # A spellcasting class materializes the spells block, filtered.
+    # Another race brings its racial skills; class skills and monster
+    # skills stay out, and a non-casting race still adds no spells.
+    _select(race, "Dwarf")
+    assert len(skills.options) == 8  # 6 general + Stonewise + Infravision
+    assert {"Stonewise", "Infravision"} <= set(skills.options)
+    assert "Arcane Lore" not in skills.options
+    assert "Sneak Attack" not in skills.options
+    assert "spells" not in _rows(dialog)
+
+    # A spellcasting class materializes the spells block with every
+    # level-1 spell of that class, and adds the class skills.
     character_class = _rows(dialog)["class"][1]
     assert isinstance(character_class, ChoiceField)
     _select(character_class, "Wizard")
     spells = _rows(dialog)["spells"][1]
     assert isinstance(spells, ChoiceField)
-    assert {"Light", "Spark", "Mend"} <= set(spells.options)
-    assert "Rune Ward" in spells.options  # granted Arcane Lore by the class
-    assert "Fireball" not in spells.options  # level 2, not a starting spell
+    assert set(spells.options) == {
+        "Spark",
+        "Frost Touch",
+        "Light",
+        "Rune Ward",
+        "Nature's Whisper",
+    }
+    assert len(skills.options) == 10  # + Arcane Lore + Spellcraft
+    assert {"Arcane Lore", "Spellcraft"} <= set(skills.options)
+
+    # Another casting race keeps the general + racial + class skills,
+    # minus the skills of the previous race.
+    _select(race, "Elf")
+    assert len(skills.options) == 9  # 6 general + Infravision + 2 Wizard
+    assert "Stonewise" not in skills.options
+    assert "Infravision" in skills.options
+
+    # Another casting class offers its own level-1 spells instead.
+    _select(character_class, "Priest")
+    spells = _rows(dialog)["spells"][1]
+    assert isinstance(spells, ChoiceField)
+    assert set(spells.options) == {"Mend", "Light", "Nature's Whisper"}
 
     # Switching to a non-casting class hides the block again.
-    _select(character_class, "Adventurer")
+    _select(character_class, "Warrior")
     spells_section = {section.step_id: section for section in dialog.sections}["spells"]
     assert spells_section.box.isHidden()
+
+
+def test_skills_and_spells_lists_are_sorted_alphabetically(
+    qtbot: QtBot,
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """The dialog displays both lists in alphabetical order."""
+    dialog = CharacterCreationDialog(pipeline)
+    qtbot.addWidget(dialog)
+
+    race = _rows(dialog)["race"][1]
+    assert isinstance(race, ChoiceField)
+    _select(race, "Elf")
+
+    # Sorted on the initial build (race picked before the class).
+    skills = _rows(dialog)["skills"][1]
+    assert isinstance(skills, ChoiceField)
+    assert skills.options == (
+        "Agriculture",
+        "Carpentry",
+        "Diplomacy",
+        "Fishing",
+        "Infravision",
+        "Mining",
+        "Swimming",
+    )
+
+    # Sorted again when the options refresh after a new selection.
+    character_class = _rows(dialog)["class"][1]
+    assert isinstance(character_class, ChoiceField)
+    _select(character_class, "Wizard")
+    skills = _rows(dialog)["skills"][1]
+    assert isinstance(skills, ChoiceField)
+    assert skills.options == (
+        "Agriculture",
+        "Arcane Lore",
+        "Carpentry",
+        "Diplomacy",
+        "Fishing",
+        "Infravision",
+        "Mining",
+        "Spellcraft",
+        "Swimming",
+    )
+    spells = _rows(dialog)["spells"][1]
+    assert isinstance(spells, ChoiceField)
+    assert spells.options == (
+        "Frost Touch",
+        "Light",
+        "Nature's Whisper",
+        "Rune Ward",
+        "Spark",
+    )
 
 
 def test_cancel_discards_the_dialog(

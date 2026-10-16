@@ -78,31 +78,56 @@ def can_cast_spells(context: CharacterCreationContext) -> bool:
 
 
 def skill_available(skill: Mapping[str, Any], context: CharacterCreationContext) -> bool:
-    """Tell whether the skills of the catalog may be picked yet.
+    """Tell whether a skill of the catalog may be picked right now.
 
-    The demo system proposes its skill catalog once the player has
-    chosen a race **or** a class: at the very start of the creation
-    dialog, before any choice, the skill list stays empty.
+    The list only holds the skills matching the choices made so far:
+
+    - while no race and no class is chosen the catalog stays closed
+      (the dialog renders an empty list);
+    - ``type: general`` skills (and entries without a type) are offered
+      as soon as a race or a class is chosen;
+    - ``type: race`` skills require the chosen race in their ``races``
+      list;
+    - ``type: class`` skills require the chosen class in their
+      ``classes`` list;
+    - ``type: monster`` abilities are never offered to a player
+      character.
 
     Args:
-        skill: Skill catalog entry (unused, the catalog is not
-            restricted entry by entry).
+        skill: Skill catalog entry (``name``, ``type``, ``races`` /
+            ``classes``...).
         context: Current creation state of the character.
 
     Returns:
-        True when a race or a class is already chosen.
+        True when the skill matches the current race/class choice.
 
     Example:
         >>> from companion4soloplayer.core.creation.context import (
         ...     CharacterCreationContext)
         >>> context = CharacterCreationContext()
-        >>> skill_available({"name": "Athletics"}, context)
+        >>> skill_available({"name": "Diplomacy", "type": "general"}, context)
         False
         >>> context.set("choices.race", "Dwarf")
-        >>> skill_available({"name": "Athletics"}, context)
+        >>> skill_available({"name": "Diplomacy", "type": "general"}, context)
         True
+        >>> skill_available({"name": "Spellcraft", "type": "class",
+        ...                  "classes": ["Wizard"]}, context)
+        False
     """
-    return bool(context.peek("choices.race") or context.peek("choices.class"))
+    race = context.peek("choices.race")
+    character_class = context.peek("choices.class")
+    if not race and not character_class:
+        return False
+    kind = str(skill.get("type") or "general").strip().lower()
+    if kind == "monster":
+        return False
+    if kind == "class":
+        classes = skill.get("classes") or []
+        return bool(character_class) and character_class in classes
+    if kind == "race":
+        races = skill.get("races") or []
+        return bool(race) and race in races
+    return True
 
 
 def spell_available(spell: Mapping[str, Any], context: CharacterCreationContext) -> bool:
@@ -117,13 +142,10 @@ def spell_available(spell: Mapping[str, Any], context: CharacterCreationContext)
     - the spell level must not exceed
       :data:`MAX_STARTING_SPELL_LEVEL`;
     - a spell declaring ``classes`` requires the chosen class to be one
-      of them (without a chosen class, only classless spells remain);
-    - a spell declaring ``requires_skill`` needs that skill in the
-      effective skill list (picks **and** rule grants).
+      of them (without a chosen class, only classless spells remain).
 
     Args:
-        spell: Spell catalog entry (``name``, ``level``, ``classes``,
-            optional ``requires_skill``...).
+        spell: Spell catalog entry (``name``, ``level``, ``classes``...).
         context: Current creation state of the character.
 
     Returns:
@@ -149,11 +171,4 @@ def spell_available(spell: Mapping[str, Any], context: CharacterCreationContext)
     if level > MAX_STARTING_SPELL_LEVEL:
         return False
     classes = spell.get("classes") or []
-    if classes and context.peek("choices.class") not in classes:
-        return False
-    required = spell.get("requires_skill")
-    if required is not None:
-        skills = context.effective("values.skills") or []
-        if required not in skills:
-            return False
-    return True
+    return not classes or context.peek("choices.class") in classes

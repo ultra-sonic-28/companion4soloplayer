@@ -22,16 +22,16 @@
 - name: Goblin
   description: A small but cunning creature
   stats:
-    hp: 3
     combat: 2
+    hp: 3
   abilities:
     - Sneak Attack
 
 - name: Orc
   description: A brutal warrior of the wastes
   stats:
-    hp: 5
     combat: 3
+    hp: 5
   abilities:
     - Berserker Rage
 

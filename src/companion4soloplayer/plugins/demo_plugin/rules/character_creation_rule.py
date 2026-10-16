@@ -26,6 +26,34 @@ class CharacterCreationRule:
         """
         return list(load_data(self.catalog))
 
+    def list_abilities(self, class_name: str) -> list[str]:
+        """List the abilities granted by a character class.
+
+        The class abilities live in ``skills.yaml``: every ``type:
+        class`` entry whose ``classes`` list contains ``class_name`` is
+        one ability of that class. Classes still declaring an inline
+        ``abilities``/``special_abilities`` list keep it.
+
+        Args:
+            class_name: Class display name (case-insensitive).
+
+        Returns:
+            Ability names, in catalog order.
+        """
+        for entry in self.list_classes():
+            if str(entry.get("name", "")).lower() == class_name.lower():
+                inline = entry.get("special_abilities") or entry.get("abilities")
+                if inline:
+                    return list(inline)
+                break
+        wanted = class_name.lower()
+        return [
+            str(skill.get("name", ""))
+            for skill in load_data("skills.yaml")
+            if skill.get("type") == "class"
+            and wanted in {str(name).lower() for name in skill.get("classes") or []}
+        ]
+
     def create(self, class_name: str, character_name: str) -> dict:
         """Create a character from a class of the catalog.
 
@@ -44,12 +72,11 @@ class CharacterCreationRule:
         for entry in self.list_classes():
             if str(entry.get("name", "")).lower() == class_name.lower():
                 stats = dict(entry.get("base_stats", {}))
-                abilities = entry.get("special_abilities") or entry.get("abilities") or []
                 character: dict[str, Any] = {
                     "name": character_name,
                     "class": entry["name"],
                     "stats": stats,
-                    "abilities": list(abilities),
+                    "abilities": self.list_abilities(entry["name"]),
                 }
                 if isinstance(stats.get("body"), int):
                     character["current_hp"] = stats["body"]
