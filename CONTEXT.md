@@ -164,9 +164,12 @@ The complete disclaimer is available in the main README.md file.
     │       │   ├── fields.py                    # Field widgets (text, dice, choice)
     │       │   ├── dialog_builder.py            # Pipeline -> dialog sections
     │       │   └── creation_dialog.py           # Player dialog (Validate / Cancel)
-    │       └── dialogs/                         # Dialog windows
-    │           ├── quest_wizard.py              # Quest creation wizard
-    │           └── settings_dialog.py           # Settings
+    │       ├── dialogs/                         # Dialog windows
+    │       │   ├── quest_wizard.py              # Quest creation wizard
+    │       │   └── settings_dialog.py           # Settings
+    │       └── widgets/                         # Reusable widgets
+    │           ├── __init__.py
+    │           └── tooltip.py                   # Auto-sized description tooltip
     │
     ├── assets/                                  # Shared assets (CC0 only)
     │   ├── icons/                               # Icons (CC0)

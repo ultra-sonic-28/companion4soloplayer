@@ -10,6 +10,7 @@ from companion4soloplayer.core.creation.inputs import InputField, InputKind, Inp
 from companion4soloplayer.core.creation.steps.base import (
     CreationStep,
     StepConfigurationError,
+    catalog_descriptions,
     catalog_names,
 )
 
@@ -177,6 +178,10 @@ class SpellSelectionStep(CreationStep):
         **alphabetically**, so the dialog displays the spell list in
         alphabetical order.
 
+        The catalog entries declaring a ``description`` also declare it
+        here (``option_descriptions``), so a UI can show the help text
+        of a spell as a tooltip when the player hovers it.
+
         Args:
             context: Current creation state (provides the catalog and
                 feeds the filter).
@@ -195,15 +200,20 @@ class SpellSelectionStep(CreationStep):
         options = self.available(context)
         if not options:
             return ()
+        sorted_options = tuple(sorted(options))
+        catalog = catalog_descriptions(context.system, self._catalog)
         return (
             InputField(
                 key=self.step_id,
                 label=self._prompt,
                 kind=InputKind.CHOICES,
-                options=tuple(sorted(options)),
+                options=sorted_options,
                 required=self._min_count > 0,
                 min_count=self._min_count,
                 max_count=self._max_count,
+                option_descriptions=tuple(
+                    (option, catalog[option]) for option in sorted_options if option in catalog
+                ),
             ),
         )
 

@@ -16,6 +16,7 @@ from companion4soloplayer.core.creation.steps.base import (
     StepConfigurationError,
     StepResult,
     StepStatus,
+    catalog_descriptions,
     catalog_names,
 )
 from companion4soloplayer.core.creation.steps.identity import IdentityStep
@@ -38,5 +39,6 @@ __all__ = [
     "StepConfigurationError",
     "StepResult",
     "StepStatus",
+    "catalog_descriptions",
     "catalog_names",
 ]

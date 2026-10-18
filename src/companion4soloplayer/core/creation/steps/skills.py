@@ -10,6 +10,7 @@ from companion4soloplayer.core.creation.inputs import InputField, InputKind, Inp
 from companion4soloplayer.core.creation.steps.base import (
     CreationStep,
     StepConfigurationError,
+    catalog_descriptions,
     catalog_names,
 )
 
@@ -186,6 +187,10 @@ class SkillSelectionStep(CreationStep):
         skills. The options are sorted **alphabetically**, so the
         dialog displays the skill list in alphabetical order.
 
+        The catalog entries declaring a ``description`` also declare it
+        here (``option_descriptions``), so a UI can show the help text
+        of a skill as a tooltip when the player hovers it.
+
         Args:
             context: Current creation state (provides the catalog and
                 feeds the filter).
@@ -201,15 +206,20 @@ class SkillSelectionStep(CreationStep):
         entries = context.system.get(self._catalog)
         if entries is None or (isinstance(entries, Sequence) and not entries):
             return ()
+        options = tuple(sorted(self.available(context)))
+        catalog = catalog_descriptions(context.system, self._catalog)
         return (
             InputField(
                 key=self.step_id,
                 label=self._prompt,
                 kind=InputKind.CHOICES,
-                options=tuple(sorted(self.available(context))),
+                options=options,
                 required=self._min_count > 0,
                 min_count=self._min_count,
                 max_count=self._max_count,
+                option_descriptions=tuple(
+                    (option, catalog[option]) for option in options if option in catalog
+                ),
             ),
         )
 

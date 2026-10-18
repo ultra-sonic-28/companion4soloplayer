@@ -26,6 +26,7 @@ from companion4soloplayer.core.creation.steps import (
     SkillSelectionStep,
     SpellSelectionStep,
     StepConfigurationError,
+    catalog_descriptions,
 )
 from companion4soloplayer.core.creation.strategies import ConstantStrategy
 
@@ -109,6 +110,62 @@ def test_selection_without_catalog_describes_nothing() -> None:
     """A game system without such data describes no field."""
     step = SelectionStep("race", target="choices.race", catalog="races")
     assert step.describe_inputs(make_context(races=None)) == ()
+
+
+def test_selection_options_carry_the_catalog_descriptions() -> None:
+    """Race/class entries declaring a description feed the field."""
+    step = SelectionStep("race", target="choices.race", catalog="races")
+    fields = step.describe_inputs(
+        make_context(
+            races=[
+                {"name": "Dwarf", "description": "Stout mountain folk."},
+                {"name": "Elf"},
+            ]
+        )
+    )
+    (field,) = fields
+    assert field.option_descriptions == (("Dwarf", "Stout mountain folk."),)
+    assert field.option_description("Dwarf") == "Stout mountain folk."
+    # An option declared without description simply gets none.
+    assert field.option_description("Elf") == ""
+    assert field.option_description("Unknown") == ""
+
+
+def test_selection_with_inline_options_declares_no_descriptions() -> None:
+    """Inline option lists carry no description at all."""
+    step = SelectionStep("mood", target="choices.mood", options=["Calm", "Fierce"])
+    (field,) = step.describe_inputs(make_context())
+    assert field.options == ("Calm", "Fierce")
+    assert field.option_descriptions == ()
+
+
+# ----------------------------------------------------------------------
+# catalog_descriptions
+# ----------------------------------------------------------------------
+
+
+def test_catalog_descriptions_reads_only_non_empty_descriptions() -> None:
+    """Plain strings and entries without description yield nothing."""
+    system: dict[str, Any] = {
+        "traits": [
+            {"name": "Hardy", "description": "Resilient to hardship."},
+            {"name": "Keen", "description": "   "},
+            {"name": "Quiet"},
+            "Silent",
+        ]
+    }
+    assert catalog_descriptions(system, "traits") == {"Hardy": "Resilient to hardship."}
+
+
+def test_catalog_descriptions_of_a_missing_catalog_is_empty() -> None:
+    """A game system without such catalog declares no description."""
+    assert catalog_descriptions({}, "races") == {}
+
+
+def test_catalog_descriptions_rejects_a_malformed_catalog() -> None:
+    """A catalog that is not a sequence raises like ``catalog_names``."""
+    with pytest.raises(StepConfigurationError, match="must be a sequence"):
+        catalog_descriptions({"races": "Dwarf"}, "races")
 
 
 # ----------------------------------------------------------------------
@@ -198,6 +255,22 @@ def test_free_skills_options_are_sorted_alphabetically() -> None:
     assert fields[0].options == ("Athletics", "Stealth")
 
 
+def test_skills_options_carry_the_catalog_descriptions() -> None:
+    """Skills declaring a description feed the described field."""
+    step = SkillSelectionStep(mode="free")
+    fields = step.describe_inputs(
+        make_context(
+            skills=[
+                {"name": "Stealth", "description": "Moving unseen."},
+                {"name": "Athletics"},
+            ]
+        )
+    )
+    (field,) = fields
+    assert field.option_descriptions == (("Stealth", "Moving unseen."),)
+    assert field.option_description("Athletics") == ""
+
+
 # ----------------------------------------------------------------------
 # SpellSelectionStep
 # ----------------------------------------------------------------------
@@ -244,6 +317,22 @@ def test_chosen_spells_options_are_sorted_alphabetically() -> None:
     step = SpellSelectionStep(mode="choice")
     fields = step.describe_inputs(make_context())
     assert fields[0].options == ("Fireball", "Light")
+
+
+def test_spells_options_carry_the_catalog_descriptions() -> None:
+    """Spells declaring a description feed the described field."""
+    step = SpellSelectionStep(mode="choice")
+    fields = step.describe_inputs(
+        make_context(
+            spells=[
+                {"name": "Light", "level": 1, "description": "A soft glow."},
+                {"name": "Fireball", "level": 2, "classes": ["Wizard"]},
+            ]
+        )
+    )
+    (field,) = fields
+    assert field.option_descriptions == (("Light", "A soft glow."),)
+    assert field.option_description("Fireball") == ""
 
 
 # ----------------------------------------------------------------------

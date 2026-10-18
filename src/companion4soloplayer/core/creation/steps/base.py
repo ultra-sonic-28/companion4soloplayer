@@ -230,3 +230,47 @@ def catalog_names(system: Mapping[str, Any], key: str) -> list[str]:
             )
         names.append(name)
     return names
+
+
+def catalog_descriptions(system: Mapping[str, Any], key: str) -> dict[str, str]:
+    """Extract the help text of each entry of a catalog stored in ``system``.
+
+    Catalog entries are either plain strings (no description) or
+    mappings holding a ``name`` entry and an optional ``description``
+    help text. A missing catalog, a plain string entry or an entry
+    without a (non-empty string) description simply yields no
+    description, which the UI reads as "no tooltip for that option".
+
+    Args:
+        system: Read-only game data of the context.
+        key: Catalog key (``races``, ``classes``, ``skills``...).
+
+    Returns:
+        The description of every catalog entry declaring one, keyed by
+        entry name, in declaration order.
+
+    Raises:
+        StepConfigurationError: If the catalog exists but is malformed
+            (not a sequence).
+    """
+    catalog = system.get(key)
+    if catalog is None:
+        return {}
+    if isinstance(catalog, (str, bytes)) or not isinstance(catalog, Sequence):
+        raise StepConfigurationError(
+            f"Catalog {key!r} must be a sequence of entries, got {type(catalog).__name__}"
+        )
+    descriptions: dict[str, str] = {}
+    for entry in catalog:
+        if not isinstance(entry, Mapping):
+            continue
+        name = entry.get("name")
+        description = entry.get("description")
+        if (
+            isinstance(name, str)
+            and name.strip()
+            and isinstance(description, str)
+            and description.strip()
+        ):
+            descriptions[name] = description
+    return descriptions

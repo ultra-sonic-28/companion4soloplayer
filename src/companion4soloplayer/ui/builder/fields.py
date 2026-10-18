@@ -24,11 +24,18 @@ the state changes, and contributes no answer.
 A widget emits :attr:`FieldWidget.changed` when the value edited by
 the player changes, which lets the dialog re-evaluate the dependent
 option lists (for example the spells filtered by the chosen class).
+
+Hovering an element shows its help text in a
+:class:`~companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip`:
+the whole widget for a field declaring ``InputField.description`` (an
+attribute), and the hovered item of a choice list for the
+``InputField.option_descriptions`` pairs (races, classes, skills,
+spells...).
 """
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from PySide6.QtCore import QRectF, QSize, Qt, Signal
@@ -47,6 +54,11 @@ from PySide6.QtWidgets import (
 )
 
 from companion4soloplayer.core.creation.inputs import InputField, InputKind
+from companion4soloplayer.ui.widgets.tooltip import (
+    DescriptionTooltipFilter,
+    install_list_tooltips,
+    install_widget_tooltip,
+)
 
 #: Edge length (pixels) of the generated die icon.
 DICE_ICON_SIZE = 24
@@ -121,13 +133,16 @@ class FieldWidget(QWidget):
 
         Args:
             field: Field described by the creation step; its
-                description, when declared, is shown as a tooltip.
+                description, when declared, is shown while the cursor
+                hovers the widget (see
+                :func:`~companion4soloplayer.ui.widgets.tooltip.install_widget_tooltip`).
             parent: Owning widget.
         """
         super().__init__(parent)
         self._field = field
+        self._description_tooltip: DescriptionTooltipFilter | None = None
         if field.description:
-            self.setToolTip(field.description)
+            self._description_tooltip = install_widget_tooltip(self, field.description)
 
     @property
     def field(self) -> InputField:
@@ -388,6 +403,11 @@ class ChoiceField(FieldWidget):
     :data:`CHOICE_LIST_VISIBLE_ROWS` rows (four), so a catalog of race,
     class, skills or spells is readable without scrolling inside the
     list; a shorter catalog simply leaves empty rows below.
+
+    Hovering an option shows its description (when the field declares
+    one, see ``InputField.option_descriptions``) in a
+    :class:`~companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip`
+    next to the item; options without description show nothing.
     """
 
     def __init__(self, field: InputField, parent: QWidget | None = None) -> None:
@@ -400,6 +420,7 @@ class ChoiceField(FieldWidget):
         """
         super().__init__(field, parent)
         self._options: tuple[str, ...] = ()
+        self._option_descriptions: dict[str, str] = dict(field.option_descriptions)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.label = QLabel(field.label)
@@ -416,11 +437,34 @@ class ChoiceField(FieldWidget):
         self.set_options(field.options)
         self._apply_list_height()
         self.list.itemSelectionChanged.connect(self.changed.emit)
+        self._list_tooltip = install_list_tooltips(self.list, lambda: self._option_descriptions)
 
     @property
     def options(self) -> tuple[str, ...]:
         """Return the options currently listed by the widget."""
         return self._options
+
+    @property
+    def option_descriptions(self) -> dict[str, str]:
+        """Return the description currently shown when hovering an option.
+
+        Returns:
+            The description of every described option, refreshed by
+            :meth:`set_option_descriptions` when the dialog re-evaluates
+            the form.
+        """
+        return dict(self._option_descriptions)
+
+    def set_option_descriptions(
+        self, option_descriptions: Sequence[tuple[str, str]] | Mapping[str, str]
+    ) -> None:
+        """Replace the description shown when an option is hovered.
+
+        Args:
+            option_descriptions: ``(option, description)`` pairs (or
+                mapping) of the new descriptions.
+        """
+        self._option_descriptions = dict(option_descriptions)
 
     def _apply_list_height(self) -> None:
         """Give the list a fixed height of :data:`CHOICE_LIST_VISIBLE_ROWS` rows.

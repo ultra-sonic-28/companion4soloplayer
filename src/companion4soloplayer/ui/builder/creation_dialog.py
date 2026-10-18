@@ -125,9 +125,13 @@ class CharacterCreationDialog(QDialog):
         # plugin configuration (datas/config.yaml) with the application
         # default as fallback.
         attributes_columns = (
-            PluginConfigRegistry.instance().character_creation_dialog_attributes_columns(plugin_name)
+            PluginConfigRegistry.instance().character_creation_dialog_attributes_columns(
+                plugin_name
+            )
         )
-        self._builder = CharacterCreationDialogBuilder(pipeline, attributes_columns=attributes_columns)
+        self._builder = CharacterCreationDialogBuilder(
+            pipeline, attributes_columns=attributes_columns
+        )
         self._sections: list[StepSection] = []
         self._report: CreationReport | None = None
         self._context: CharacterCreationContext | None = None
@@ -334,6 +338,7 @@ class CharacterCreationDialog(QDialog):
                     new_field = described.get(field.key)
                     if new_field is not None:
                         widget.set_options(new_field.options)
+                        widget.set_option_descriptions(new_field.option_descriptions)
                 elif isinstance(widget, ReadOnlyField):
                     # Assigned values (saving throws) follow the state.
                     new_field = described.get(field.key)

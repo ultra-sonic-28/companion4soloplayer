@@ -9,6 +9,7 @@ from companion4soloplayer.core.creation.inputs import InputField, InputKind, Inp
 from companion4soloplayer.core.creation.steps.base import (
     CreationStep,
     StepConfigurationError,
+    catalog_descriptions,
     catalog_names,
 )
 
@@ -137,6 +138,10 @@ class SelectionStep(CreationStep):
     def describe_inputs(self, context: CharacterCreationContext) -> tuple[InputField, ...]:
         """Describe the selection as one single-choice field.
 
+        The catalog entries declaring a ``description`` also declare it
+        here (``option_descriptions``), so a UI can show the help text
+        of an option as a tooltip when the player hovers it.
+
         Args:
             context: Current creation state (resolves the available
                 options).
@@ -149,6 +154,12 @@ class SelectionStep(CreationStep):
         options = self.available(context)
         if not options:
             return ()
+        descriptions: tuple[tuple[str, str], ...] = ()
+        if self._catalog is not None:
+            catalog = catalog_descriptions(context.system, self._catalog)
+            descriptions = tuple(
+                (option, catalog[option]) for option in options if option in catalog
+            )
         return (
             InputField(
                 key=self.step_id,
@@ -156,6 +167,7 @@ class SelectionStep(CreationStep):
                 kind=InputKind.CHOICE,
                 options=tuple(options),
                 required=not self._optional,
+                option_descriptions=descriptions,
             ),
         )
 

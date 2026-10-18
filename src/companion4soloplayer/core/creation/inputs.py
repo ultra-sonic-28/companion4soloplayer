@@ -110,6 +110,10 @@ class InputField:
             (None when no die is involved).
         description: Optional help text about the data item, shown by
             the UI as a tooltip (empty when the field declares none).
+        option_descriptions: ``(option, description)`` pairs of a
+            ``CHOICE``/``CHOICES`` field, shown by the UI as the tooltip
+            of the matching list item (options declared without a
+            description simply get none).
         value: Value displayed by a ``READONLY`` field, computed by the
             step from the current state (None while the step has not
             produced it yet). Other kinds ignore this attribute.
@@ -126,7 +130,23 @@ class InputField:
     max_value: int | None = None
     roll: Callable[[], int] | None = None
     description: str = ""
+    option_descriptions: tuple[tuple[str, str], ...] = ()
     value: int | str | None = None
+
+    def option_description(self, option: str) -> str:
+        """Return the description declared for one option.
+
+        Args:
+            option: Option name as listed in :attr:`options`.
+
+        Returns:
+            The description of the option, or an empty string when the
+            field declares none for it.
+        """
+        for name, description in self.option_descriptions:
+            if name == option:
+                return description
+        return ""
 
 
 @runtime_checkable

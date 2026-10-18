@@ -524,7 +524,8 @@ The plugin declares, under `plugins/demo_plugin/`:
   and class declares `can_cast_spells: true|false`, the flag gating
   the spells of the character, and every class declares the `save`
   mapping of its **base saving throws**, read by the `class_saves`
-  strategy;
+  strategy; an entry may also declare a `description` shown as the
+  tooltip of the matching option in the dialog choice lists;
 - `creation/strategies.py` — the named generation methods;
 - `creation/filters.py` — the availability filters (`skill_available`
   filtering the skill catalog by type/race/class, `spell_available`
@@ -576,7 +577,8 @@ flowchart TD
   the answer keys and state paths keep the technical keys
   (`attributes.strength` / `save.magic`, `values.attributes.strength` /
   `values.save.magic`), and a non-empty `description` shows up as a
-  tooltip on the field. The widgets of a block follow its mode: dice
+  tooltip on the field (see the description tooltips below). The
+  widgets of a block follow its mode: dice
   buttons in `random` mode, number edits in `manual` mode, and
   **read-only values** in `auto` mode — the "Saving Throws" block
   displays the saving throws assigned for the chosen class and
@@ -606,6 +608,21 @@ flowchart TD
   class, skills, spells) keep a fixed height showing **at least four
   rows**, so a catalog stays readable without scrolling inside the
   list.
+- **Description tooltips**: hovering an element shows its help text in
+  a reusable tooltip widget
+  (`companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip`):
+  - hovering an **attribute** displays the `description` declared by
+    the plugin (`datas/attributes.yaml`);
+  - hovering an **option of a choice list** (race, class, skill,
+    spell) displays the `description` of the matching catalog entry
+    (`datas/races.yaml`, `datas/classes.yaml`, `datas/skills.yaml`,
+    `datas/spells.yaml`); options without description show nothing.
+  The tooltip **sizes itself automatically** from the text to display
+  (the width grows with the description up to a maximum, the text then
+  wrapping on several lines) and **positions itself automatically** from
+  the position of the mouse cursor — displayed a small offset away in x
+  and y, flipping to the other side of the cursor near the screen edges
+  so it is never cut off.
 - **Validate** collects the answers (empty widgets stay unanswered, so
   the steps keep enforcing their own required/optional rules), runs the
   pipeline and closes the dialog on success — `dialog.report` holds the

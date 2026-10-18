@@ -12,8 +12,9 @@ race/class), Validate runs the pipeline and Cancel discards everything.
 from collections.abc import Iterator
 
 import pytest
+from PySide6.QtCore import QEvent
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QDialog, QGridLayout, QMessageBox, QWidget
+from PySide6.QtWidgets import QApplication, QDialog, QGridLayout, QMessageBox, QWidget
 from pytestqt.qtbot import QtBot
 
 from companion4soloplayer.core.creation import (
@@ -38,6 +39,7 @@ from companion4soloplayer.ui.builder.fields import (
 )
 from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.main_window import MainWindow
+from companion4soloplayer.ui.widgets.tooltip import DescriptionTooltip
 from companion4soloplayer.utils.plugin_config import PluginConfigRegistry
 
 #: Attribute keys of the demo workflow, in declaration order.
@@ -645,7 +647,12 @@ def test_sections_are_arranged_on_two_columns(
 
 
 def test_field_widgets_show_the_description_as_tooltip(qtbot: QtBot) -> None:
-    """A declared description (attributes.yaml) becomes the tooltip."""
+    """A declared description (attributes.yaml) pops up on hover.
+
+    The description is displayed by the shared
+    :class:`~companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip`,
+    anchored on the hovered widget.
+    """
     field = InputField(
         key="attributes.strength",
         label="Strength",
@@ -654,7 +661,76 @@ def test_field_widgets_show_the_description_as_tooltip(qtbot: QtBot) -> None:
     )
     widget = TextField(field)
     qtbot.addWidget(widget)
-    assert widget.toolTip() == "Raw muscle."
+    widget.show()
+    tooltip = DescriptionTooltip.shared()
+    tooltip.hide_description()
+    qtbot.mouseMove(widget, widget.rect().center())
+    assert tooltip.isVisible()
+    assert tooltip.text == "Raw muscle."
+    tooltip.hide_description()
+
+
+def test_field_widgets_without_description_show_no_tooltip(qtbot: QtBot) -> None:
+    """A field declaring no description never displays a tooltip."""
+    field = InputField(key="identity.name", label="Name", kind=InputKind.TEXT)
+    widget = TextField(field)
+    qtbot.addWidget(widget)
+    widget.show()
+    tooltip = DescriptionTooltip.shared()
+    tooltip.hide_description()
+    qtbot.mouseMove(widget, widget.rect().center())
+    assert not tooltip.isVisible()
+
+
+def test_choice_lists_declare_option_descriptions(
+    qtbot: QtBot,
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """Race, class, skills and spells carry the catalog descriptions."""
+    dialog = CharacterCreationDialog(pipeline)
+    qtbot.addWidget(dialog)
+    character_class = _rows(dialog)["class"][1]
+    assert isinstance(character_class, ChoiceField)
+    _select(character_class, "Wizard")
+
+    rows = _rows(dialog)
+    race = rows["race"][1]
+    assert isinstance(race, ChoiceField)
+    assert race.option_descriptions["Dwarf"] == "Stout mountain folk, resilient and stubborn."
+    character_class = rows["class"][1]
+    assert isinstance(character_class, ChoiceField)
+    assert character_class.option_descriptions["Wizard"] != ""
+    # Only the options the filters currently offer describe themselves.
+    skills = rows["skills"][1]
+    assert isinstance(skills, ChoiceField)
+    assert skills.option_descriptions["Spellcraft"] != ""
+    spells = rows["spells"][1]
+    assert isinstance(spells, ChoiceField)
+    assert spells.option_descriptions["Spark"] != ""
+
+
+def test_hovering_a_list_item_shows_its_description(
+    qtbot: QtBot,
+    pipeline: CharacterCreationPipeline,
+) -> None:
+    """Hovering a race shows its description in the shared tooltip."""
+    dialog = CharacterCreationDialog(pipeline)
+    qtbot.addWidget(dialog)
+    dialog.show()
+    race = _rows(dialog)["race"][1]
+    assert isinstance(race, ChoiceField)
+    tooltip = DescriptionTooltip.shared()
+    tooltip.hide_description()
+
+    item = race.list.item(1)  # Dwarf
+    center = race.list.visualItemRect(item).center()
+    qtbot.mouseMove(race.list.viewport(), center)
+    assert tooltip.isVisible()
+    assert tooltip.text == "Stout mountain folk, resilient and stubborn."
+
+    # Leaving the list hides the tooltip again.
+    QApplication.sendEvent(race.list.viewport(), QEvent(QEvent.Type.Leave))
+    assert not tooltip.isVisible()
 
 
 def test_attributes_block_spreads_over_two_equal_columns(

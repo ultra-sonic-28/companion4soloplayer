@@ -137,6 +137,8 @@ nav:
             - 'CharacterCreationDialog': 'companion4soloplayer/ui/builder/creation_dialog.md'
             - 'DialogBuilder': 'companion4soloplayer/ui/builder/dialog_builder.md'
             - 'FieldWidgets': 'companion4soloplayer/ui/builder/fields.md'
+        - Widgets:
+            - 'DescriptionTooltip': 'companion4soloplayer/ui/widgets/tooltip.md'
     - Utils:
       - 'Config Manager': 'companion4soloplayer/utils/config_manager.md'
       - 'Logger': 'companion4soloplayer/utils/logger.md'
