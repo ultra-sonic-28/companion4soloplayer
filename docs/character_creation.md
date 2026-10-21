@@ -622,7 +622,12 @@ flowchart TD
   wrapping on several lines) and **positions itself automatically** from
   the position of the mouse cursor — displayed a small offset away in x
   and y, flipping to the other side of the cursor near the screen edges
-  so it is never cut off.
+  so it is never cut off. Its default **style** comes from the
+  `[tooltip]` table of the user configuration
+  (`data/config/config.toml`): `background_color`, `text_color`,
+  `border_color`, `border_size` (pixels), `border_radius` (pixels) and
+  `corner_type` (`round` applies the radius, `square` keeps right
+  angles).
 - **Validate** collects the answers (empty widgets stay unanswered, so
   the steps keep enforcing their own required/optional rules), runs the
   pipeline and closes the dialog on success — `dialog.report` holds the

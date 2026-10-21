@@ -122,3 +122,34 @@ def test_window_without_config_uses_qt_defaults(qtbot: QtBot) -> None:
     assert window.width() >= 1200
     assert window.height() >= 800
     assert not window.isMaximized()
+
+
+def test_close_keeps_edits_made_to_the_file_while_running(
+    qtbot: QtBot,
+    tmp_path: Path,
+) -> None:
+    """Closing the window must not discard hand edits of the file.
+
+    ``_save_window_settings`` writes the in-memory configuration (loaded
+    at startup): it reloads the file first, so a ``[tooltip]`` value
+    edited by the user while the window was open survives the close.
+    """
+    config = _write_window_config(tmp_path)
+    window = MainWindow(config=config)
+    qtbot.addWidget(window)
+
+    window.show()
+    qtbot.waitExposed(window)
+
+    # The user edits the file while the application keeps running.
+    editor = ConfigManager(tmp_path / "config.toml")
+    editor.tooltip()["background_color"] = "#00ff00"
+    editor.save()
+
+    window.close()
+
+    saved = ConfigManager(tmp_path / "config.toml")
+    assert saved.tooltip()["background_color"] == "#00ff00"
+    # The geometry is still written by the close.
+    assert saved.window()["maximized"] is False
+    assert int(saved.window()["width"]) >= 1200

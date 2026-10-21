@@ -134,6 +134,10 @@ class SettingsDialog(QDialog):
         """Store the selected theme in the configuration file."""
         if self._config is None:
             return
+        # The file may have been edited by hand while the dialog was open:
+        # reload it first so saving the theme keeps those edits instead of
+        # overwriting them with the values read at startup.
+        self._config.load()
         self._config.appearance()["theme"] = self.theme_combo.currentText()
         self._config.save()
 

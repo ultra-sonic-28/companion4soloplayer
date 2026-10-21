@@ -15,11 +15,14 @@ are computed **automatically** from the text to display:
   otherwise be cut off by the screen edges, then clamping inside the
   screen, so the tooltip is never displayed out of view.
 
-The look (style sheet), the size bounds and the spacing are
-constructor arguments, so the widget can evolve (another theme,
-another size, another offset...) and be reused in any other context of
-the application. Two helpers install it on the widgets of the player
-creation dialog:
+The **style** comes by default from the ``[tooltip]`` table of the user
+configuration (``data/config/config.toml``): background and text
+colors, border color and thickness, corner radius and corner shape
+(``round``/``square``), see :func:`build_style_sheet` and
+:func:`configured_style_sheet`. The size bounds and the spacing are
+constructor arguments, so the widget can evolve (another size, another
+offset...) and be reused in any other context of the application. Two
+helpers install it on the widgets of the player creation dialog:
 
 - :func:`install_widget_tooltip` shows the description of a whole
   widget (an attribute field, for instance);
@@ -34,18 +37,80 @@ from collections.abc import Callable, Mapping
 from typing import ClassVar
 
 from PySide6.QtCore import QEvent, QObject, QPoint, QRect, QSize, Qt
-from PySide6.QtGui import QCursor, QGuiApplication, QHoverEvent, QMouseEvent, QScreen
-from PySide6.QtWidgets import QLabel, QListWidget, QVBoxLayout, QWidget
+from PySide6.QtGui import QCursor, QGuiApplication, QHoverEvent, QMouseEvent, QScreen, QTextLayout
+from PySide6.QtWidgets import QFrame, QLabel, QListWidget, QVBoxLayout, QWidget
 
-#: Style sheet applied to every description tooltip by default.
-DEFAULT_STYLE_SHEET = """
-DescriptionTooltip {
-    background-color: #2b2b2b;
-    color: #f5f5f5;
-    border: 1px solid #555555;
-    border-radius: 4px;
-}
-"""
+from companion4soloplayer.utils.config_manager import ConfigManager, TooltipCornerType
+
+
+def build_style_sheet(
+    background_color: str,
+    text_color: str,
+    border_color: str,
+    border_size: int,
+    border_radius: int,
+    corner_type: TooltipCornerType | str,
+) -> str:
+    """Build the Qt style sheet of a description tooltip.
+
+    The style comes from the ``[tooltip]`` table of the user
+    configuration (``data/config/config.toml``): background and text
+    colors, border color and thickness (pixels), corner radius (pixels)
+    and corner shape (``round`` applies the radius, ``square`` keeps
+    right angles).
+
+    Args:
+        background_color: Background color of the tooltip.
+        text_color: Color of the displayed text.
+        border_color: Color of the border.
+        border_size: Border thickness in pixels.
+        border_radius: Corner radius in pixels (round corners only).
+        corner_type: Corner shape (``round`` or ``square``).
+
+    Returns:
+        The style sheet to apply to the tooltip widget.
+    """
+    shape = TooltipCornerType(corner_type)
+    radius = border_radius if shape is TooltipCornerType.ROUND else 0
+    return (
+        "QFrame#tooltipFrame {"
+        f" background-color: {background_color};"
+        f" border: {border_size}px solid {border_color};"
+        f" border-radius: {radius}px;"
+        "}"
+        "QLabel#tooltipLabel {"
+        f" color: {text_color};"
+        "}"
+    )
+
+
+def configured_style_sheet(config: ConfigManager | None = None) -> str:
+    """Build the style sheet declared by the user configuration.
+
+    The ``[tooltip]`` table of ``data/config/config.toml`` provides the
+    default style of every tooltip; missing keys fall back on the
+    documented defaults of
+    :class:`~companion4soloplayer.utils.config_manager.ConfigManager`,
+    and an invalid ``corner_type`` falls back on ``round``.
+
+    Args:
+        config: Configuration to read; a fresh
+            :class:`~companion4soloplayer.utils.config_manager.ConfigManager`
+            reading ``data/config/config.toml`` when None.
+
+    Returns:
+        The style sheet built from the configured values.
+    """
+    manager = config if config is not None else ConfigManager()
+    settings = manager.tooltip()
+    return build_style_sheet(
+        str(settings.get("background_color", "#ffffff")),
+        str(settings.get("text_color", "#000000")),
+        str(settings.get("border_color", "#3b3a98")),
+        int(settings.get("border_size", 2)),
+        int(settings.get("border_radius", 5)),
+        manager.tooltip_corner_type(),
+    )
 
 
 class DescriptionTooltip(QWidget):
@@ -65,8 +130,9 @@ class DescriptionTooltip(QWidget):
         padding: Inner padding (pixels) between the text and the
             border.
         style_sheet: Qt style sheet applied to the tooltip; the default
-            one (:data:`DEFAULT_STYLE_SHEET`) draws a dark rounded
-            panel.
+            one is built from the ``[tooltip]`` table of the user
+            configuration (see :func:`configured_style_sheet`) and is
+            re-read each time the tooltip is displayed.
     """
 
     #: Shared instance created by :meth:`shared`.
@@ -79,7 +145,7 @@ class DescriptionTooltip(QWidget):
         max_width: int = 380,
         offset: int = 16,
         padding: int = 8,
-        style_sheet: str = DEFAULT_STYLE_SHEET,
+        style_sheet: str | None = None,
     ) -> None:
         """Initialize the tooltip window.
 
@@ -88,22 +154,56 @@ class DescriptionTooltip(QWidget):
             max_width: Maximum width in pixels before wrapping.
             offset: Offset in pixels between the cursor and the tooltip.
             padding: Inner padding in pixels.
-            style_sheet: Qt style sheet of the tooltip.
+            style_sheet: Qt style sheet of the tooltip; the configured
+                default when None.
         """
         super().__init__(None, Qt.WindowType.ToolTip | Qt.WindowType.FramelessWindowHint)
         self._min_width = max(1, min_width)
         self._max_width = max(self._min_width, max_width)
         self._offset = max(0, offset)
         self._padding = max(0, padding)
+        # Explicit style sheet given by the caller (None: the configured
+        # default, re-read at every display so a configuration change is
+        # applied on the next hover without restarting the application).
+        self._style_sheet = style_sheet
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
-        self.setStyleSheet(style_sheet)
+
+        # Outer layout: no margins, the inner frame provides the padding.
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(self._padding, self._padding, self._padding, self._padding)
-        self._label = QLabel(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        # Inner frame: carries the background color, border and corner
+        # radius. A plain QWidget top-level window does not paint a
+        # stylesheet border when it is frameless, so the visual box is a
+        # QFrame child instead.
+        self._frame = QFrame(self)
+        self._frame.setObjectName("tooltipFrame")
+        # Supprimer la décoration par défaut du QFrame (StyledPanel + bordure
+        # par défaut) qui s'ajouterait à la ``border`` de la stylesheet et
+        # réduirait l'espace intérieur du label, forçant un retour à la
+        # ligne et une taille incohérente.
+        self._frame.setFrameShape(QFrame.Shape.NoFrame)
+        self._frame.setLineWidth(0)
+        self._frame.setMidLineWidth(0)
+        layout.addWidget(self._frame)
+
+        # Inner layout inside the frame: the padding sits between the
+        # frame border and the text.
+        frame_layout = QVBoxLayout(self._frame)
+        frame_layout.setContentsMargins(
+            self._padding, self._padding, self._padding, self._padding
+        )
+        frame_layout.setSpacing(0)
+
+        self._label = QLabel(self._frame)
+        self._label.setObjectName("tooltipLabel")
         self._label.setWordWrap(True)
         self._label.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
-        layout.addWidget(self._label)
+        frame_layout.addWidget(self._label)
+
+        self.setStyleSheet(configured_style_sheet() if style_sheet is None else style_sheet)
         self.hide()
 
     @classmethod
@@ -133,6 +233,11 @@ class DescriptionTooltip(QWidget):
         compact tooltip while a long one wraps instead of leaving the
         screen.
 
+        When no explicit style sheet was given at construction, the
+        ``[tooltip]`` configuration table is re-read each time the
+        tooltip pops up (hidden -> visible), so a configuration change
+        applies on the next hover without restarting the application.
+
         Args:
             text: Description to display; a blank text hides the
                 tooltip instead.
@@ -143,12 +248,29 @@ class DescriptionTooltip(QWidget):
         if not text.strip():
             self.hide_description()
             return
+        if self._style_sheet is None and not self.isVisible():
+            # The file may have been edited since the last display:
+            # re-reading it here keeps the hover in sync with it.
+            self.setStyleSheet(configured_style_sheet())
         if cursor is None:
             cursor = QCursor.pos()
         screen = self._screen_for(cursor)
         available = screen.availableGeometry() if screen is not None else None
         self._label.setText(text)
-        self.setFixedSize(self._preferred_size(text, available))
+        size = self._preferred_size(text, available)
+        self.setFixedSize(size)
+        # Le frame enfant doit faire exactement la même taille que le
+        # tooltip : sans cela, le layout peut lui donner une taille
+        # légèrement différente (1 px de décalage), ce qui produit une
+        # bordure doublée sur un des côtés (en bas en pratique).
+        self._frame.setFixedSize(size)
+        # Le label doit remplir exactement l'espace intérieur du frame :
+        # sans cela, son sizeHint() (une seule ligne) bride le layout et
+        # le texte est clipé quand il mérite deux lignes ou plus.
+        self._label.setFixedSize(
+            size.width() - 2 * self._padding,
+            size.height() - 2 * self._padding,
+        )
         self.move(self._position_for(self.size(), cursor, available))
         self.show()
         self.raise_()
@@ -180,12 +302,29 @@ class DescriptionTooltip(QWidget):
         if available is not None and not available.isEmpty():
             max_width = min(max_width, available.width())
         width = max(self._min_width, min(natural, max_width))
-        wrapped = metrics.boundingRect(
-            QRect(0, 0, max(1, width - 2 * self._padding), 100000),
-            Qt.TextFlag.TextWordWrap,
-            text,
-        )
-        height = wrapped.height() + 2 * self._padding
+
+        # Compter le nombre de lignes après enveloppement via QTextLayout.
+        # QLabel.sizeHint() ne rend pas correctement la hauteur en cas de
+        # word wrap : il retourne toujours la hauteur d'une seule ligne.
+        # QTextDocument ajoute quant à lui une marge fixe (~8 px) qui
+        # surévalue la hauteur d'une ligne isolée. QTextLayout, lui,
+        # compte exactement le nombre de lignes visuelles après enveloppement
+        # à la largeur donnée.
+        line_height = metrics.lineSpacing()
+        layout = QTextLayout(text, self._label.font())
+        layout.beginLayout()
+        line_count = 0
+        text_width = max(1, width - 2 * self._padding)
+        while True:
+            line = layout.createLine()
+            if not line.isValid():
+                break
+            line.setLineWidth(text_width)
+            line_count += 1
+        layout.endLayout()
+        text_height = line_count * line_height
+
+        height = text_height + 2 * self._padding
         if available is not None and not available.isEmpty():
             height = min(height, available.height())
         return QSize(width, height)

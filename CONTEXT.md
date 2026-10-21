@@ -179,7 +179,7 @@ The complete disclaimer is available in the main README.md file.
     ├── data/                                    # User data
     │   ├── saves/                               # Game saves
     │   ├── custom_quests/                       # Custom quests
-    │   └── config/                              # config.toml (window, logging, appearance)
+    │   └── config/                              # config.toml (window, logging, appearance, tooltip)
     │
     ├── tests/                                   # Tests
     │   ├── tests_core/                          # Core unit tests
@@ -270,10 +270,10 @@ configuration, and both must be ready before any Qt object is built.
   with the default tables, and `save()` creates the missing parent folders.
   The file is local configuration: it is listed in `.gitignore`.
 - **Loading**: the file is merged *over* the defaults, table by table
-  (`[window]`, `[logging]`, `[appearance]`). A partial or hand-edited file
+  (`[window]`, `[logging]`, `[appearance]`, `[tooltip]`). A partial or hand-edited file
   keeps the default values for the keys it does not define; a corrupted file
   is rewritten with the defaults.
-- **Access**: `window()`, `logging()` and `appearance()` return live tomlkit
+- **Access**: `window()`, `logging()`, `appearance()` and `tooltip()` return live tomlkit
   tables. Writing a key updates the in-memory configuration, `save()`
   persists it. This is how `MainWindow` stores the geometry when the
   application closes. `theme()` reads the qt_material stylesheet name

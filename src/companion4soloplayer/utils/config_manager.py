@@ -1,5 +1,9 @@
+import contextlib
+import logging
+import shutil
 import sys
 from collections.abc import Mapping, MutableMapping
+from enum import StrEnum
 from pathlib import Path
 from typing import Any, cast
 
@@ -11,9 +15,25 @@ from tomlkit.items import Table
 CONFIG_SUBDIR = Path("data") / "config"
 CONFIG_FILENAME = "config.toml"
 
+# Suffix appended to the file name when its content cannot be parsed: the
+# unreadable file is preserved under that name before the defaults are
+# written back, so a hand edit is never silently lost.
+INVALID_SUFFIX = ".invalid"
+
 # qt_material stylesheet applied at startup when the configuration does not
 # specify another one.
 DEFAULT_THEME = "light_blue.xml"
+
+
+class TooltipCornerType(StrEnum):
+    """Shape of the corners of a tooltip, as configured in ``[tooltip]``.
+
+    ``ROUND`` rounds the corners with the ``border_radius`` radius;
+    ``SQUARE`` keeps right angles (the radius is then ignored).
+    """
+
+    ROUND = "round"
+    SQUARE = "square"
 
 
 def default_config_path() -> Path:
@@ -71,6 +91,20 @@ class ConfigManager:
             # qt_material stylesheet applied by main() at startup.
             "theme": DEFAULT_THEME,
         }
+        # Style of the description tooltips (see
+        # companion4soloplayer.ui.widgets.tooltip): these values are the
+        # defaults displayed by every tooltip.
+        self.data["tooltip"] = {
+            "background_color": "#ffffff",
+            "text_color": "#000000",
+            "border_color": "#3b3a98",
+            # Border thickness, in pixels.
+            "border_size": 2,
+            # Corner radius, in pixels (used when corner_type = "round").
+            "border_radius": 5,
+            # "round" (radius applied) or "square" (right angles).
+            "corner_type": "round",
+        }
 
         # Load or create the file
         if self.filename.exists():
@@ -79,14 +113,42 @@ class ConfigManager:
             self.save()  # ← creates the TOML file with default values
 
     def load(self) -> None:
-        """Load the TOML file if it exists."""
+        """Load the TOML file if it exists.
+
+        A file that cannot be parsed (typically a hand edit with an
+        invalid syntax, an unquoted string for instance) is **never
+        silently discarded**: its content is first preserved as
+        ``<file><INVALID_SUFFIX>`` next to the configuration file and a
+        warning is logged, then the defaults are written back so the
+        application can still start.
+        """
         try:
             with open(self.filename, encoding="utf-8") as f:
                 file_data = tomlkit.parse(f.read())
-            self._deep_update(self.data, file_data)
+        except FileNotFoundError:
+            # Removed while the application was running: keep the
+            # in-memory values (the next save() recreates the file).
+            return
         except Exception:
-            # Corrupted file → rewrite with default values
+            # Preserve the unreadable file before restoring the defaults.
+            self._preserve_invalid_file()
+            logging.getLogger(__name__).warning(
+                "Invalid configuration file %s: defaults restored, your " "content is kept as %s",
+                self.filename,
+                self.filename.with_name(self.filename.name + INVALID_SUFFIX),
+            )
             self.save()
+            return
+        self._deep_update(self.data, file_data)
+
+    def _preserve_invalid_file(self) -> None:
+        """Copy the unreadable file aside before it gets rewritten."""
+        # Nothing to preserve (missing or unreadable file).
+        with contextlib.suppress(OSError):
+            shutil.copyfile(
+                self.filename,
+                self.filename.with_name(self.filename.name + INVALID_SUFFIX),
+            )
 
     def save(self) -> None:
         """Write the TOML to the file."""
@@ -106,6 +168,28 @@ class ConfigManager:
     def appearance(self) -> Table:
         """Return the ``[appearance]`` table."""
         return cast(Table, self.data["appearance"])
+
+    def tooltip(self) -> Table:
+        """Return the ``[tooltip]`` table.
+
+        The table holds the default style of every description tooltip
+        (background and text colors, border color/size, corner radius
+        and corner shape, see :class:`TooltipCornerType`).
+        """
+        return cast(Table, self.data["tooltip"])
+
+    def tooltip_corner_type(self) -> TooltipCornerType:
+        """Return the configured tooltip corner shape.
+
+        Returns:
+            The configured :class:`TooltipCornerType`, or
+            :attr:`TooltipCornerType.ROUND` when the value is missing or
+            not a valid ``round``/``square`` name.
+        """
+        try:
+            return TooltipCornerType(str(self.tooltip().get("corner_type", "")))
+        except ValueError:
+            return TooltipCornerType.ROUND
 
     def theme(self) -> str:
         """Return the qt_material theme stored in the configuration.

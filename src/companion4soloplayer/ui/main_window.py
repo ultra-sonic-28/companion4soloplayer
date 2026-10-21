@@ -266,6 +266,10 @@ class MainWindow(QMainWindow):
             # The window was never shown: there is nothing meaningful to save.
             return
 
+        # The file may have been edited by hand while the window was open:
+        # reload it first so saving the geometry keeps those edits instead
+        # of overwriting them with the values read at startup.
+        self._config.load()
         window = self._config.window()
         window["x"] = geometry.x()
         window["y"] = geometry.y()
