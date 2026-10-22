@@ -8,6 +8,7 @@ load/unload them dynamically. Opened from the Plugins entry of the
 Manage menu.
 """
 
+import logging
 from typing import Any
 
 from PySide6.QtCore import QRectF, Qt, Signal
@@ -29,6 +30,8 @@ from PySide6.QtWidgets import (
 from companion4soloplayer.ui.dialogs.plugin_metadata_dialog import PluginMetadataDialog
 from companion4soloplayer.utils.plugin_loader import MANIFEST_NAMES, PluginLoader
 from companion4soloplayer.utils.yaml_loader import YamlLoadError, YamlTagError, load_yaml_file
+
+logger = logging.getLogger(__name__)
 
 # Column layout of the plugin table.
 COLUMN_HEADERS = [
@@ -238,10 +241,13 @@ class PluginsDialog(QDialog):
                 return
             self._set_loaded_state(plugin_name, True)
             self._report_status(f"Plugin '{plugin_name}' loaded")
+            logger.info("Plugin '%s' loaded", plugin_name)
         else:
             self._plugin_loader.unload_plugin(plugin_name)
             self._set_loaded_state(plugin_name, False)
             self._report_status(f"Plugin '{plugin_name}' unloaded")
+            logger.info("Plugin '%s' unloaded", plugin_name)
+
         self.plugin_state_changed.emit()
 
     def _set_loaded_state(self, plugin_name: str, loaded: bool) -> None:

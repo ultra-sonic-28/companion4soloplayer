@@ -33,7 +33,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any, Self
+from typing import Any, ClassVar, Self, cast
 
 from companion4soloplayer.utils.yaml_loader import (
     YamlLoadError,
@@ -184,20 +184,27 @@ class PluginConfigRegistry:
     itself.
     """
 
-    _instance: Self | None = None
-    _initialized: bool = False
+    # Use ClassVar and the explicit class name to prevent 'Self' from
+    # being inferred as 'Any' by the type checker.
+    _instance: ClassVar[PluginConfigRegistry | None] = None
+    _initialized: ClassVar[bool] = False
 
     def __new__(cls, *args: object, **kwargs: object) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-        return cls._instance
+
+        # Asserting not None narrows the type from "... | None" to the
+        # concrete class, satisfying the "Self" return type annotation.
+        assert cls._instance is not None
+        # Cast the concrete class type to 'Self' to satisfy the return annotation
+        return cast(Self, cls._instance)
 
     def __init__(self) -> None:
         """Initialize an empty registry (first call only, singleton)."""
-        if self._initialized:
+        if type(self)._initialized:
             return
         self._configs: dict[str, dict[str, Any]] = {}
-        self._initialized = True
+        type(self)._initialized = True
 
     @classmethod
     def instance(cls) -> Self:
@@ -205,7 +212,8 @@ class PluginConfigRegistry:
         if cls._instance is None:
             cls()
         assert cls._instance is not None
-        return cls._instance
+        # Cast the concrete class type to 'Self' to satisfy the return annotation
+        return cast(Self, cls._instance)
 
     @classmethod
     def reset(cls) -> None:
