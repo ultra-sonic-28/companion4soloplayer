@@ -1,5 +1,6 @@
 
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -10,11 +11,28 @@ import urllib.request
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 from urllib.parse import urlparse
 
 import nox  # type: ignore
 from nox.command import CommandFailed  # type: ignore
+
+# Tentative d'import de packaging pour une comparaison de versions robuste (PEP 440).
+# Fallback vers une comparaison par tuple numérique si la librairie n'est pas disponible.
+try:
+    from packaging.version import parse as parse_version
+except ImportError:
+    parse_version = None  # type: ignore[assignment]
+
+def ver_cmp(v: str) -> Any:
+    """Retourne un objet comparable pour la version donnée."""
+    if parse_version is not None:
+        return parse_version(v)
+
+    # Fallback : extrait les séquences de chiffres et crée un tuple.
+    # Le `or (0,)` garantit qu'on retourne au moins (0,) si aucun chiffre n'est trouvé,
+    # évitant ainsi les erreurs de comparaison avec un tuple vide.
+    return tuple(int(p) for p in re.findall(r'\d+', v)) or (0,)
 
 # Empty list = no default session
 nox.options.sessions = []
@@ -642,3 +660,110 @@ def stats(session: nox.Session) -> None:
         # Réécriture du fichier historique
         with open(history_file, 'w', encoding='utf-8') as f:
             f.write("".join(filtered_entries))
+
+# ---------------------------------------------------------------------------
+# check-updates session
+# Check for newer versions of Python packages referenced in pyproject.toml
+# ---------------------------------------------------------------------------
+@nox.session(name="check-updates", venv_backend="none")
+def check_updates(session: nox.Session) -> None:
+    """Check for newer versions of Python packages referenced in pyproject.toml."""
+
+    try:
+        with open("pyproject.toml", "rb") as f:
+            pyproject = tomllib.load(f)
+    except FileNotFoundError:
+        session.error("pyproject.toml not found in the current directory.")
+
+    packages: dict[str, str] = {}
+
+    def process_deps(deps_list: list[str]) -> None:
+        for dep_str in deps_list:
+            # Ignore les commentaires en ligne
+            dep_str = dep_str.split('#')[0].strip()
+            if not dep_str:
+                continue
+
+            # Extraction du nom du package et du reste (spécificateurs, marqueurs, etc.)
+            match = re.match(r'^([a-zA-Z0-9][-a-zA-Z0-9._]*)\s*(.*)$', dep_str)
+            if not match:
+                continue
+
+            name = match.group(1).lower()
+            rest = match.group(2).strip()
+
+            # On ne garde que la partie spécificateur (avant un éventuel point-virgule de marqueur d'environnement)
+            specifier_part = rest.split(';')[0].strip()
+
+            # Extraction des chaînes ressemblant à des versions (ex: ">=26.5.1" -> "26.5.1")
+            versions = re.findall(r'\d+(?:\.\d+)*(?:\.\w+)*', specifier_part)
+            local_version = versions[0] if versions else "any"
+
+            # Si un package est présent plusieurs fois (ex: dans dev et lint), on garde la version la plus élevée
+            if name in packages:
+                existing_ver = packages[name]
+                if existing_ver != "any" and local_version != "any" and ver_cmp(local_version) > ver_cmp(existing_ver):
+                    packages[name] = local_version
+            else:
+                packages[name] = local_version
+
+    # Traitement des dépendances principales
+    project_deps = pyproject.get("project", {}).get("dependencies", [])
+    process_deps(project_deps)
+
+    # Traitement des dépendances optionnelles
+    optional_deps = pyproject.get("project", {}).get("optional-dependencies", {})
+    for group_deps in optional_deps.values():
+        process_deps(group_deps)
+
+    # Vérification des mises à jour sur PyPI
+    updates = []
+    for name, local_version in packages.items():
+        if local_version == "any":
+            continue
+
+        url = f"https://pypi.org/pypi/{name}/json"
+        try:
+            with urllib.request.urlopen(url) as response:
+                data = json.loads(response.read().decode())
+                pypi_version = data["info"]["version"]
+
+                if ver_cmp(pypi_version) > ver_cmp(local_version):
+                    updates.append({
+                        "name": name,
+                        "local": local_version,
+                        "pypi": pypi_version
+                    })
+        except urllib.error.HTTPError as e:
+            session.warn(f"Could not fetch info for {name}: HTTP {e.code}")
+        except Exception as e:
+            session.warn(f"Could not fetch info for {name}: {e}")
+
+    # Tri alphabétique croissant par nom de package
+    updates.sort(key=lambda x: x["name"])
+
+    if not updates:
+        session.log("All packages are up to date!")
+        return
+
+    # Calcul dynamique des largeurs de colonnes pour un alignement parfait
+    max_name_len = max(len(u["name"]) for u in updates)
+    max_local_len = max(len(u["local"]) for u in updates)
+    max_pypi_len = max(len(u["pypi"]) for u in updates)
+
+    # Garantie que les en-têtes rentrent toujours
+    max_name_len = max(max_name_len, len("Package"))
+    max_local_len = max(max_local_len, len("Local version"))
+    max_pypi_len = max(max_pypi_len, len("Pypi version"))
+
+    # Affichage du tableau
+    separator = "-" * (max_name_len + max_local_len + max_pypi_len + 6)
+    session.log(separator)
+    session.log(f"{'Package':<{max_name_len}}   {'Local version':<{max_local_len}}   {'Pypi version':<{max_pypi_len}}")
+    session.log(separator)
+
+    for u in updates:
+        session.log(f"{u['name']:<{max_name_len}}   {u['local']:<{max_local_len}}   {u['pypi']:<{max_pypi_len}}")
+
+    session.log(separator)
+    session.log(f"{len(updates)} packages need to be updated")
