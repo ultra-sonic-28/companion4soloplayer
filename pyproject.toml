@@ -44,6 +44,9 @@ dependencies = [
     "PyYAML>=6.0.3",
     "tomlkit>=0.15.1",
     "qt-material>=2.17",
+    # IANA time zone data: required by ``zoneinfo`` on Windows (no system tz
+    # database) and pulled in as a hidden import by several dependencies.
+    "tzdata>=2024.1",
 ]
 
 [project.optional-dependencies]
@@ -141,4 +144,4 @@ addopts = "-v --cov=companion4soloplayer.core --cov=companion4soloplayer.plugins
 # Kept in a [tool.*] table on purpose: PEP 621 reserves the keys of
 # [project], and setuptools rejects any custom entry found there.
 [tool.companion4soloplayer]
-build = 10
+build = 31
