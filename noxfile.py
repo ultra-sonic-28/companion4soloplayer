@@ -758,12 +758,12 @@ def check_updates(session: nox.Session) -> None:
 
     # Affichage du tableau
     separator = "-" * (max_name_len + max_local_len + max_pypi_len + 6)
-    session.log(separator)
-    session.log(f"{'Package':<{max_name_len}}   {'Local version':<{max_local_len}}   {'Pypi version':<{max_pypi_len}}")
-    session.log(separator)
+    print(separator)
+    print(f"{'Package':<{max_name_len}}   {'Local version':<{max_local_len}}   {'Pypi version':<{max_pypi_len}}")
+    print(separator)
 
     for u in updates:
-        session.log(f"{u['name']:<{max_name_len}}   {u['local']:<{max_local_len}}   {u['pypi']:<{max_pypi_len}}")
+        print(f"{u['name']:<{max_name_len}}   {u['local']:<{max_local_len}}   {u['pypi']:<{max_pypi_len}}")
 
-    session.log(separator)
-    session.log(f"{len(updates)} packages need to be updated")
+    print(separator)
+    print(f"{len(updates)} packages need to be updated")
