@@ -12,7 +12,7 @@ import logging
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, ClassVar, Self, cast
 
 if TYPE_CHECKING:
     from PySide6.QtGui import QIcon, QPixmap
@@ -40,8 +40,10 @@ class ResourceManager:
         pixmap = QPixmap(str(logo))
     """
 
-    _instance: Self | None = None
-    _initialized: bool = False
+    # Use ClassVar and the explicit class name to prevent 'Self' from
+    # being inferred as 'Any' by the type checker.
+    _instance: ClassVar[ResourceManager | None] = None
+    _initialized: ClassVar[bool] = False
 
     # Type -> subfolder mapping (configurable)
     _SUBDIRS: dict[str, str] = {
@@ -66,7 +68,12 @@ class ResourceManager:
     def __new__(cls, *args: object, **kwargs: object) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-        return cls._instance
+
+        # Asserting not None narrows the type from "... | None" to the
+        # concrete class, satisfying the "Self" return type annotation.
+        assert cls._instance is not None
+        # Cast the concrete class type to 'Self' to satisfy the return annotation
+        return cast(Self, cls._instance)
 
     def __init__(
         self,
@@ -79,7 +86,7 @@ class ResourceManager:
             root: Resources root. Auto-detected if None.
             strict: Raises ResourceNotFoundError if the resource does not exist.
         """
-        if self._initialized:
+        if type(self)._initialized:
             return
 
         self._strict = strict
@@ -88,7 +95,7 @@ class ResourceManager:
         self._object_cache: dict[str, object] = {}  # QPixmap, QIcon, etc.
 
         logger.info("ResourceManager initialized: root=%s", self._root)
-        self._initialized = True
+        type(self)._initialized = True
 
     @classmethod
     def instance(cls) -> Self:
@@ -96,7 +103,8 @@ class ResourceManager:
         if cls._instance is None:
             cls()
         assert cls._instance is not None
-        return cls._instance
+        # Cast the concrete class type to 'Self' to satisfy the return annotation
+        return cast(Self, cls._instance)
 
     @classmethod
     def reset(cls) -> None:

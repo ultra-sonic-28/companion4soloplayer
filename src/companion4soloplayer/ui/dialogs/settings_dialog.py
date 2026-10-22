@@ -3,6 +3,8 @@ Settings dialog for Companion4SoloPlayer.
 Allows users to configure application preferences.
 """
 
+from typing import cast
+
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -28,7 +30,8 @@ class SettingsDialog(QDialog):
 
     # Sent on every theme selection, so the caller can repaint the running
     # application before the dialog is even saved.
-    theme_changed = Signal(str)
+    # Explicitly annotate the signal signature to help mypy type checking
+    theme_changed = cast("Signal[tuple[str]]", Signal(str))
 
     def __init__(
         self, parent: QWidget | None = None, config: ConfigManager | None = None
