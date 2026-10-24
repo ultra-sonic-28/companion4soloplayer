@@ -24,12 +24,15 @@ Security model:
 from __future__ import annotations
 
 import importlib
+import logging
 import types
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 from companion4soloplayer.utils.yaml_loader import PyClassRef, load_yaml_file
+
+logger = logging.getLogger(__name__)
 
 #: Standard rule element kinds understood by the application.
 RULE_KINDS: tuple[str, ...] = (
@@ -198,8 +201,33 @@ class RuleEngine:
             module = self._resolve_base_module()
         else:
             module = self._import_allowed_module(ref.module)
+        module_name = getattr(module, "__name__", repr(module))
+        logger.debug(
+            "rule_engine.resolve: ref=%r is_local=%s module=%s attr=%s",
+            ref.path,
+            ref.is_local,
+            module_name,
+            ref.attr,
+        )
         try:
-            return getattr(module, ref.attr)
+            resolved = getattr(module, ref.attr)
+            # With Nuitka-fused plugins, ``from .X import Y`` in the
+            # plugin's ``__init__.py`` can bind Y to a delegating module
+            # (created by the temporary submodule finder) instead of the
+            # actual function/class. When that happens, try to resolve
+            # through the canonical ``demo.*`` path where Nuitka's
+            # internal loader exposes the real modules with their real
+            # attributes.
+            if isinstance(resolved, types.ModuleType):
+                resolved = self._resolve_through_canonical_path(resolved, ref.attr)
+            logger.debug(
+                "rule_engine.resolve: ref=%r resolved attr=%s -> %s (%s)",
+                ref.path,
+                ref.attr,
+                type(resolved).__name__,
+                getattr(resolved, "__name__", None),
+            )
+            return resolved
         except AttributeError as exc:
             raise ImplementationError(
                 f"Module {ref.module!r} has no attribute {ref.attr!r}"
@@ -290,4 +318,57 @@ class RuleEngine:
             return importlib.import_module(module_name)
         except ImportError as exc:
             raise ImplementationError(f"Cannot import module {module_name!r}: {exc}") from exc
+
+    def _resolve_through_canonical_path(
+        self, module_obj: types.ModuleType, attr_name: str
+    ) -> Any:
+        """Try to resolve a module object to the actual callable it shadows.
+
+        When Nuitka fuses plugin code, ``from .X import Y`` in the plugin's
+        ``__init__.py`` can bind Y to a delegating module (created by the
+        temporary submodule finder) instead of the actual function or class.
+        This method tries to find the real object by importing the parent
+        module through the canonical ``demo.*`` path, where Nuitka's internal
+        loader exposes real modules with their real attributes.
+
+        Args:
+            module_obj: The delegating module object returned by
+                ``getattr(base_module, attr_name)``.
+            attr_name: The attribute name we were looking for (e.g.,
+                ``skill_available``).
+
+        Returns:
+            The actual callable/class if found through the canonical path,
+            otherwise the original module object.
+        """
+        module_name = getattr(module_obj, "__name__", "")
+        if not module_name:
+            return module_obj
+
+        # Convert demo_plugin.* to demo.* in the module name.
+        parts = module_name.split(".")
+        if "demo_plugin" not in parts:
+            return module_obj
+        demo_index = parts.index("demo_plugin")
+        parts[demo_index] = "demo"
+
+        # The last part is the attribute name; the rest is the parent module.
+        parent_name = ".".join(parts[:-1])
+
+        try:
+            parent = importlib.import_module(parent_name)
+        except ImportError:
+            return module_obj
+
+        candidate = getattr(parent, attr_name, None)
+        if callable(candidate) and not isinstance(candidate, types.ModuleType):
+            logger.debug(
+                "rule_engine._resolve_through_canonical_path: %s resolved "
+                "through canonical path %s.%s",
+                attr_name,
+                parent_name,
+                attr_name,
+            )
+            return candidate
+        return module_obj
 

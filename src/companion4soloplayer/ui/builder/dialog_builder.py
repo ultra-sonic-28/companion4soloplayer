@@ -17,6 +17,7 @@ plugin configuration, see
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 
@@ -31,6 +32,8 @@ from companion4soloplayer.core.creation import (
 )
 from companion4soloplayer.ui.builder.fields import FieldWidget, create_field_widget
 from companion4soloplayer.utils.plugin_config import DEFAULT_ATTRIBUTES_COLUMNS
+
+logger = logging.getLogger(__name__)
 
 #: Field kinds rendered as a compact multi-column block (attribute blocks).
 COMPACT_KINDS: frozenset[InputKind] = frozenset(
@@ -123,6 +126,12 @@ class CharacterCreationDialogBuilder:
         if context is None:
             context = self._pipeline.create_context()
         sections: list[StepSection] = []
+        step_ids = [step.step_id for step in self._pipeline.steps]
+        logger.debug(
+            "dialog_builder.build: steps=%d step_ids=%s",
+            len(self._pipeline.steps),
+            step_ids,
+        )
         for step in self._pipeline.steps:
             section = self.build_section(step, context=context, parent=parent)
             if section is not None:
@@ -158,7 +167,17 @@ class CharacterCreationDialogBuilder:
             context = self._pipeline.create_context()
         fields = step.describe_inputs(context)
         if not fields:
+            logger.debug(
+                "dialog_builder.build_section: step_id=%r describes no fields, skipping",
+                step.step_id,
+            )
             return None
+        logger.debug(
+            "dialog_builder.build_section: step_id=%r fields=%d field_keys=%s",
+            step.step_id,
+            len(fields),
+            [f.key for f in fields],
+        )
         # The section title may come from the game data (an
         # attribute block of a plugin attributes.yaml), so the
         # step resolves it against the current context.

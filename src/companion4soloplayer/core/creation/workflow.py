@@ -27,6 +27,7 @@ how each game system customizes its character creation flow.
 
 from __future__ import annotations
 
+import logging
 import types
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -41,6 +42,8 @@ from companion4soloplayer.core.rule_engine import (
     RuleEngineError,
 )
 from companion4soloplayer.utils.yaml_loader import PyClassRef, YamlTagError, load_yaml_file
+
+logger = logging.getLogger(__name__)
 
 #: Key of the workflow document holding the ordered step references.
 STEPS_KEY = "steps"
@@ -114,10 +117,23 @@ def build_workflow(
         base_module=base_module,
         allowed_modules=allowed_modules,
     )
-
+    base_module_name = (
+        base_module if isinstance(base_module, str) else getattr(base_module, "__name__", None)
+    )
+    logger.debug(
+        "build_workflow: base_module=%s, steps=%d",
+        base_module_name,
+        len(references),
+    )
     steps: list[CreationStep] = []
     for index, reference in enumerate(references.values()):
         params = _resolve_params(engine, reference, index)
+        logger.debug(
+            "build_workflow: step #%d reference=%s params=%s",
+            index + 1,
+            reference.path,
+            {k: (type(v).__name__, getattr(v, "__name__", None)) for k, v in params.items()},
+        )
         steps.append(_instantiate_step(engine, reference, params, index))
     return CharacterCreationPipeline(
         steps,
@@ -288,8 +304,23 @@ def _resolve_params(engine: RuleEngine, reference: PyClassRef, index: int) -> di
     params: dict[str, Any] = {}
     for name, value in dict(reference.params).items():
         if isinstance(value, PyClassRef):
+            logger.debug(
+                "workflow._resolve_params: step #%d param %r is a PyClassRef %r",
+                index + 1,
+                name,
+                value.path,
+            )
             try:
-                params[name] = engine.resolve(value)
+                resolved = engine.resolve(value)
+                logger.debug(
+                    "workflow._resolve_params: step #%d param %r resolved %r -> %s (%s)",
+                    index + 1,
+                    name,
+                    value.path,
+                    type(resolved).__name__,
+                    getattr(resolved, "__name__", None),
+                )
+                params[name] = resolved
             except RuleEngineError as exc:
                 raise WorkflowError(
                     f"Step #{index + 1}: cannot resolve parameter {name!r} "
@@ -327,6 +358,14 @@ def _instantiate_step(
         target = engine.resolve(reference)
     except RuleEngineError as exc:
         raise WorkflowError(f"Step #{index + 1}: cannot resolve {reference.path!r}: {exc}") from exc
+    logger.debug(
+        "workflow._instantiate_step: step #%d target=%s resolved to %s (%s), params=%s",
+        index + 1,
+        reference.path,
+        type(target).__name__,
+        getattr(target, "__name__", None),
+        {k: (type(v).__name__, getattr(v, "__name__", None)) for k, v in dict(params).items()},
+    )
     if not callable(target):
         raise WorkflowError(f"Step #{index + 1}: {reference.path!r} is not a step class")
     try:

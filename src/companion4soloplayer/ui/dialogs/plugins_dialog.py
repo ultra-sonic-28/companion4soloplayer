@@ -223,8 +223,10 @@ class PluginsDialog(QDialog):
 
     def _toggle_plugin(self, plugin_name: str) -> None:
         """Load or unload a plugin on demand from the plugin table."""
+        logger.debug("Toggling plugin '%s'", plugin_name)
         plugin = self._plugin_loader.get_plugin(plugin_name)
         if plugin is None:
+            logger.debug("Plugin '%s' is not loaded; attempting to load it", plugin_name)
             plugin = self._plugin_loader.load_plugin(plugin_name)
             if plugin is None:
                 # Surface the underlying error: the released app has no
@@ -233,6 +235,7 @@ class PluginsDialog(QDialog):
                 reason = self._plugin_loader.last_errors.get(plugin_name)
                 if reason:
                     message = f"{message} {reason}"
+                logger.debug("Load of plugin '%s' failed: %s", plugin_name, reason)
                 QMessageBox.warning(
                     self,
                     "Plugins",
@@ -243,6 +246,7 @@ class PluginsDialog(QDialog):
             self._report_status(f"Plugin '{plugin_name}' loaded")
             logger.info("Plugin '%s' loaded", plugin_name)
         else:
+            logger.debug("Plugin '%s' is already loaded; unloading it", plugin_name)
             self._plugin_loader.unload_plugin(plugin_name)
             self._set_loaded_state(plugin_name, False)
             self._report_status(f"Plugin '{plugin_name}' unloaded")

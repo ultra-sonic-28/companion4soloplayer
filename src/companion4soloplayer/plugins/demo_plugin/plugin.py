@@ -10,6 +10,7 @@ Python rule elements) and assembles the character creation workflow
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from companion4soloplayer.core.creation import CharacterCreationPipeline
@@ -18,6 +19,8 @@ from companion4soloplayer.core.rule_engine import RuleEngine
 from .creation.workflow import create_character_creation as build_character_creation
 from .data import DATA_DIR, load_data
 from .manifest import PluginMetadata
+
+logger = logging.getLogger(__name__)
 
 
 class Plugin:
@@ -100,6 +103,10 @@ class Plugin:
             # base_module is this plugin package: 'local:' references
             # of workflow.yaml resolve against it, exactly like the
             # 'local:' references of rules.yaml.
+            logger.debug(
+                "plugin.create_character_creation: base_module=%s",
+                __package__,
+            )
             self._creation = build_character_creation(base_module=__package__)
         return self._creation
 

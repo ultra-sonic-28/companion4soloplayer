@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
@@ -13,6 +14,8 @@ from companion4soloplayer.core.creation.steps.base import (
     catalog_descriptions,
     catalog_names,
 )
+
+logger = logging.getLogger(__name__)
 
 #: Skill selection modes understood by the step.
 MODES: tuple[str, ...] = ("free", "inherited", "none")
@@ -103,6 +106,12 @@ class SkillSelectionStep(CreationStep):
                 f"max_count ({max_count}) cannot be lower than min_count ({min_count})"
             )
         if skill_filter is not None and not callable(skill_filter):
+            logger.debug(
+                "skills.SkillSelectionStep: step_id=%r skill_filter=%r (type=%s, not callable)",
+                step_id,
+                skill_filter,
+                type(skill_filter).__name__,
+            )
             raise StepConfigurationError("skill_filter must be callable")
         self._mode = mode
         self._catalog = catalog

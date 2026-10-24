@@ -30,6 +30,7 @@ game system exposing a creation pipeline gets the same dialog.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from PySide6.QtWidgets import (
@@ -62,6 +63,8 @@ from companion4soloplayer.ui.builder.fields import (
     TextField,
 )
 from companion4soloplayer.utils.plugin_config import PluginConfigRegistry
+
+logger = logging.getLogger(__name__)
 
 #: Default window title of the dialog.
 DEFAULT_TITLE = "Create Player"
@@ -136,6 +139,14 @@ class CharacterCreationDialog(QDialog):
         self._report: CreationReport | None = None
         self._context: CharacterCreationContext | None = None
         self._in_refresh = False
+
+        step_ids = [step.step_id for step in self._pipeline.steps]
+        logger.debug(
+            "creation_dialog.__init__: plugin=%s steps=%d step_ids=%s",
+            plugin_name,
+            len(self._pipeline.steps),
+            step_ids,
+        )
         self._container: QWidget
         self._form_layout: QGridLayout
         self.setWindowTitle(title)
@@ -366,7 +377,16 @@ class CharacterCreationDialog(QDialog):
         self.error_label.clear()
         self.error_label.setVisible(False)
         context = self._pipeline.create_context()
+        logger.debug(
+            "creation_dialog._on_validate: running pipeline with %d answers",
+            len(self.answers),
+        )
         report = self._pipeline.run(context, MappingInputProvider(self.answers))
+        logger.debug(
+            "creation_dialog._on_validate: pipeline result ok=%s errors=%s",
+            report.ok,
+            list(report.errors),
+        )
         if report.ok:
             self._report = report
             self._context = context
