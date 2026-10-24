@@ -104,7 +104,8 @@ See the [CONTEXT.md](CONTEXT.md) file for the complete development guide.
     │   ├── utils/                               # Shared helpers
     │   └── ui/                                  # User interface
     │       ├── builder/                         # Dynamic player creation dialog
-    │       └── dialogs/                         # Dialog windows
+    │       ├── dialogs/                         # Dialog windows
+    │       └── widgets/                         # Reusable widgets
     ├── companion4soloplayer.spec                # PyInstaller build recipe
     ├── companion4soloplayer.code-workspace      # VS Code workspace file
     ├── pyproject.toml                           # Project configuration
