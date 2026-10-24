@@ -38,6 +38,36 @@ def ver_cmp(v: str) -> Any:
 nox.options.sessions = []
 
 # ---------------------------------------------------------------------------
+# Configuration for the backup session
+# ---------------------------------------------------------------------------
+BACKUP_INCLUDES = [
+    ".vscode/",
+    "assets/",
+    "data/",
+    "docs/",
+    "scripts/",
+    "src/",
+    "tests/",
+    ".gitignore",
+    "companion4soloplayer.code-workspace",
+    "companion4soloplayer.log",
+    "companion4soloplayer.spec",
+    "CONTEXT.md",
+    "LICENSE",
+    "mkdocs.yml",
+    "noxfile.py",
+    "pyproject.toml",
+    "README.md",
+    "stats_histo.txt",
+    "stats.txt",
+]
+
+BACKUP_EXCLUDES = [
+    ".mypy_cache/",
+    "__pycache__/",
+]
+
+# ---------------------------------------------------------------------------
 # Get pyproject.toml declared dependencies
 # ---------------------------------------------------------------------------
 def _get_dev_deps() -> list[str]:
@@ -767,3 +797,59 @@ def check_updates(session: nox.Session) -> None:
 
     print(separator)
     print(f"{len(updates)} packages need to be updated")
+
+# ---------------------------------------------------------------------------
+# backup session
+# Create a backup archive of the project sources
+# ---------------------------------------------------------------------------
+@nox.session(name="backup", venv_backend="none")
+def backup(session: nox.Session) -> None:
+    """Create a .7z backup archive of the project sources in the parent directory."""
+    venv = os.environ.get("VIRTUAL_ENV")
+
+    if venv:
+        session.skip(
+            f"Virtual environment is active: {venv}. "
+            "Please deactivate it or open a new terminal before running this session."
+        )
+
+    # Path to the 7z executable
+    seven_zip_exe = os.path.join(os.getcwd(), ".bintools", "7-Zip", "7z.exe")
+    if not os.path.exists(seven_zip_exe):
+        session.error(f"7-Zip executable not found at: {seven_zip_exe}")
+
+    # Generation of the archive name and target path (parent directory)
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d_%H%M")
+    archive_name = f"companion4soloplayer_{timestamp}.7z"
+
+    # Using abspath to ensure a correct absolute path
+    parent_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
+    archive_path = os.path.join(parent_dir, archive_name)
+
+    # Filtering of files/directories to include to only keep those that exist.
+    # This avoids 7z from emitting errors if optional files
+    # (like logs or stats) have not been generated yet.
+    existing_includes = [path for path in BACKUP_INCLUDES if os.path.exists(path)]
+
+    if not existing_includes:
+        session.error("No files or directories to include in the backup.")
+
+    # Preparation of exclusion arguments for 7z.
+    # 7z uses the format -xr!<pattern> to exclude recursively.
+    # We remove the trailing '/' so the pattern matches the directory name.
+    exclude_args = [f"-xr!{path.rstrip('/')}" for path in BACKUP_EXCLUDES]
+
+    session.log(f"Creating backup archive: {archive_path}")
+
+    # Execution of the 7z command
+    # Syntax: 7z a <archive_name> <files...> -xr!<exclude...>
+    session.run(
+        seven_zip_exe,
+        "a",
+        archive_path,
+        *existing_includes,
+        *exclude_args,
+    )
+
+    session.log(f"Backup successfully created: {archive_path}")

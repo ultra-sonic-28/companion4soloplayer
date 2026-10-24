@@ -324,3 +324,4 @@ Companion4SoloPlayer is equipped with automated developer tooling for testing an
 	- `nox -s docs`: Create technical documentation, static build
 	- `nox -s docs-live`: Create technical documentation, live reloading server
 	- `nox -s stats`: Compute code statistics (lines of code, etc.).
+	- `nox -s backup`: Create a .7z backup archive of the project sources in the parent directory.
