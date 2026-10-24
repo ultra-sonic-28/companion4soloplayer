@@ -46,7 +46,7 @@ htmlcov/
 *.cover
 
 # Distribution
-*.spec
+#*.spec
 
 # OS
 .DS_Store
