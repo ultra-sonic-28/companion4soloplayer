@@ -42,7 +42,7 @@ All visual assets are either created specifically for this project or distribute
 Open a terminal and run the following commands:
 
     # Clone the repository
-    git clone https://github.com/your-username/companion4soloplayer.git
+    git clone https://github.com/ultra-sonic-28/companion4soloplayer.git
     cd companion4soloplayer
 
     # Create a virtual environment and install development dependencies
@@ -146,4 +146,4 @@ This project is licensed under the MIT license. See the [LICENSE](LICENSE) file 
 
 ---
 
-**Last updated**: 2026-10-15
+**Last updated**: 2026-10-24
