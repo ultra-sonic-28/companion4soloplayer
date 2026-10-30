@@ -1,0 +1,26 @@
+@startuml classes_companion4soloplayer_core_character_tracker
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "Character" as companion4soloplayer.core.character_tracker.Character #77AADD {
+  +character_class : str
+  +current_hp : int
+  +equipment : list[str]
+  +inventory : list[str]
+  +max_hp : int
+  +name : str
+  +stats : dict[str, int]
+}
+class "CharacterTracker" as companion4soloplayer.core.character_tracker.CharacterTracker #77AADD {
+  +characters : dict[str, Character]
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>create_character(name: str, character_class: str, stats: dict[str, int]) -> Character</b></color>
+  +<color:#008000><b>get_character(name: str) -> Character | None</b></color>
+  +<color:#008000><b>remove_character(name: str) -> bool</b></color>
+}
+companion4soloplayer.core.character_tracker.CharacterTracker --> companion4soloplayer.core.character_tracker.Character : characters
+@enduml

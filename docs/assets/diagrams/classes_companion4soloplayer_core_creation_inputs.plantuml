@@ -1,0 +1,54 @@
+@startuml classes_companion4soloplayer_core_creation_inputs
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "<color:red>InputError</color>" as companion4soloplayer.core.creation.inputs.InputError #77AADD {
+}
+class "InputField" as companion4soloplayer.core.creation.inputs.InputField #77AADD {
+  +description : str
+  +key : str
+  +kind
+  +label : str
+  +max_count : int | None
+  +max_value : int | None
+  +min_count : int
+  +min_value : int | None
+  +option_descriptions : tuple[tuple[str, str], ...]
+  +options : tuple[str, ...]
+  +required : bool
+  +roll : Callable[[], int] | None
+  +value : int | str | None
+  +<color:#008000><b>__init__(self, key: str, label: str, kind: InputKind, options: tuple[str, ...], required: bool, min_count: int, max_count: int | None, min_value: int | None, max_value: int | None, roll: Callable[[], int] | None, description: str, option_descriptions: tuple[tuple[str, str], ...], value: int | str | None) -> None</b></color>
+  +<color:#008000><b>option_description(option: str) -> str</b></color>
+}
+class "InputKind" as companion4soloplayer.core.creation.inputs.InputKind #77AADD {
+  +name
+}
+class "InputProvider" as companion4soloplayer.core.creation.inputs.InputProvider #77AADD {
+  +<color:#008000><b>ask_choice(key: str, prompt: str, options: Sequence[Any]) -> Any</b></color>
+  +<color:#008000><b>ask_many(key: str, prompt: str, options: Sequence[Any]) -> list[Any]</b></color>
+  +<color:#008000><b>ask_number(key: str, prompt: str) -> int</b></color>
+  +<color:#008000><b>ask_text(key: str, prompt: str) -> str</b></color>
+}
+class "<color:red>InvalidAnswerError</color>" as companion4soloplayer.core.creation.inputs.InvalidAnswerError #77AADD {
+}
+class "MappingInputProvider" as companion4soloplayer.core.creation.inputs.MappingInputProvider #77AADD {
+  #_answers : dict[str, Any]
+  +answers : Mapping[str, Any]
+  +<color:#008000><b>__init__(answers: Mapping[str, Any] | None) -> None</b></color>
+  #<color:#008000><b>_to_int(key: str, answer: Any) -> int</b></color>
+  +<color:#008000><b>ask_choice(key: str, prompt: str, options: Sequence[Any]) -> Any</b></color>
+  +<color:#008000><b>ask_many(key: str, prompt: str, options: Sequence[Any]) -> list[Any]</b></color>
+  +<color:#008000><b>ask_number(key: str, prompt: str) -> int</b></color>
+  +<color:#008000><b>ask_text(key: str, prompt: str) -> str</b></color>
+}
+class "<color:red>MissingInputError</color>" as companion4soloplayer.core.creation.inputs.MissingInputError #77AADD {
+}
+companion4soloplayer.core.creation.inputs.InvalidAnswerError --|> companion4soloplayer.core.creation.inputs.InputError
+companion4soloplayer.core.creation.inputs.MissingInputError --|> companion4soloplayer.core.creation.inputs.InputError
+companion4soloplayer.core.creation.inputs.InputField --> companion4soloplayer.core.creation.inputs.InputKind : kind
+@enduml

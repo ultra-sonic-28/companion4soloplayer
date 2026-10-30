@@ -1,0 +1,121 @@
+@startuml classes_companion4soloplayer_ui_builder
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "CharacterCreationDialog" as companion4soloplayer.ui.builder.creation_dialog.CharacterCreationDialog #77AADD {
+  #_builder
+  #_container
+  #_context : CharacterCreationContext | None
+  #_form_layout
+  #_in_refresh : bool
+  #_pipeline : CharacterCreationPipeline
+  #_report : CreationReport | None
+  #_sections : list[StepSection]
+  +answers : dict[str, Any]
+  +cancel_button
+  +context : CharacterCreationContext | None
+  +error_label
+  +report : CreationReport | None
+  +sections : tuple[StepSection, ...]
+  +validate_button
+  +<color:#008000><b>__init__(pipeline: CharacterCreationPipeline, parent: QWidget | None) -> None</b></color>
+  #<color:#008000><b>_insert_section(section: StepSection) -> None</b></color>
+  #<color:#008000><b>_on_field_changed() -> None</b></color>
+  #<color:#008000><b>_on_roll(widget: DiceField) -> None</b></color>
+  #<color:#008000><b>_on_validate() -> None</b></color>
+  #<color:#008000><b>_refresh_sections() -> None</b></color>
+  #<color:#008000><b>_setup_ui() -> None</b></color>
+  #<color:#008000><b>_sync_sections(context: CharacterCreationContext) -> None</b></color>
+  #<color:#008000><b>_wire_section(section: StepSection) -> None</b></color>
+}
+class "CharacterCreationDialogBuilder" as companion4soloplayer.ui.builder.dialog_builder.CharacterCreationDialogBuilder #77AADD {
+  #_attributes_columns
+  #_pipeline : CharacterCreationPipeline
+  +attributes_columns : int
+  +pipeline : CharacterCreationPipeline
+  +<color:#008000><b>__init__(pipeline: CharacterCreationPipeline) -> None</b></color>
+  #<color:#008000><b>_fill_section(box: QGroupBox, fields: Sequence[InputField]) -> tuple[tuple[InputField, FieldWidget], ...]</b></color>
+  +<color:#008000><b>arrange(layout: QGridLayout, sections: Sequence[StepSection]) -> None</b></color>
+  +<color:#008000><b>build() -> list[StepSection]</b></color>
+  +<color:#008000><b>build_section(step: CreationStep) -> StepSection | None</b></color>
+}
+class "ChoiceField" as companion4soloplayer.ui.builder.fields.ChoiceField #77AADD {
+  #_list_tooltip : DescriptionTooltipFilter
+  #_option_descriptions : dict[str, str]
+  #_options : tuple[str, ...]
+  +label
+  +list
+  +option_descriptions : dict[str, str]
+  +options : tuple[str, ...]
+  +<color:#008000><b>__init__(field: InputField, parent: QWidget | None) -> None</b></color>
+  #<color:#008000><b>_apply_list_height() -> None</b></color>
+  +<color:#008000><b>set_option_descriptions(option_descriptions: Sequence[tuple[str, str]] | Mapping[str, str]) -> None</b></color>
+  +<color:#008000><b>set_options(options: Sequence[str]) -> None</b></color>
+  +<color:#008000><b>value() -> str | list[str] | None</b></color>
+}
+class "DiceField" as companion4soloplayer.ui.builder.fields.DiceField #77AADD {
+  #_value : int | None
+  +die_button
+  +label
+  +value_label
+  +<color:#008000><b>__init__(field: InputField, parent: QWidget | None) -> None</b></color>
+  +<color:#008000><b>set_rolled_value(value: int) -> None</b></color>
+  +<color:#008000><b>value() -> int | None</b></color>
+}
+class "FieldWidget" as companion4soloplayer.ui.builder.fields.FieldWidget #77AADD {
+  #_description_tooltip : DescriptionTooltipFilter | None
+  #_field : InputField
+  +changed
+  +field : InputField
+  +<color:#008000><b>__init__(field: InputField, parent: QWidget | None) -> None</b></color>
+  #<color:#008000><b>_emit_changed(_text: str) -> None</b></color>
+  {abstract}set_options(options: Sequence[str]) -> None
+  {abstract}value() -> Any
+}
+class "NumberField" as companion4soloplayer.ui.builder.fields.NumberField #77AADD {
+  +edit
+  +label
+  +<color:#008000><b>__init__(field: InputField, parent: QWidget | None) -> None</b></color>
+  +<color:#008000><b>value() -> int | None</b></color>
+}
+class "ReadOnlyField" as companion4soloplayer.ui.builder.fields.ReadOnlyField #77AADD {
+  #_value : int | str | None
+  +displayed_value : int | str | None
+  +label
+  +value_label
+  +<color:#008000><b>__init__(field: InputField, parent: QWidget | None) -> None</b></color>
+  +<color:#008000><b>set_value(value: int | str | None) -> None</b></color>
+  +<color:#008000><b>value() -> int | str | None</b></color>
+}
+class "StepSection" as companion4soloplayer.ui.builder.dialog_builder.StepSection #77AADD {
+  +box
+  +label : str
+  +rows : tuple[tuple[InputField, FieldWidget], ...]
+  +step_id : str
+  +widgets : tuple[FieldWidget, ...]
+  +<color:#008000><b>__init__(self, step_id: str, label: str, box: QGroupBox, rows: tuple[tuple[InputField, FieldWidget], ...]) -> None</b></color>
+}
+class "TextAreaField" as companion4soloplayer.ui.builder.fields.TextAreaField #77AADD {
+  +edit
+  +label
+  +<color:#008000><b>__init__(field: InputField, parent: QWidget | None) -> None</b></color>
+  +<color:#008000><b>value() -> str | None</b></color>
+}
+class "TextField" as companion4soloplayer.ui.builder.fields.TextField #77AADD {
+  +edit
+  +label
+  +<color:#008000><b>__init__(field: InputField, parent: QWidget | None) -> None</b></color>
+  +<color:#008000><b>value() -> str | None</b></color>
+}
+companion4soloplayer.ui.builder.fields.ChoiceField --|> companion4soloplayer.ui.builder.fields.FieldWidget
+companion4soloplayer.ui.builder.fields.DiceField --|> companion4soloplayer.ui.builder.fields.FieldWidget
+companion4soloplayer.ui.builder.fields.NumberField --|> companion4soloplayer.ui.builder.fields.FieldWidget
+companion4soloplayer.ui.builder.fields.ReadOnlyField --|> companion4soloplayer.ui.builder.fields.FieldWidget
+companion4soloplayer.ui.builder.fields.TextAreaField --|> companion4soloplayer.ui.builder.fields.FieldWidget
+companion4soloplayer.ui.builder.fields.TextField --|> companion4soloplayer.ui.builder.fields.FieldWidget
+companion4soloplayer.ui.builder.dialog_builder.CharacterCreationDialogBuilder --* companion4soloplayer.ui.builder.creation_dialog.CharacterCreationDialog : _builder
+@enduml

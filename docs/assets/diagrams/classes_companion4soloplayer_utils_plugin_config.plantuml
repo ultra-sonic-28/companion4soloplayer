@@ -1,0 +1,25 @@
+@startuml classes_companion4soloplayer_utils_plugin_config
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "PluginConfigRegistry" as companion4soloplayer.utils.plugin_config.PluginConfigRegistry #77AADD {
+  #_configs : dict[str, dict[str, Any]]
+  #_initialized : ClassVar[bool]
+  #_instance : Optional[ClassVar[PluginConfigRegistry | None]]
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>__new__() -> Self</b></color>
+  +<color:#008000><b>character_creation_dialog_attributes_columns(plugin_name: str | None) -> int</b></color>
+  +<color:#008000><b>character_creation_dialog_size(plugin_name: str | None) -> tuple[int, int]</b></color>
+  +<color:#008000><b>config(plugin_name: str | None) -> dict[str, Any]</b></color>
+  +<color:#008000><b>dialog_settings(dialog_name: str, plugin_name: str | None) -> dict[str, Any]</b></color>
+  +<color:#008000><b>instance() -> Self</b></color>
+  +<color:#008000><b>plugin_names() -> tuple[str, ...]</b></color>
+  +<color:#008000><b>register(plugin_name: str, config: Mapping[str, Any] | None) -> None</b></color>
+  +<color:#008000><b>reset() -> None</b></color>
+  +<color:#008000><b>unregister(plugin_name: str) -> None</b></color>
+}
+@enduml

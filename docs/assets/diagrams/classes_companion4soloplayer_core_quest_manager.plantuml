@@ -1,0 +1,34 @@
+@startuml classes_companion4soloplayer_core_quest_manager
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "Objective" as companion4soloplayer.core.quest_manager.Objective #77AADD {
+  +completed : bool
+  +description : str
+}
+class "Quest" as companion4soloplayer.core.quest_manager.Quest #77AADD {
+  +description : str
+  +name : str
+  +objectives : list[Objective]
+  +rewards : dict[str, int]
+  +status
+}
+class "QuestManager" as companion4soloplayer.core.quest_manager.QuestManager #77AADD {
+  +active_quest : str | None
+  +quests : dict[str, Quest]
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>complete_objective(quest_name: str, objective_index: int) -> bool</b></color>
+  +<color:#008000><b>create_quest(name: str, description: str, objectives: list[str]) -> Quest</b></color>
+  +<color:#008000><b>get_active_quest() -> Quest | None</b></color>
+  +<color:#008000><b>start_quest(name: str) -> bool</b></color>
+}
+class "QuestStatus" as companion4soloplayer.core.quest_manager.QuestStatus #77AADD {
+  +name
+}
+companion4soloplayer.core.quest_manager.QuestManager --> companion4soloplayer.core.quest_manager.Quest : quests
+companion4soloplayer.core.quest_manager.Quest --> companion4soloplayer.core.quest_manager.QuestStatus : status
+@enduml

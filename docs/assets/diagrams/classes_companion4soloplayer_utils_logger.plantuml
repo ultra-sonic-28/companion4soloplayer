@@ -1,0 +1,12 @@
+@startuml classes_companion4soloplayer_utils_logger
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "LogMode" as companion4soloplayer.utils.logger.LogMode #77AADD {
+  +name
+}
+@enduml

@@ -1,0 +1,37 @@
+@startuml classes_companion4soloplayer_ui_main_window
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "MainWindow" as companion4soloplayer.ui.main_window.MainWindow #77AADD {
+  #_config : ConfigManager | None
+  #_player_action
+  #_plugin_loader : PluginLoader
+  #_start_maximized : bool
+  +status_bar
+  +tab_widget
+  +<color:#008000><b>__init__(config: ConfigManager | None) -> None</b></color>
+  #<color:#008000><b>_add_character_tab() -> None</b></color>
+  #<color:#008000><b>_add_dungeon_tab() -> None</b></color>
+  #<color:#008000><b>_add_quest_tab() -> None</b></color>
+  #<color:#008000><b>_apply_theme(theme: str) -> None</b></color>
+  #<color:#008000><b>_configured_theme() -> str</b></color>
+  #<color:#008000><b>_creation_plugin() -> tuple[str, GamePlugin] | None</b></color>
+  #<color:#008000><b>_refresh_player_action() -> None</b></color>
+  #<color:#008000><b>_restore_window_settings() -> None</b></color>
+  #<color:#008000><b>_save_window_settings() -> None</b></color>
+  #<color:#008000><b>_setup_menu_bar() -> None</b></color>
+  #<color:#008000><b>_setup_status_bar() -> None</b></color>
+  #<color:#008000><b>_setup_ui() -> None</b></color>
+  #<color:#008000><b>_show_about() -> None</b></color>
+  #<color:#008000><b>_show_player() -> None</b></color>
+  #<color:#008000><b>_show_plugin() -> None</b></color>
+  #<color:#008000><b>_show_quest() -> None</b></color>
+  #<color:#008000><b>_show_settings() -> None</b></color>
+  +<color:#008000><b>closeEvent(event: QCloseEvent) -> None</b></color>
+  +<color:#008000><b>show() -> None</b></color>
+}
+@enduml

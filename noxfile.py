@@ -100,6 +100,12 @@ def _get_docs_deps() -> list[str]:
     data = tomllib.loads(pyproject.decode())
     return cast(list[str], data["project"]["optional-dependencies"]["docs"])
 
+def _get_diagrams_deps() -> list[str]:
+    """Read diagrams dependencies from pyproject.toml."""
+    pyproject = Path("pyproject.toml").read_bytes()
+    data = tomllib.loads(pyproject.decode())
+    return cast(list[str], data["project"]["optional-dependencies"]["diagrams"])
+
 def check_network_access(session: nox.Session, url: str = "https://pypi.org/", timeout: int = 5) -> bool:
     """
     Checks if the environment has network access and can reach a specific URL.
@@ -853,3 +859,167 @@ def backup(session: nox.Session) -> None:
     )
 
     session.log(f"Backup successfully created: {archive_path}")
+
+# ---------------------------------------------------------------------------
+# diagrams session
+# Create class and package diagrams of the project
+# ---------------------------------------------------------------------------
+@nox.session(name="diagrams")
+def diagrams(session: nox.Session) -> None:
+    """Create class and package diagrams of the project."""
+    venv = os.environ.get("VIRTUAL_ENV")
+
+    if venv:
+        session.skip(
+            f"Virtual environment is active: {venv}. "
+            "Please deactivate it or open a new terminal before running this session."
+        )
+
+    if not check_network_access(session, url="https://pypi.org/simple/"):
+        session.error("Network access to PyPI is required for this session. Please check your connection.")
+
+    session.install(*_get_diagrams_deps())
+    session.install(".")
+
+    session.log("Creating diagrams of the project...")
+
+    output_dir = "docs/assets/diagrams"
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    source_dir = Path("src/companion4soloplayer")
+    if not source_dir.exists():
+        session.error(f"Source directory '{source_dir}' not found.")
+
+    # 1. Discovery of packages and modules
+    targets = []
+    for path in source_dir.rglob("*"):
+        # Include packages (directories containing an __init__.py)
+        if path.is_dir() and (path / "__init__.py").exists() or path.is_file() and path.suffix == ".py" and not path.name.startswith("_"):
+            targets.append(path)
+
+    # Remove duplicates and sort for a predictable generation order
+    targets = sorted(set(targets), key=lambda p: str(p))
+
+    session.log(f"Discovery of {len(targets)} targets (packages/modules) for diagram generation.")
+
+    # 2. Iterative generation
+    for target in targets:
+        # Create a secure project name from the relative path
+        # Example: "src/companion4soloplayer/core/utils.py" -> "companion4soloplayer_core_utils"
+        rel_path = target.relative_to(source_dir.parent)
+        project_name = str(rel_path).replace("/", "_").replace("\\", "_").replace(".py", "")
+
+        session.log(f"Generating diagrams for : {project_name}")
+
+        # --project : project name (used in the diagram title)
+        # --output : output format (plantuml, png, dot)
+        # --ignore : directories to exclude (e.g., venv, tests)
+        cmd = [
+            "pyreverse",
+            "--output", "plantuml",
+            "--project", project_name,  # This is what names the output file: classes_<project_name>.puml
+            "--ignore", "venv,tests,.git,__pycache__",
+            "--output-directory", output_dir,
+            "--colorized",
+            "--filter-mode", "ALL",  # No filtering, include all classes and methods (public and private)
+            str(target)
+        ]
+
+        session.run(*cmd)
+
+    # 3. POST-PROCESSING: Injecting colors and Python visibility modifiers
+    session.log("Application of custom style (Python visibility + colors)...")
+
+    # Style block to be injected immediately after @startuml
+    style_block = """' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------"""
+
+    def get_python_visibility(name: str) -> str:
+        """Determine UML visibility modifier from Python naming conventions."""
+        if name.startswith("__") and name.endswith("__"):
+            return "+"
+        elif name.startswith("__"):
+            return "-"
+        elif name.startswith("_"):
+            return "#"
+        else:
+            return "+"
+
+    # Regex to detect the start of a PlantUML class block
+    class_start_pattern = re.compile(r'^\s*class\s+["\w].*\{')
+
+    # FIXED Regex: Captures 4 groups for both attributes and methods
+    # Group 1: indent (\s+)
+    # Group 2: optional existing visibility modifier ([\+\-\#~]\s*)?
+    # Group 3: the actual name (\w+)
+    # Group 4: the rest of the line, e.g., " : int" or "(duration_ms: int) -> None" (\s*[:\(].*)?$
+    member_pattern = re.compile(r"^(\s+)([\+\-\#~]\s*)?(\w+)(\s*[:\(].*)?$")
+
+    # Note: pyreverse generates .puml files. If you renamed them to .plantuml, keep *.plantuml
+    puml_files = list(Path(output_dir).glob("*.puml")) + list(Path(output_dir).glob("*.plantuml"))
+    # Remove duplicates if any
+    puml_files = list(set(puml_files))
+    
+    total_matches = 0
+
+    for puml_file in puml_files:
+        session.log(f"Processing {puml_file.name}...")
+        content = puml_file.read_text(encoding="utf-8")
+        lines = content.splitlines()
+
+        processed_lines = []
+        style_injected = False
+        in_class_block = False
+
+        for line in lines:
+            processed_lines.append(line)
+
+            # Inject the style block immediately after @startuml
+            if not style_injected and line.strip().lower().startswith("@startuml"):
+                processed_lines.append(style_block)
+                style_injected = True
+
+            # Detect the start of a PlantUML class block
+            if class_start_pattern.match(line):
+                in_class_block = True
+                continue
+
+            # Detect the end of a class block
+            if in_class_block and line.strip() == "}":
+                in_class_block = False
+                continue
+
+            # Process only members inside class blocks
+            if in_class_block and "<color:" not in line:
+                match = member_pattern.match(line)
+                if match:
+                    # Unpack the 4 groups correctly
+                    indent, visibility_opt, name, rest = match.groups()
+
+                    if name is None:
+                        continue
+
+                    rest = rest or ""
+                    visibility = get_python_visibility(name)
+
+                    # Method (contains parentheses in 'rest') → green and bold
+                    if "(" in rest:
+                        processed_lines[-1] = f"{indent}{visibility}<color:#008000><b>{name}{rest}</b></color>"
+                    # Attribute → gets the correct visibility modifier, color handled by skinparam
+                    else:
+                        processed_lines[-1] = f"{indent}{visibility}{name}{rest}"
+
+                    total_matches += 1
+
+        puml_file.write_text("\n".join(processed_lines) + "\n", encoding="utf-8")
+
+    session.log(f"Processing completed. {len(puml_files)} .puml files processed, {total_matches} members styled successfully.")
+
+    if total_matches == 0:
+        session.warn("ATTENTION : No members were detected. Check the content of a generated .puml file.")
+
+    session.log("Diagrams successfully created")

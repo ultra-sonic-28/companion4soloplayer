@@ -1,0 +1,19 @@
+@startuml classes_companion4soloplayer_plugins_demo_plugin_rules_combat_rule
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "CombatRule" as companion4soloplayer.plugins.demo_plugin.rules.combat_rule.CombatRule #77AADD {
+  +attack_dice : DiceExpression
+  +attack_stat : str
+  +base_damage : int
+  +defense_dice : DiceExpression, NoneType
+  +defense_stat : str
+  +max_damage : int
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>resolve(attacker: Mapping[str, Any], defender: Mapping[str, Any], roller: DiceRoller | None) -> dict</b></color>
+}
+@enduml

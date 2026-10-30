@@ -1,0 +1,22 @@
+@startuml classes_companion4soloplayer_core_interface
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "GamePlugin" as companion4soloplayer.core.interface.game_plugin.GamePlugin #77AADD {
+  +description : str
+  +name : str
+  +version : str
+  +<color:#008000><b>create_character_creation() -> CharacterCreationPipeline</b></color>
+  +<color:#008000><b>create_component(kind: str) -> Any</b></color>
+  +<color:#008000><b>generate_dungeon(config: dict) -> dict</b></color>
+  +<color:#008000><b>get_classes() -> list[dict]</b></color>
+  +<color:#008000><b>get_items() -> list[dict]</b></color>
+  +<color:#008000><b>get_monsters() -> list[dict]</b></color>
+  +<color:#008000><b>get_rule_engine() -> RuleEngine</b></color>
+  +<color:#008000><b>get_rules() -> dict</b></color>
+}
+@enduml

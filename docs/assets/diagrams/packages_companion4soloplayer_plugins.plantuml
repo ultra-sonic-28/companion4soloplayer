@@ -1,0 +1,52 @@
+@startuml packages_companion4soloplayer_plugins
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+package "companion4soloplayer.plugins" as companion4soloplayer.plugins #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin" as companion4soloplayer.plugins.demo_plugin #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.creation" as companion4soloplayer.plugins.demo_plugin.creation #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.creation.filters" as companion4soloplayer.plugins.demo_plugin.creation.filters #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.creation.strategies" as companion4soloplayer.plugins.demo_plugin.creation.strategies #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.creation.workflow" as companion4soloplayer.plugins.demo_plugin.creation.workflow #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.data" as companion4soloplayer.plugins.demo_plugin.data #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.manifest" as companion4soloplayer.plugins.demo_plugin.manifest #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.plugin" as companion4soloplayer.plugins.demo_plugin.plugin #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.rules" as companion4soloplayer.plugins.demo_plugin.rules #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule" as companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.rules.combat_rule" as companion4soloplayer.plugins.demo_plugin.rules.combat_rule #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.rules.loot_rule" as companion4soloplayer.plugins.demo_plugin.rules.loot_rule #77AADD {
+}
+package "companion4soloplayer.plugins.demo_plugin.rules.magic_rule" as companion4soloplayer.plugins.demo_plugin.rules.magic_rule #77AADD {
+}
+companion4soloplayer.plugins.demo_plugin --> companion4soloplayer.plugins.demo_plugin.creation
+companion4soloplayer.plugins.demo_plugin --> companion4soloplayer.plugins.demo_plugin.manifest
+companion4soloplayer.plugins.demo_plugin --> companion4soloplayer.plugins.demo_plugin.plugin
+companion4soloplayer.plugins.demo_plugin --> companion4soloplayer.plugins.demo_plugin.rules
+companion4soloplayer.plugins.demo_plugin.creation --> companion4soloplayer.plugins.demo_plugin.creation.filters
+companion4soloplayer.plugins.demo_plugin.creation --> companion4soloplayer.plugins.demo_plugin.creation.strategies
+companion4soloplayer.plugins.demo_plugin.creation --> companion4soloplayer.plugins.demo_plugin.creation.workflow
+companion4soloplayer.plugins.demo_plugin.creation.workflow --> companion4soloplayer.plugins.demo_plugin.creation.strategies
+companion4soloplayer.plugins.demo_plugin.plugin --> companion4soloplayer.plugins.demo_plugin.creation.workflow
+companion4soloplayer.plugins.demo_plugin.plugin --> companion4soloplayer.plugins.demo_plugin.data
+companion4soloplayer.plugins.demo_plugin.plugin --> companion4soloplayer.plugins.demo_plugin.manifest
+companion4soloplayer.plugins.demo_plugin.rules --> companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule
+companion4soloplayer.plugins.demo_plugin.rules --> companion4soloplayer.plugins.demo_plugin.rules.combat_rule
+companion4soloplayer.plugins.demo_plugin.rules --> companion4soloplayer.plugins.demo_plugin.rules.loot_rule
+companion4soloplayer.plugins.demo_plugin.rules --> companion4soloplayer.plugins.demo_plugin.rules.magic_rule
+@enduml

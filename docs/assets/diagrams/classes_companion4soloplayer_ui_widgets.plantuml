@@ -1,0 +1,35 @@
+@startuml classes_companion4soloplayer_ui_widgets
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "DescriptionTooltip" as companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip #77AADD {
+  #_frame
+  #_label
+  #_max_width
+  #_min_width
+  #_offset
+  #_padding
+  #_shared : Optional[ClassVar[DescriptionTooltip | None]]
+  #_style_sheet : NoneType
+  +text : str
+  +<color:#008000><b>__init__() -> None</b></color>
+  #<color:#008000><b>_position_for(size: QSize, cursor: QPoint, available: QRect | None) -> QPoint</b></color>
+  #<color:#008000><b>_preferred_size(text: str, available: QRect | None) -> QSize</b></color>
+  #<color:#008000><b>_screen_for(cursor: QPoint) -> QScreen | None</b></color>
+  +<color:#008000><b>hide_description() -> None</b></color>
+  +<color:#008000><b>shared() -> DescriptionTooltip</b></color>
+  +<color:#008000><b>show_description(text: str, cursor: QPoint | None) -> None</b></color>
+}
+class "DescriptionTooltipFilter" as companion4soloplayer.ui.widgets.tooltip.DescriptionTooltipFilter #77AADD {
+  #_describe : Callable[[QObject, QPoint], str]
+  #_tooltip
+  +<color:#008000><b>__init__(tooltip: DescriptionTooltip, describe: Callable[[QObject, QPoint], str]) -> None</b></color>
+  #<color:#008000><b>_apply(watched: QObject, position: QPoint) -> None</b></color>
+  +<color:#008000><b>eventFilter(watched: QObject, event: QEvent) -> bool</b></color>
+}
+companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip --o companion4soloplayer.ui.widgets.tooltip.DescriptionTooltipFilter : _tooltip
+@enduml

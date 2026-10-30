@@ -1,0 +1,15 @@
+@startuml classes_companion4soloplayer_core_dice_roller
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "DiceRoller" as companion4soloplayer.core.dice_roller.DiceRoller #77AADD {
+  +<color:#008000><b>__init__(seed: int | None) -> None</b></color>
+  +<color:#008000><b>roll_dice(count: int, sides: int) -> list[int]</b></color>
+  +<color:#008000><b>roll_single(sides: int) -> int</b></color>
+  +<color:#008000><b>roll_with_modifier(count: int, sides: int, modifier: int) -> tuple[list[int], int]</b></color>
+}
+@enduml

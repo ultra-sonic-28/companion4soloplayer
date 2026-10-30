@@ -1,0 +1,20 @@
+@startuml classes_companion4soloplayer_plugins_demo_plugin_manifest
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "PluginMetadata" as companion4soloplayer.plugins.demo_plugin.manifest.PluginMetadata #77AADD {
+  +author : str | None
+  +compatible_games : list[str]
+  +dependencies : dict[str, str]
+  +description : str
+  +disclaimer : str
+  +features : str
+  +license : str | None
+  +name : str
+  +version : str
+}
+@enduml

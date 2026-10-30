@@ -1,0 +1,127 @@
+@startuml classes_companion4soloplayer_core_creation_steps
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "AttributeGenerationStep" as companion4soloplayer.core.creation.steps.attributes.AttributeGenerationStep #77AADD {
+  #_attributes : NoneType, tuple
+  #_block : str
+  #_manual_attributes : tuple
+  #_max_value : NoneType
+  #_min_value : NoneType
+  #_mode : str
+  #_roller : NoneType
+  #_strategy : NoneType
+  #_target : str
+  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
+  #<color:#008000><b>_block_entries(context: CharacterCreationContext) -> Any</b></color>
+  #<color:#008000><b>_is_manual(attribute: str) -> bool</b></color>
+  #<color:#008000><b>_read_attribute_entry(entry: Mapping[str, Any], position: int, source: str) -> dict[str, str]</b></color>
+  #<color:#008000><b>_resolve_strategy(context: CharacterCreationContext) -> AttributeGenerationStrategy</b></color>
+  +<color:#008000><b>attribute_descriptions(context: CharacterCreationContext) -> dict[str, str]</b></color>
+  +<color:#008000><b>attribute_entries(context: CharacterCreationContext) -> list[dict[str, str]]</b></color>
+  +<color:#008000><b>attribute_labels(context: CharacterCreationContext) -> dict[str, str]</b></color>
+  +<color:#008000><b>attribute_names(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
+  +<color:#008000><b>display_label(context: CharacterCreationContext) -> str</b></color>
+  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
+  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
+  +<color:#008000><b>roll_attribute(attribute: str, context: CharacterCreationContext, roller: DiceRoller | None) -> int</b></color>
+  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+}
+class "CreationStep" as companion4soloplayer.core.creation.steps.base.CreationStep #77AADD {
+  #_label
+  #_step_id
+  +label : str
+  +step_id : str
+  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
+  +<color:#008000><b>__repr__() -> str</b></color>
+  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
+  +<color:#008000><b>display_label(context: CharacterCreationContext) -> str</b></color>
+  {abstract}execute(context: CharacterCreationContext, inputs: InputProvider) -> None
+  {abstract}is_applicable(context: CharacterCreationContext) -> bool
+  {abstract}validate(context: CharacterCreationContext) -> list[str]
+}
+class "IdentityStep" as companion4soloplayer.core.creation.steps.identity.IdentityStep #77AADD {
+  #_background_options : NoneType, tuple
+  #_background_prompt : str
+  #_background_required : bool
+  #_name_prompt : str
+  #_name_required : bool
+  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
+  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
+  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
+  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
+  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+}
+class "SelectionStep" as companion4soloplayer.core.creation.steps.selection.SelectionStep #77AADD {
+  #_catalog : NoneType
+  #_optional : bool
+  #_options_source : NoneType
+  #_prompt
+  #_target
+  +target : str
+  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
+  +<color:#008000><b>available(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
+  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
+  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
+  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+}
+class "SkillSelectionStep" as companion4soloplayer.core.creation.steps.skills.SkillSelectionStep #77AADD {
+  #_catalog : str
+  #_max_count : NoneType
+  #_min_count : int
+  #_mode : str
+  #_prompt : str
+  #_skill_filter : NoneType
+  #_target : str
+  #_working_target : str
+  +mode : str
+  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
+  +<color:#008000><b>available(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
+  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
+  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
+  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+}
+class "SpellSelectionStep" as companion4soloplayer.core.creation.steps.spells.SpellSelectionStep #77AADD {
+  #_catalog : str
+  #_max_count : NoneType
+  #_min_count : int
+  #_mode : str
+  #_prompt : str
+  #_spell_filter : NoneType
+  #_target : str
+  #_working_target : str
+  +mode : str
+  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
+  +<color:#008000><b>available(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
+  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
+  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
+  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+}
+class "<color:red>StepConfigurationError</color>" as companion4soloplayer.core.creation.steps.base.StepConfigurationError #77AADD {
+}
+class "StepResult" as companion4soloplayer.core.creation.steps.base.StepResult #77AADD {
+  +errors : tuple[str, ...]
+  +executed : bool
+  +ok : bool
+  +status
+  +step_id : str
+  +<color:#008000><b>__init__(self, step_id: str, status: StepStatus, errors: tuple[str, ...]) -> None</b></color>
+}
+class "StepStatus" as companion4soloplayer.core.creation.steps.base.StepStatus #77AADD {
+  +name
+}
+companion4soloplayer.core.creation.steps.attributes.AttributeGenerationStep --|> companion4soloplayer.core.creation.steps.base.CreationStep
+companion4soloplayer.core.creation.steps.identity.IdentityStep --|> companion4soloplayer.core.creation.steps.base.CreationStep
+companion4soloplayer.core.creation.steps.selection.SelectionStep --|> companion4soloplayer.core.creation.steps.base.CreationStep
+companion4soloplayer.core.creation.steps.skills.SkillSelectionStep --|> companion4soloplayer.core.creation.steps.base.CreationStep
+companion4soloplayer.core.creation.steps.spells.SpellSelectionStep --|> companion4soloplayer.core.creation.steps.base.CreationStep
+companion4soloplayer.core.creation.steps.base.StepResult --> companion4soloplayer.core.creation.steps.base.StepStatus : status
+@enduml

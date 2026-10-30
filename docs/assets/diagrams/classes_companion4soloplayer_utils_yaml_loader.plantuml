@@ -1,0 +1,24 @@
+@startuml classes_companion4soloplayer_utils_yaml_loader
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "C4SPSafeLoader" as companion4soloplayer.utils.yaml_loader.C4SPSafeLoader #77AADD {
+}
+class "PyClassRef" as companion4soloplayer.utils.yaml_loader.PyClassRef #77AADD {
+  +attr : str
+  +is_local : bool
+  +module : str
+  +params : Mapping[str, Any]
+  +path : str
+  +<color:#008000><b>__init__(self, path: str, params: Mapping[str, Any]) -> None</b></color>
+  +<color:#008000><b>parse(value: str) -> PyClassRef</b></color>
+}
+class "<color:red>YamlLoadError</color>" as companion4soloplayer.utils.yaml_loader.YamlLoadError #77AADD {
+}
+class "<color:red>YamlTagError</color>" as companion4soloplayer.utils.yaml_loader.YamlTagError #77AADD {
+}
+@enduml

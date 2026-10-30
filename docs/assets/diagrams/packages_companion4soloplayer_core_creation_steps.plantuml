@@ -1,0 +1,34 @@
+@startuml packages_companion4soloplayer_core_creation_steps
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+package "companion4soloplayer.core.creation.steps" as companion4soloplayer.core.creation.steps #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.attributes" as companion4soloplayer.core.creation.steps.attributes #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.base" as companion4soloplayer.core.creation.steps.base #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.identity" as companion4soloplayer.core.creation.steps.identity #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.selection" as companion4soloplayer.core.creation.steps.selection #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.skills" as companion4soloplayer.core.creation.steps.skills #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.spells" as companion4soloplayer.core.creation.steps.spells #77AADD {
+}
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.attributes
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.identity
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.selection
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.skills
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.spells
+companion4soloplayer.core.creation.steps.attributes --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.steps.identity --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.steps.selection --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.steps.skills --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.steps.spells --> companion4soloplayer.core.creation.steps.base
+@enduml

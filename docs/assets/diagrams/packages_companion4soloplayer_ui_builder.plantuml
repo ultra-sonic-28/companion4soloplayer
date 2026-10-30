@@ -1,0 +1,23 @@
+@startuml packages_companion4soloplayer_ui_builder
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+package "companion4soloplayer.ui.builder" as companion4soloplayer.ui.builder #77AADD {
+}
+package "companion4soloplayer.ui.builder.creation_dialog" as companion4soloplayer.ui.builder.creation_dialog #77AADD {
+}
+package "companion4soloplayer.ui.builder.dialog_builder" as companion4soloplayer.ui.builder.dialog_builder #77AADD {
+}
+package "companion4soloplayer.ui.builder.fields" as companion4soloplayer.ui.builder.fields #77AADD {
+}
+companion4soloplayer.ui.builder --> companion4soloplayer.ui.builder.creation_dialog
+companion4soloplayer.ui.builder --> companion4soloplayer.ui.builder.dialog_builder
+companion4soloplayer.ui.builder --> companion4soloplayer.ui.builder.fields
+companion4soloplayer.ui.builder.creation_dialog --> companion4soloplayer.ui.builder.dialog_builder
+companion4soloplayer.ui.builder.creation_dialog --> companion4soloplayer.ui.builder.fields
+companion4soloplayer.ui.builder.dialog_builder --> companion4soloplayer.ui.builder.fields
+@enduml

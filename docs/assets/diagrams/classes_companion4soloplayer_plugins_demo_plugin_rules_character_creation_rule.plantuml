@@ -1,0 +1,16 @@
+@startuml classes_companion4soloplayer_plugins_demo_plugin_rules_character_creation_rule
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "CharacterCreationRule" as companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule.CharacterCreationRule #77AADD {
+  +catalog : str
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>create(class_name: str, character_name: str) -> dict</b></color>
+  +<color:#008000><b>list_abilities(class_name: str) -> list[str]</b></color>
+  +<color:#008000><b>list_classes() -> list[dict]</b></color>
+}
+@enduml

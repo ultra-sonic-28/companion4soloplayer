@@ -1,0 +1,36 @@
+@startuml classes_companion4soloplayer_core_creation_steps_base
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "CreationStep" as companion4soloplayer.core.creation.steps.base.CreationStep #77AADD {
+  #_label
+  #_step_id
+  +label : str
+  +step_id : str
+  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
+  +<color:#008000><b>__repr__() -> str</b></color>
+  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
+  +<color:#008000><b>display_label(context: CharacterCreationContext) -> str</b></color>
+  {abstract}execute(context: CharacterCreationContext, inputs: InputProvider) -> None
+  {abstract}is_applicable(context: CharacterCreationContext) -> bool
+  {abstract}validate(context: CharacterCreationContext) -> list[str]
+}
+class "<color:red>StepConfigurationError</color>" as companion4soloplayer.core.creation.steps.base.StepConfigurationError #77AADD {
+}
+class "StepResult" as companion4soloplayer.core.creation.steps.base.StepResult #77AADD {
+  +errors : tuple[str, ...]
+  +executed : bool
+  +ok : bool
+  +status
+  +step_id : str
+  +<color:#008000><b>__init__(self, step_id: str, status: StepStatus, errors: tuple[str, ...]) -> None</b></color>
+}
+class "StepStatus" as companion4soloplayer.core.creation.steps.base.StepStatus #77AADD {
+  +name
+}
+companion4soloplayer.core.creation.steps.base.StepResult --> companion4soloplayer.core.creation.steps.base.StepStatus : status
+@enduml

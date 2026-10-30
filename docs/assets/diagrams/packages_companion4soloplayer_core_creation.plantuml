@@ -1,0 +1,77 @@
+@startuml packages_companion4soloplayer_core_creation
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+package "companion4soloplayer.core.creation" as companion4soloplayer.core.creation #77AADD {
+}
+package "companion4soloplayer.core.creation.context" as companion4soloplayer.core.creation.context #77AADD {
+}
+package "companion4soloplayer.core.creation.inputs" as companion4soloplayer.core.creation.inputs #77AADD {
+}
+package "companion4soloplayer.core.creation.pipeline" as companion4soloplayer.core.creation.pipeline #77AADD {
+}
+package "companion4soloplayer.core.creation.rules" as companion4soloplayer.core.creation.rules #77AADD {
+}
+package "companion4soloplayer.core.creation.steps" as companion4soloplayer.core.creation.steps #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.attributes" as companion4soloplayer.core.creation.steps.attributes #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.base" as companion4soloplayer.core.creation.steps.base #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.identity" as companion4soloplayer.core.creation.steps.identity #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.selection" as companion4soloplayer.core.creation.steps.selection #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.skills" as companion4soloplayer.core.creation.steps.skills #77AADD {
+}
+package "companion4soloplayer.core.creation.steps.spells" as companion4soloplayer.core.creation.steps.spells #77AADD {
+}
+package "companion4soloplayer.core.creation.strategies" as companion4soloplayer.core.creation.strategies #77AADD {
+}
+package "companion4soloplayer.core.creation.workflow" as companion4soloplayer.core.creation.workflow #77AADD {
+}
+companion4soloplayer.core.creation --> companion4soloplayer.core.creation.context
+companion4soloplayer.core.creation --> companion4soloplayer.core.creation.inputs
+companion4soloplayer.core.creation --> companion4soloplayer.core.creation.pipeline
+companion4soloplayer.core.creation --> companion4soloplayer.core.creation.rules
+companion4soloplayer.core.creation --> companion4soloplayer.core.creation.steps
+companion4soloplayer.core.creation --> companion4soloplayer.core.creation.strategies
+companion4soloplayer.core.creation --> companion4soloplayer.core.creation.workflow
+companion4soloplayer.core.creation.pipeline --> companion4soloplayer.core.creation.context
+companion4soloplayer.core.creation.pipeline --> companion4soloplayer.core.creation.inputs
+companion4soloplayer.core.creation.pipeline --> companion4soloplayer.core.creation.rules
+companion4soloplayer.core.creation.pipeline --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.rules --> companion4soloplayer.core.creation.context
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.attributes
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.identity
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.selection
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.skills
+companion4soloplayer.core.creation.steps --> companion4soloplayer.core.creation.steps.spells
+companion4soloplayer.core.creation.steps.attributes --> companion4soloplayer.core.creation.context
+companion4soloplayer.core.creation.steps.attributes --> companion4soloplayer.core.creation.inputs
+companion4soloplayer.core.creation.steps.attributes --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.steps.attributes --> companion4soloplayer.core.creation.strategies
+companion4soloplayer.core.creation.steps.base --> companion4soloplayer.core.creation.context
+companion4soloplayer.core.creation.steps.base --> companion4soloplayer.core.creation.inputs
+companion4soloplayer.core.creation.steps.identity --> companion4soloplayer.core.creation.context
+companion4soloplayer.core.creation.steps.identity --> companion4soloplayer.core.creation.inputs
+companion4soloplayer.core.creation.steps.identity --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.steps.selection --> companion4soloplayer.core.creation.context
+companion4soloplayer.core.creation.steps.selection --> companion4soloplayer.core.creation.inputs
+companion4soloplayer.core.creation.steps.selection --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.steps.skills --> companion4soloplayer.core.creation.context
+companion4soloplayer.core.creation.steps.skills --> companion4soloplayer.core.creation.inputs
+companion4soloplayer.core.creation.steps.skills --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.steps.spells --> companion4soloplayer.core.creation.context
+companion4soloplayer.core.creation.steps.spells --> companion4soloplayer.core.creation.inputs
+companion4soloplayer.core.creation.steps.spells --> companion4soloplayer.core.creation.steps.base
+companion4soloplayer.core.creation.strategies --> companion4soloplayer.core.creation.context
+companion4soloplayer.core.creation.workflow --> companion4soloplayer.core.creation.pipeline
+companion4soloplayer.core.creation.workflow --> companion4soloplayer.core.creation.rules
+companion4soloplayer.core.creation.workflow --> companion4soloplayer.core.creation.steps.base
+@enduml

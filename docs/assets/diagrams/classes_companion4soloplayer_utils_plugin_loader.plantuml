@@ -1,0 +1,32 @@
+@startuml classes_companion4soloplayer_utils_plugin_loader
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "PluginLoader" as companion4soloplayer.utils.plugin_loader.PluginLoader #77AADD {
+  +last_errors : dict[str, str]
+  +loaded_plugins : dict[str, GamePlugin]
+  +plugins_dir : Path
+  +<color:#008000><b>__init__(plugins_dir: str | None) -> None</b></color>
+  #<color:#008000><b>_find_extension(plugin_name: str, directory: Path) -> Path | None</b></color>
+  #<color:#008000><b>_iter_plugin_dirs() -> list[Path]</b></color>
+  #<color:#008000><b>_load_compiled(plugin_name: str, library_path: Path) -> GamePlugin | None</b></color>
+  #<color:#008000><b>_load_source(plugin_name: str) -> GamePlugin | None</b></color>
+  #<color:#008000><b>_publish_config(plugin_name: str, library_path: Path | None) -> None</b></color>
+  +<color:#008000><b>discover_plugins() -> list[str]</b></color>
+  +<color:#008000><b>get_plugin(plugin_name: str) -> GamePlugin | None</b></color>
+  +<color:#008000><b>load_plugin(plugin_name: str) -> GamePlugin | None</b></color>
+  +<color:#008000><b>unload_plugin(plugin_name: str) -> bool</b></color>
+}
+class "_PluginSubmoduleFinder" as companion4soloplayer.utils.plugin_loader._PluginSubmoduleFinder #77AADD {
+  +package_prefixes : list[str]
+  +target_module : module
+  +<color:#008000><b>__init__(package_prefixes: list[str], target_module: types.ModuleType) -> None</b></color>
+  +<color:#008000><b>create_module(spec: importlib.machinery.ModuleSpec) -> types.ModuleType | None</b></color>
+  {abstract}exec_module(module: types.ModuleType) -> None
+  +<color:#008000><b>find_spec(fullname: str, path: Any, target: Any) -> importlib.machinery.ModuleSpec | None</b></color>
+}
+@enduml

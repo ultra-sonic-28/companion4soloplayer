@@ -1,0 +1,21 @@
+@startuml classes_companion4soloplayer_ui_dialogs_quest_wizard
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "QuestWizard" as companion4soloplayer.ui.dialogs.quest_wizard.QuestWizard #77AADD {
+  +cancel_button
+  +create_button
+  +description_input
+  +difficulty_spin
+  +name_input
+  +num_rooms_spin
+  +template_combo
+  +<color:#008000><b>__init__(parent: QWidget | None) -> None</b></color>
+  #<color:#008000><b>_setup_ui() -> None</b></color>
+  +<color:#008000><b>get_quest_data() -> dict</b></color>
+}
+@enduml

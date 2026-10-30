@@ -1,0 +1,28 @@
+@startuml classes_companion4soloplayer_core_creation_strategies
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "AttributeGenerationStrategy" as companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy #77AADD {
+  {abstract}roll(attribute: str, roller: DiceRoller) -> int
+  +<color:#008000><b>roll_for(attribute: str, roller: DiceRoller, context: CharacterCreationContext) -> int</b></color>
+}
+class "ConstantStrategy" as companion4soloplayer.core.creation.strategies.ConstantStrategy #77AADD {
+  +value : int
+  +<color:#008000><b>__init__(value: int) -> None</b></color>
+  +<color:#008000><b>roll(attribute: str, roller: DiceRoller) -> int</b></color>
+}
+class "RollStrategy" as companion4soloplayer.core.creation.strategies.RollStrategy #77AADD {
+  +dice : DiceExpression
+  +keep : NoneType
+  +keep_best : bool
+  +<color:#008000><b>__init__(dice: DiceExpression | str) -> None</b></color>
+  +<color:#008000><b>roll(attribute: str, roller: DiceRoller) -> int</b></color>
+  +<color:#008000><b>roll_detail(attribute: str, roller: DiceRoller) -> tuple[list[int], int]</b></color>
+}
+companion4soloplayer.core.creation.strategies.ConstantStrategy --|> companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy
+companion4soloplayer.core.creation.strategies.RollStrategy --|> companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy
+@enduml

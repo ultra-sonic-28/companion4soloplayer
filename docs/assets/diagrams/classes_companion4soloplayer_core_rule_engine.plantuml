@@ -1,0 +1,37 @@
+@startuml classes_companion4soloplayer_core_rule_engine
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "<color:red>ImplementationError</color>" as companion4soloplayer.core.rule_engine.ImplementationError #77AADD {
+}
+class "<color:red>ImplementationNotAllowedError</color>" as companion4soloplayer.core.rule_engine.ImplementationNotAllowedError #77AADD {
+}
+class "RuleEngine" as companion4soloplayer.core.rule_engine.RuleEngine #77AADD {
+  #_allowed_modules : tuple
+  #_base_module : NoneType
+  #_components : dict[str, Any]
+  #_rules : dict
+  +implementations : dict[str, PyClassRef]
+  +kinds : list[str]
+  +rules : dict[str, Any]
+  +<color:#008000><b>__init__(rules: Mapping[str, Any]) -> None</b></color>
+  #<color:#008000><b>_import_allowed_module(module_name: str) -> types.ModuleType</b></color>
+  #<color:#008000><b>_resolve_base_module() -> types.ModuleType</b></color>
+  #<color:#008000><b>_resolve_through_canonical_path(module_obj: types.ModuleType, attr_name: str) -> Any</b></color>
+  +<color:#008000><b>component(kind: str) -> Any</b></color>
+  +<color:#008000><b>from_yaml(path: str | Path) -> RuleEngine</b></color>
+  +<color:#008000><b>get(key: str, default: Any) -> Any</b></color>
+  +<color:#008000><b>resolve(ref: PyClassRef | str) -> Any</b></color>
+}
+class "<color:red>RuleEngineError</color>" as companion4soloplayer.core.rule_engine.RuleEngineError #77AADD {
+}
+class "<color:red>UnknownRuleKindError</color>" as companion4soloplayer.core.rule_engine.UnknownRuleKindError #77AADD {
+}
+companion4soloplayer.core.rule_engine.ImplementationError --|> companion4soloplayer.core.rule_engine.RuleEngineError
+companion4soloplayer.core.rule_engine.ImplementationNotAllowedError --|> companion4soloplayer.core.rule_engine.ImplementationError
+companion4soloplayer.core.rule_engine.UnknownRuleKindError --|> companion4soloplayer.core.rule_engine.RuleEngineError
+@enduml

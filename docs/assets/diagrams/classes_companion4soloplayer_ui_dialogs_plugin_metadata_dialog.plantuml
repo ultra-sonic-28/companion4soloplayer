@@ -1,0 +1,24 @@
+@startuml classes_companion4soloplayer_ui_dialogs_plugin_metadata_dialog
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "PluginMetadataDialog" as companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog #77AADD {
+  #_loaded : bool
+  #_manifest : Mapping[str, Any]
+  +close_button
+  +loaded_badge
+  +<color:#008000><b>__init__(manifest: Mapping[str, Any], loaded: bool, parent: QWidget | None) -> None</b></color>
+  #<color:#008000><b>_build_games_tags() -> QFrame</b></color>
+  #<color:#008000><b>_build_header() -> QFrame</b></color>
+  #<color:#008000><b>_build_loaded_badge() -> QFrame</b></color>
+  #<color:#008000><b>_build_text_edit(value: str) -> QTextEdit</b></color>
+  #<color:#008000><b>_pair_row(left: QFrame, right: QFrame) -> QHBoxLayout</b></color>
+  #<color:#008000><b>_section_label(text: str) -> QLabel</b></color>
+  #<color:#008000><b>_setup_ui() -> None</b></color>
+  #<color:#008000><b>_value_block(caption: str, value: str) -> QFrame</b></color>
+}
+@enduml

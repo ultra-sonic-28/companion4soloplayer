@@ -1,0 +1,27 @@
+@startuml classes_companion4soloplayer_utils_config_manager
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "ConfigManager" as companion4soloplayer.utils.config_manager.ConfigManager #77AADD {
+  +data : Table
+  +filename : Path
+  +<color:#008000><b>__init__(filename: str | Path | None) -> None</b></color>
+  #<color:#008000><b>_deep_update(base: MutableMapping[str, Any], updates: Mapping[str, Any]) -> None</b></color>
+  #<color:#008000><b>_preserve_invalid_file() -> None</b></color>
+  +<color:#008000><b>appearance() -> Table</b></color>
+  +<color:#008000><b>load() -> None</b></color>
+  +<color:#008000><b>logging() -> Table</b></color>
+  +<color:#008000><b>save() -> None</b></color>
+  +<color:#008000><b>theme() -> str</b></color>
+  +<color:#008000><b>tooltip() -> Table</b></color>
+  +<color:#008000><b>tooltip_corner_type() -> TooltipCornerType</b></color>
+  +<color:#008000><b>window() -> Table</b></color>
+}
+class "TooltipCornerType" as companion4soloplayer.utils.config_manager.TooltipCornerType #77AADD {
+  +name
+}
+@enduml

@@ -1,0 +1,13 @@
+@startuml classes_companion4soloplayer_app
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "CompanionApplication" as companion4soloplayer.app.application.CompanionApplication #77AADD {
+  +config : ConfigManager
+  +<color:#008000><b>__init__(arguments: Iterable[str], config: ConfigManager | None) -> None</b></color>
+}
+@enduml

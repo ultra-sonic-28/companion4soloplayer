@@ -1,0 +1,80 @@
+@startuml classes_companion4soloplayer_plugins_demo_plugin
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "CharacterCreationRule" as companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule.CharacterCreationRule #77AADD {
+  +catalog : str
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>create(class_name: str, character_name: str) -> dict</b></color>
+  +<color:#008000><b>list_abilities(class_name: str) -> list[str]</b></color>
+  +<color:#008000><b>list_classes() -> list[dict]</b></color>
+}
+class "ClassSavesStrategy" as companion4soloplayer.plugins.demo_plugin.creation.strategies.ClassSavesStrategy #77AADD {
+  +default : int
+  +<color:#008000><b>__init__(default: int) -> None</b></color>
+  +<color:#008000><b>roll(attribute: str, roller: DiceRoller) -> int</b></color>
+  +<color:#008000><b>roll_for(attribute: str, roller: DiceRoller, context: CharacterCreationContext) -> int</b></color>
+}
+class "CombatRule" as companion4soloplayer.plugins.demo_plugin.rules.combat_rule.CombatRule #77AADD {
+  +attack_dice : DiceExpression
+  +attack_stat : str
+  +base_damage : int
+  +defense_dice : DiceExpression, NoneType
+  +defense_stat : str
+  +max_damage : int
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>resolve(attacker: Mapping[str, Any], defender: Mapping[str, Any], roller: DiceRoller | None) -> dict</b></color>
+}
+class "FourSixKeepBestStrategy" as companion4soloplayer.plugins.demo_plugin.creation.strategies.FourSixKeepBestStrategy #77AADD {
+  #_roll : RollStrategy
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>roll(attribute: str, roller: DiceRoller) -> int</b></color>
+}
+class "LootRule" as companion4soloplayer.plugins.demo_plugin.rules.loot_rule.LootRule #77AADD {
+  +catalog : str
+  +rolls : int
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>roll(count: int | None) -> list[dict]</b></color>
+}
+class "MagicRule" as companion4soloplayer.plugins.demo_plugin.rules.magic_rule.MagicRule #77AADD {
+  +dice : DiceExpression
+  +difficulty : int
+  +mana_cost : int
+  +stat : str
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>cast(spell: str, caster: Mapping[str, Any], roller: DiceRoller | None) -> dict</b></color>
+}
+class "Plugin" as companion4soloplayer.plugins.demo_plugin.plugin.Plugin #77AADD {
+  #_creation : CharacterCreationPipeline | None
+  #_engine : RuleEngine | None
+  #_metadata
+  +description : str
+  +name : str
+  +version : str
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>create_character_creation() -> CharacterCreationPipeline</b></color>
+  +<color:#008000><b>create_component(kind: str) -> Any</b></color>
+  +<color:#008000><b>generate_dungeon(config: dict) -> dict</b></color>
+  +<color:#008000><b>get_classes() -> list[dict]</b></color>
+  +<color:#008000><b>get_items() -> list[dict]</b></color>
+  +<color:#008000><b>get_monsters() -> list[dict]</b></color>
+  +<color:#008000><b>get_rule_engine() -> RuleEngine</b></color>
+  +<color:#008000><b>get_rules() -> dict</b></color>
+}
+class "PluginMetadata" as companion4soloplayer.plugins.demo_plugin.manifest.PluginMetadata #77AADD {
+  +author : str | None
+  +compatible_games : list[str]
+  +dependencies : dict[str, str]
+  +description : str
+  +disclaimer : str
+  +features : str
+  +license : str | None
+  +name : str
+  +version : str
+}
+companion4soloplayer.plugins.demo_plugin.manifest.PluginMetadata --* companion4soloplayer.plugins.demo_plugin.plugin.Plugin : _metadata
+@enduml

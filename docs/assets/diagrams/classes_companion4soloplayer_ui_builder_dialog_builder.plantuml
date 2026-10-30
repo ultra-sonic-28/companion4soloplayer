@@ -1,0 +1,28 @@
+@startuml classes_companion4soloplayer_ui_builder_dialog_builder
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "CharacterCreationDialogBuilder" as companion4soloplayer.ui.builder.dialog_builder.CharacterCreationDialogBuilder #77AADD {
+  #_attributes_columns
+  #_pipeline : CharacterCreationPipeline
+  +attributes_columns : int
+  +pipeline : CharacterCreationPipeline
+  +<color:#008000><b>__init__(pipeline: CharacterCreationPipeline) -> None</b></color>
+  #<color:#008000><b>_fill_section(box: QGroupBox, fields: Sequence[InputField]) -> tuple[tuple[InputField, FieldWidget], ...]</b></color>
+  +<color:#008000><b>arrange(layout: QGridLayout, sections: Sequence[StepSection]) -> None</b></color>
+  +<color:#008000><b>build() -> list[StepSection]</b></color>
+  +<color:#008000><b>build_section(step: CreationStep) -> StepSection | None</b></color>
+}
+class "StepSection" as companion4soloplayer.ui.builder.dialog_builder.StepSection #77AADD {
+  +box
+  +label : str
+  +rows : tuple[tuple[InputField, FieldWidget], ...]
+  +step_id : str
+  +widgets : tuple[FieldWidget, ...]
+  +<color:#008000><b>__init__(self, step_id: str, label: str, box: QGroupBox, rows: tuple[tuple[InputField, FieldWidget], ...]) -> None</b></color>
+}
+@enduml

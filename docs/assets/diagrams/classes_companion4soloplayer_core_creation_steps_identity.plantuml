@@ -1,0 +1,21 @@
+@startuml classes_companion4soloplayer_core_creation_steps_identity
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "IdentityStep" as companion4soloplayer.core.creation.steps.identity.IdentityStep #77AADD {
+  #_background_options : NoneType, tuple
+  #_background_prompt : str
+  #_background_required : bool
+  #_name_prompt : str
+  #_name_required : bool
+  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
+  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
+  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
+  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
+  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+}
+@enduml

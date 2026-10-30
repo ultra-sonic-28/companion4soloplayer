@@ -1,0 +1,41 @@
+@startuml classes_companion4soloplayer_utils_resource_manager
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "ResourceManager" as companion4soloplayer.utils.resource_manager.ResourceManager #77AADD {
+  #_EXTENSIONS : dict[str, tuple[str, ...]]
+  #_SUBDIRS : dict[str, str]
+  #_initialized : ClassVar[bool]
+  #_instance : Optional[ClassVar[ResourceManager | None]]
+  #_object_cache : dict[str, object]
+  #_path_cache : dict[str, Path]
+  #_root : Path
+  #_strict : bool
+  +root : Path
+  +<color:#008000><b>__init__(root: Path | str | None) -> None</b></color>
+  +<color:#008000><b>__new__() -> Self</b></color>
+  #<color:#008000><b>_detect_root(root: Path | str | None) -> Path</b></color>
+  #<color:#008000><b>_validate(path: Path, category: str) -> None</b></color>
+  +<color:#008000><b>clear_cache() -> None</b></color>
+  +<color:#008000><b>get_data(name: str) -> Path</b></color>
+  +<color:#008000><b>get_file(name: str) -> Path</b></color>
+  +<color:#008000><b>get_font(name: str) -> Path</b></color>
+  +<color:#008000><b>get_icon(name: str) -> Path</b></color>
+  +<color:#008000><b>get_image(name: str) -> Path</b></color>
+  +<color:#008000><b>get_music(name: str) -> Path</b></color>
+  +<color:#008000><b>get_resource(name: str) -> Path</b></color>
+  +<color:#008000><b>get_sound(name: str) -> Path</b></color>
+  +<color:#008000><b>instance() -> Self</b></color>
+  +<color:#008000><b>list_resources(category: str) -> list[Path]</b></color>
+  +<color:#008000><b>load_icon(name: str) -> QIcon</b></color>
+  +<color:#008000><b>load_pixmap(name: str) -> QPixmap</b></color>
+  +<color:#008000><b>load_sound(name: str) -> QSoundEffect</b></color>
+  +<color:#008000><b>reset() -> None</b></color>
+}
+class "<color:red>ResourceNotFoundError</color>" as companion4soloplayer.utils.resource_manager.ResourceNotFoundError #77AADD {
+}
+@enduml

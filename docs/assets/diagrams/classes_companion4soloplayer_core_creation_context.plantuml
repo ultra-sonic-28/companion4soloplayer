@@ -1,0 +1,32 @@
+@startuml classes_companion4soloplayer_core_creation_context
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "CharacterCreationContext" as companion4soloplayer.core.creation.context.CharacterCreationContext #77AADD {
+  #_operations : dict[str, list[Any]]
+  #_system : Mapping[str, Any]
+  +choices : dict[str, Any]
+  +executed_steps : list[str]
+  +operations : Mapping[str, Sequence[Any]]
+  +system : Mapping[str, Any]
+  +values : dict[str, Any]
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>__repr__() -> str</b></color>
+  #<color:#008000><b>_root(namespace: str) -> dict[str, Any]</b></color>
+  +<color:#008000><b>begin_evaluation() -> None</b></color>
+  +<color:#008000><b>effective(path: str, default: Any) -> Any</b></color>
+  +<color:#008000><b>export() -> dict[str, Any]</b></color>
+  +<color:#008000><b>get(path: str) -> Any</b></color>
+  +<color:#008000><b>has(path: str) -> bool</b></color>
+  +<color:#008000><b>mark_executed(step_id: str) -> None</b></color>
+  +<color:#008000><b>peek(path: str, default: Any) -> Any</b></color>
+  +<color:#008000><b>record(path: str, effect: Any) -> None</b></color>
+  +<color:#008000><b>set(path: str, value: Any) -> None</b></color>
+}
+class "<color:red>InvalidPathError</color>" as companion4soloplayer.core.creation.context.InvalidPathError #77AADD {
+}
+@enduml

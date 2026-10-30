@@ -1,0 +1,33 @@
+@startuml classes_companion4soloplayer_core_creation_pipeline
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "CharacterCreationPipeline" as companion4soloplayer.core.creation.pipeline.CharacterCreationPipeline #77AADD {
+  #_rules : RulesEngine
+  #_steps : tuple
+  #_stop_on_error : bool
+  #_system : dict
+  +rules : RulesEngine
+  +steps : tuple[CreationStep, ...]
+  +system : Mapping[str, Any]
+  +<color:#008000><b>__init__(steps: Sequence[CreationStep]) -> None</b></color>
+  +<color:#008000><b>__repr__() -> str</b></color>
+  #<color:#008000><b>_evaluate(context: CharacterCreationContext) -> EvaluationReport</b></color>
+  +<color:#008000><b>create_context() -> CharacterCreationContext</b></color>
+  +<color:#008000><b>run(context: CharacterCreationContext, inputs: InputProvider) -> CreationReport</b></color>
+}
+class "CreationReport" as companion4soloplayer.core.creation.pipeline.CreationReport #77AADD {
+  +completed : bool
+  +errors : tuple[str, ...]
+  +executed_steps : tuple[str, ...]
+  +ok : bool
+  +results : tuple[StepResult, ...]
+  +rules_fired : tuple[str, ...]
+  +total_steps : int
+  +<color:#008000><b>__init__(self, results: tuple[StepResult, ...], rules_fired: tuple[str, ...], total_steps: int) -> None</b></color>
+}
+@enduml

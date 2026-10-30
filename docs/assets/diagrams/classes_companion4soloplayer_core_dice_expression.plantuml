@@ -1,0 +1,22 @@
+@startuml classes_companion4soloplayer_core_dice_expression
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "DiceExpression" as companion4soloplayer.core.dice_expression.DiceExpression #77AADD {
+  +count : int
+  +modifier : int
+  +notation : str
+  +sides : int
+  +<color:#008000><b>__init__(self, count: int, sides: int, modifier: int) -> None</b></color>
+  +<color:#008000><b>__str__() -> str</b></color>
+  +<color:#008000><b>parse(value: DiceExpression | str) -> DiceExpression</b></color>
+  +<color:#008000><b>roll(roller: DiceRoller | None) -> int</b></color>
+  +<color:#008000><b>roll_detail(roller: DiceRoller | None) -> tuple[list[int], int]</b></color>
+}
+class "<color:red>DiceExpressionError</color>" as companion4soloplayer.core.dice_expression.DiceExpressionError #77AADD {
+}
+@enduml

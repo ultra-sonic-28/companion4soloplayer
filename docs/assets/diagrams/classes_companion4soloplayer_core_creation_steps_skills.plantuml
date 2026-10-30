@@ -1,0 +1,26 @@
+@startuml classes_companion4soloplayer_core_creation_steps_skills
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "SkillSelectionStep" as companion4soloplayer.core.creation.steps.skills.SkillSelectionStep #77AADD {
+  #_catalog : str
+  #_max_count : NoneType
+  #_min_count : int
+  #_mode : str
+  #_prompt : str
+  #_skill_filter : NoneType
+  #_target : str
+  #_working_target : str
+  +mode : str
+  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
+  +<color:#008000><b>available(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
+  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
+  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
+  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+}
+@enduml

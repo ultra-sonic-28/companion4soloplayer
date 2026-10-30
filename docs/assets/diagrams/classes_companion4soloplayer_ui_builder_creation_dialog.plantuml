@@ -1,0 +1,35 @@
+@startuml classes_companion4soloplayer_ui_builder_creation_dialog
+' --- Custom Styling: Visibility & Colors ---
+skinparam classAttributeFontColor #0055FF
+skinparam classAttributeFontStyle normal
+skinparam classFontColor #333333
+skinparam classFontStyle normal
+' -----------------------------------------------
+set namespaceSeparator none
+class "CharacterCreationDialog" as companion4soloplayer.ui.builder.creation_dialog.CharacterCreationDialog #77AADD {
+  #_builder : CharacterCreationDialogBuilder
+  #_container
+  #_context : CharacterCreationContext | None
+  #_form_layout
+  #_in_refresh : bool
+  #_pipeline : CharacterCreationPipeline
+  #_report : CreationReport | None
+  #_sections : list[StepSection]
+  +answers : dict[str, Any]
+  +cancel_button
+  +context : CharacterCreationContext | None
+  +error_label
+  +report : CreationReport | None
+  +sections : tuple[StepSection, ...]
+  +validate_button
+  +<color:#008000><b>__init__(pipeline: CharacterCreationPipeline, parent: QWidget | None) -> None</b></color>
+  #<color:#008000><b>_insert_section(section: StepSection) -> None</b></color>
+  #<color:#008000><b>_on_field_changed() -> None</b></color>
+  #<color:#008000><b>_on_roll(widget: DiceField) -> None</b></color>
+  #<color:#008000><b>_on_validate() -> None</b></color>
+  #<color:#008000><b>_refresh_sections() -> None</b></color>
+  #<color:#008000><b>_setup_ui() -> None</b></color>
+  #<color:#008000><b>_sync_sections(context: CharacterCreationContext) -> None</b></color>
+  #<color:#008000><b>_wire_section(section: StepSection) -> None</b></color>
+}
+@enduml
