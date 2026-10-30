@@ -936,7 +936,68 @@ skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------"""
+' -----------------------------------------------
+
+' 1. Public
+sprite $icon_public {
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000007777000000
+0000777777770000
+0007770000777000
+0007700000077000
+0007700000077000
+0007770000777000
+0000777777770000
+0000007777000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+}
+
+' 2. Protected
+sprite $icon_protected {
+0000000000000000
+0000000F00000000
+000000FFF0000000
+00000FFFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+00FFFFFFFFFFFF00
+0FFFFFFFFFFFFFF0
+0FFFFFFFFFFFFFF0
+00FFFFFFFFFFFF00
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+00000FFFFF000000
+000000FFF0000000
+0000000F00000000
+0000000000000000
+}
+
+' 3. Private
+sprite $icon_private {
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+}
+"""
 
     def get_python_visibility(name: str) -> str:
         """Determine UML visibility modifier from Python naming conventions."""
@@ -965,21 +1026,44 @@ skinparam classFontStyle normal
 
     total_matches = 0
 
+    # Legend block to be injected just before @enduml
+    legend_block = """
+' --- Visibility legend ---
+legend right
+  |= <b>Visibility legend</b> |
+  |= Icon |= Symbol |= Visibility |= Description |
+  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
+  | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+endlegend
+"""
+
     for puml_file in puml_files:
         session.log(f"Processing {puml_file.name}...")
+
+        # Check whether it is a class diagram (pyreverse generates "classes_<project>.puml")
+        is_class_diagram = "classes" in puml_file.name.lower()
         content = puml_file.read_text(encoding="utf-8")
         lines = content.splitlines()
 
         processed_lines = []
         style_injected = False
         in_class_block = False
+        enduml_found = False
 
         for line in lines:
+            # Inject the legend block just before @enduml
+            if line.strip().lower() == "@enduml":
+                if is_class_diagram:
+                    processed_lines.append(legend_block)
+                enduml_found = True
+
             processed_lines.append(line)
 
             # Inject the style block immediately after @startuml
             if not style_injected and line.strip().lower().startswith("@startuml"):
-                processed_lines.append(style_block)
+                if is_class_diagram:
+                    processed_lines.append(style_block)
                 style_injected = True
 
             # Detect the start of a PlantUML class block
@@ -1013,6 +1097,13 @@ skinparam classFontStyle normal
                         processed_lines[-1] = f"{indent}{visibility}{name}{rest}"
 
                     total_matches += 1
+
+        # Fallback: if @enduml was missing for some unexpected reason, append at the end
+        if not enduml_found and is_class_diagram:
+            if not style_injected:
+                # At the very beginning, if there is no @startuml
+                processed_lines.insert(0, style_block)
+            processed_lines.append(legend_block)
 
         puml_file.write_text("\n".join(processed_lines) + "\n", encoding="utf-8")
 

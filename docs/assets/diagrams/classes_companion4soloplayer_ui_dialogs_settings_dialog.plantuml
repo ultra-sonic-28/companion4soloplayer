@@ -5,6 +5,67 @@ skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
 ' -----------------------------------------------
+
+' 1. Public
+sprite $icon_public {
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000007777000000
+0000777777770000
+0007770000777000
+0007700000077000
+0007700000077000
+0007770000777000
+0000777777770000
+0000007777000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+}
+
+' 2. Protected
+sprite $icon_protected {
+0000000000000000
+0000000F00000000
+000000FFF0000000
+00000FFFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+00FFFFFFFFFFFF00
+0FFFFFFFFFFFFFF0
+0FFFFFFFFFFFFFF0
+00FFFFFFFFFFFF00
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+00000FFFFF000000
+000000FFF0000000
+0000000F00000000
+0000000000000000
+}
+
+' 3. Private
+sprite $icon_private {
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+}
+
 set namespaceSeparator none
 class "SettingsDialog" as companion4soloplayer.ui.dialogs.settings_dialog.SettingsDialog #77AADD {
   #_config : NoneType
@@ -24,4 +85,14 @@ class "SettingsDialog" as companion4soloplayer.ui.dialogs.settings_dialog.Settin
   +<color:#008000><b>accept() -> None</b></color>
   +<color:#008000><b>get_settings() -> dict</b></color>
 }
+
+' --- Visibility legend ---
+legend right
+  |= <b>Visibility legend</b> |
+  |= Icon |= Symbol |= Visibility |= Description |
+  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
+  | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+endlegend
+
 @enduml
