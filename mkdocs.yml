@@ -34,6 +34,7 @@ extra_javascript:
 
 plugins:
   - search
+  - include-markdown
   - mermaid2:
       version: 10.9.0
   - mkdocstrings:
@@ -80,6 +81,11 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+  - plantuml_markdown:
+      server: https://www.plantuml.com/plantuml
+      format: svg
+      classes: uml-diagram
+
 nav:
   - Accueil: index.md
   - 'User Guide':

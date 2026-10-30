@@ -93,6 +93,8 @@ docs = [
     "pymdown-extensions>=12.1",
     "black>=26.5.1",
     "pylint>=4.1.3",
+    "plantuml-markdown>=3.11.5",
+    "mkdocs-include-markdown-plugin>=7.3.0",
 ]
 
 # Diagrams build dependencies
