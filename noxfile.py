@@ -942,12 +942,11 @@ skinparam classFontStyle normal
         """Determine UML visibility modifier from Python naming conventions."""
         if name.startswith("__") and name.endswith("__"):
             return "+"
-        elif name.startswith("__"):
+        if name.startswith("__"):
             return "-"
-        elif name.startswith("_"):
+        if name.startswith("_"):
             return "#"
-        else:
-            return "+"
+        return "+"
 
     # Regex to detect the start of a PlantUML class block
     class_start_pattern = re.compile(r'^\s*class\s+["\w].*\{')
@@ -963,7 +962,7 @@ skinparam classFontStyle normal
     puml_files = list(Path(output_dir).glob("*.puml")) + list(Path(output_dir).glob("*.plantuml"))
     # Remove duplicates if any
     puml_files = list(set(puml_files))
-    
+
     total_matches = 0
 
     for puml_file in puml_files:
