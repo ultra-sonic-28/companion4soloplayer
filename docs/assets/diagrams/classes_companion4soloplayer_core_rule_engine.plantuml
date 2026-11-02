@@ -96,6 +96,13 @@ companion4soloplayer.core.rule_engine.ImplementationError --|> companion4solopla
 companion4soloplayer.core.rule_engine.ImplementationNotAllowedError --|> companion4soloplayer.core.rule_engine.ImplementationError
 companion4soloplayer.core.rule_engine.UnknownRuleKindError --|> companion4soloplayer.core.rule_engine.RuleEngineError
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.rule_engine.ImplementationError -[hidden]down-> companion4soloplayer.core.rule_engine.ImplementationNotAllowedError
+companion4soloplayer.core.rule_engine.ImplementationNotAllowedError -[hidden]down-> companion4soloplayer.core.rule_engine.RuleEngine
+companion4soloplayer.core.rule_engine.RuleEngine -[hidden]down-> companion4soloplayer.core.rule_engine.RuleEngineError
+companion4soloplayer.core.rule_engine.RuleEngineError -[hidden]down-> companion4soloplayer.core.rule_engine.UnknownRuleKindError
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

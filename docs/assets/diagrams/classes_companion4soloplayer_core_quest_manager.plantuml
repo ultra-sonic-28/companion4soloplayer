@@ -93,6 +93,12 @@ class "QuestStatus" as companion4soloplayer.core.quest_manager.QuestStatus #77AA
 companion4soloplayer.core.quest_manager.QuestManager --> companion4soloplayer.core.quest_manager.Quest : quests
 companion4soloplayer.core.quest_manager.Quest --> companion4soloplayer.core.quest_manager.QuestStatus : status
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.quest_manager.Objective -[hidden]down-> companion4soloplayer.core.quest_manager.Quest
+companion4soloplayer.core.quest_manager.Quest -[hidden]down-> companion4soloplayer.core.quest_manager.QuestManager
+companion4soloplayer.core.quest_manager.QuestManager -[hidden]down-> companion4soloplayer.core.quest_manager.QuestStatus
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

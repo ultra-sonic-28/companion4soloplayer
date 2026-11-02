@@ -357,6 +357,41 @@ companion4soloplayer.core.creation.rules.Condition --> companion4soloplayer.core
 companion4soloplayer.core.creation.steps.base.StepResult --> companion4soloplayer.core.creation.steps.base.StepStatus : status
 companion4soloplayer.core.creation.rules.RulesEngine --* companion4soloplayer.core.creation.pipeline.CharacterCreationPipeline : _rules
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.creation.rules.Action -[hidden]down-> companion4soloplayer.core.creation.steps.attributes.AttributeGenerationStep
+companion4soloplayer.core.creation.steps.attributes.AttributeGenerationStep -[hidden]down-> companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy
+companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy -[hidden]down-> companion4soloplayer.core.creation.context.CharacterCreationContext
+companion4soloplayer.core.creation.context.CharacterCreationContext -[hidden]down-> companion4soloplayer.core.creation.pipeline.CharacterCreationPipeline
+companion4soloplayer.core.creation.pipeline.CharacterCreationPipeline -[hidden]down-> companion4soloplayer.core.creation.rules.Condition
+companion4soloplayer.core.creation.rules.Condition -[hidden]down-> companion4soloplayer.core.creation.strategies.ConstantStrategy
+companion4soloplayer.core.creation.strategies.ConstantStrategy -[hidden]down-> companion4soloplayer.core.creation.pipeline.CreationReport
+companion4soloplayer.core.creation.pipeline.CreationReport -[hidden]down-> companion4soloplayer.core.creation.rules.CreationRule
+companion4soloplayer.core.creation.rules.CreationRule -[hidden]down-> companion4soloplayer.core.creation.steps.base.CreationStep
+companion4soloplayer.core.creation.steps.base.CreationStep -[hidden]down-> companion4soloplayer.core.creation.rules.Effect
+companion4soloplayer.core.creation.rules.Effect -[hidden]down-> companion4soloplayer.core.creation.rules.EvaluationReport
+companion4soloplayer.core.creation.rules.EvaluationReport -[hidden]down-> companion4soloplayer.core.creation.steps.identity.IdentityStep
+companion4soloplayer.core.creation.steps.identity.IdentityStep -[hidden]down-> companion4soloplayer.core.creation.inputs.InputError
+companion4soloplayer.core.creation.inputs.InputError -[hidden]down-> companion4soloplayer.core.creation.inputs.InputField
+companion4soloplayer.core.creation.inputs.InputField -[hidden]down-> companion4soloplayer.core.creation.inputs.InputKind
+companion4soloplayer.core.creation.inputs.InputKind -[hidden]down-> companion4soloplayer.core.creation.inputs.InputProvider
+companion4soloplayer.core.creation.inputs.InputProvider -[hidden]down-> companion4soloplayer.core.creation.inputs.InvalidAnswerError
+companion4soloplayer.core.creation.inputs.InvalidAnswerError -[hidden]down-> companion4soloplayer.core.creation.context.InvalidPathError
+companion4soloplayer.core.creation.context.InvalidPathError -[hidden]down-> companion4soloplayer.core.creation.inputs.MappingInputProvider
+companion4soloplayer.core.creation.inputs.MappingInputProvider -[hidden]down-> companion4soloplayer.core.creation.inputs.MissingInputError
+companion4soloplayer.core.creation.inputs.MissingInputError -[hidden]down-> companion4soloplayer.core.creation.rules.Operator
+companion4soloplayer.core.creation.rules.Operator -[hidden]down-> companion4soloplayer.core.creation.strategies.RollStrategy
+companion4soloplayer.core.creation.strategies.RollStrategy -[hidden]down-> companion4soloplayer.core.creation.rules.RuleDefinitionError
+companion4soloplayer.core.creation.rules.RuleDefinitionError -[hidden]down-> companion4soloplayer.core.creation.rules.RuleEvaluationError
+companion4soloplayer.core.creation.rules.RuleEvaluationError -[hidden]down-> companion4soloplayer.core.creation.rules.RulesEngine
+companion4soloplayer.core.creation.rules.RulesEngine -[hidden]down-> companion4soloplayer.core.creation.steps.selection.SelectionStep
+companion4soloplayer.core.creation.steps.selection.SelectionStep -[hidden]down-> companion4soloplayer.core.creation.steps.skills.SkillSelectionStep
+companion4soloplayer.core.creation.steps.skills.SkillSelectionStep -[hidden]down-> companion4soloplayer.core.creation.steps.spells.SpellSelectionStep
+companion4soloplayer.core.creation.steps.spells.SpellSelectionStep -[hidden]down-> companion4soloplayer.core.creation.steps.base.StepConfigurationError
+companion4soloplayer.core.creation.steps.base.StepConfigurationError -[hidden]down-> companion4soloplayer.core.creation.steps.base.StepResult
+companion4soloplayer.core.creation.steps.base.StepResult -[hidden]down-> companion4soloplayer.core.creation.steps.base.StepStatus
+companion4soloplayer.core.creation.steps.base.StepStatus -[hidden]down-> companion4soloplayer.core.creation.workflow.WorkflowError
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

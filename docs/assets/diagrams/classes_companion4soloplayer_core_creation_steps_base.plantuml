@@ -95,6 +95,12 @@ class "StepStatus" as companion4soloplayer.core.creation.steps.base.StepStatus #
 }
 companion4soloplayer.core.creation.steps.base.StepResult --> companion4soloplayer.core.creation.steps.base.StepStatus : status
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.creation.steps.base.CreationStep -[hidden]down-> companion4soloplayer.core.creation.steps.base.StepConfigurationError
+companion4soloplayer.core.creation.steps.base.StepConfigurationError -[hidden]down-> companion4soloplayer.core.creation.steps.base.StepResult
+companion4soloplayer.core.creation.steps.base.StepResult -[hidden]down-> companion4soloplayer.core.creation.steps.base.StepStatus
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

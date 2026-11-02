@@ -180,6 +180,18 @@ companion4soloplayer.ui.builder.fields.TextAreaField --|> companion4soloplayer.u
 companion4soloplayer.ui.builder.fields.TextField --|> companion4soloplayer.ui.builder.fields.FieldWidget
 companion4soloplayer.ui.builder.dialog_builder.CharacterCreationDialogBuilder --* companion4soloplayer.ui.builder.creation_dialog.CharacterCreationDialog : _builder
 
+' --- Force vertical alignment ---
+companion4soloplayer.ui.builder.creation_dialog.CharacterCreationDialog -[hidden]down-> companion4soloplayer.ui.builder.dialog_builder.CharacterCreationDialogBuilder
+companion4soloplayer.ui.builder.dialog_builder.CharacterCreationDialogBuilder -[hidden]down-> companion4soloplayer.ui.builder.fields.ChoiceField
+companion4soloplayer.ui.builder.fields.ChoiceField -[hidden]down-> companion4soloplayer.ui.builder.fields.DiceField
+companion4soloplayer.ui.builder.fields.DiceField -[hidden]down-> companion4soloplayer.ui.builder.fields.FieldWidget
+companion4soloplayer.ui.builder.fields.FieldWidget -[hidden]down-> companion4soloplayer.ui.builder.fields.NumberField
+companion4soloplayer.ui.builder.fields.NumberField -[hidden]down-> companion4soloplayer.ui.builder.fields.ReadOnlyField
+companion4soloplayer.ui.builder.fields.ReadOnlyField -[hidden]down-> companion4soloplayer.ui.builder.dialog_builder.StepSection
+companion4soloplayer.ui.builder.dialog_builder.StepSection -[hidden]down-> companion4soloplayer.ui.builder.fields.TextAreaField
+companion4soloplayer.ui.builder.fields.TextAreaField -[hidden]down-> companion4soloplayer.ui.builder.fields.TextField
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

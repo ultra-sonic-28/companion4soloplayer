@@ -113,6 +113,15 @@ companion4soloplayer.core.creation.inputs.InvalidAnswerError --|> companion4solo
 companion4soloplayer.core.creation.inputs.MissingInputError --|> companion4soloplayer.core.creation.inputs.InputError
 companion4soloplayer.core.creation.inputs.InputField --> companion4soloplayer.core.creation.inputs.InputKind : kind
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.creation.inputs.InputError -[hidden]down-> companion4soloplayer.core.creation.inputs.InputField
+companion4soloplayer.core.creation.inputs.InputField -[hidden]down-> companion4soloplayer.core.creation.inputs.InputKind
+companion4soloplayer.core.creation.inputs.InputKind -[hidden]down-> companion4soloplayer.core.creation.inputs.InputProvider
+companion4soloplayer.core.creation.inputs.InputProvider -[hidden]down-> companion4soloplayer.core.creation.inputs.InvalidAnswerError
+companion4soloplayer.core.creation.inputs.InvalidAnswerError -[hidden]down-> companion4soloplayer.core.creation.inputs.MappingInputProvider
+companion4soloplayer.core.creation.inputs.MappingInputProvider -[hidden]down-> companion4soloplayer.core.creation.inputs.MissingInputError
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

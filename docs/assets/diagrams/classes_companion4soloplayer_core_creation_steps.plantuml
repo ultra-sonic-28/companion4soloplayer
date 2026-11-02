@@ -186,6 +186,17 @@ companion4soloplayer.core.creation.steps.skills.SkillSelectionStep --|> companio
 companion4soloplayer.core.creation.steps.spells.SpellSelectionStep --|> companion4soloplayer.core.creation.steps.base.CreationStep
 companion4soloplayer.core.creation.steps.base.StepResult --> companion4soloplayer.core.creation.steps.base.StepStatus : status
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.creation.steps.attributes.AttributeGenerationStep -[hidden]down-> companion4soloplayer.core.creation.steps.base.CreationStep
+companion4soloplayer.core.creation.steps.base.CreationStep -[hidden]down-> companion4soloplayer.core.creation.steps.identity.IdentityStep
+companion4soloplayer.core.creation.steps.identity.IdentityStep -[hidden]down-> companion4soloplayer.core.creation.steps.selection.SelectionStep
+companion4soloplayer.core.creation.steps.selection.SelectionStep -[hidden]down-> companion4soloplayer.core.creation.steps.skills.SkillSelectionStep
+companion4soloplayer.core.creation.steps.skills.SkillSelectionStep -[hidden]down-> companion4soloplayer.core.creation.steps.spells.SpellSelectionStep
+companion4soloplayer.core.creation.steps.spells.SpellSelectionStep -[hidden]down-> companion4soloplayer.core.creation.steps.base.StepConfigurationError
+companion4soloplayer.core.creation.steps.base.StepConfigurationError -[hidden]down-> companion4soloplayer.core.creation.steps.base.StepResult
+companion4soloplayer.core.creation.steps.base.StepResult -[hidden]down-> companion4soloplayer.core.creation.steps.base.StepStatus
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

@@ -87,6 +87,11 @@ class "RollStrategy" as companion4soloplayer.core.creation.strategies.RollStrate
 companion4soloplayer.core.creation.strategies.ConstantStrategy --|> companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy
 companion4soloplayer.core.creation.strategies.RollStrategy --|> companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy -[hidden]down-> companion4soloplayer.core.creation.strategies.ConstantStrategy
+companion4soloplayer.core.creation.strategies.ConstantStrategy -[hidden]down-> companion4soloplayer.core.creation.strategies.RollStrategy
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

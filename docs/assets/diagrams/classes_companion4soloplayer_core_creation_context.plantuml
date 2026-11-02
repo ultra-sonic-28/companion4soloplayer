@@ -91,6 +91,10 @@ class "CharacterCreationContext" as companion4soloplayer.core.creation.context.C
 class "<color:red>InvalidPathError</color>" as companion4soloplayer.core.creation.context.InvalidPathError #77AADD {
 }
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.creation.context.CharacterCreationContext -[hidden]down-> companion4soloplayer.core.creation.context.InvalidPathError
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

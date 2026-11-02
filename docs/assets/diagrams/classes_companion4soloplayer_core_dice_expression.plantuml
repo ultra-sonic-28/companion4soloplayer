@@ -81,6 +81,10 @@ class "DiceExpression" as companion4soloplayer.core.dice_expression.DiceExpressi
 class "<color:red>DiceExpressionError</color>" as companion4soloplayer.core.dice_expression.DiceExpressionError #77AADD {
 }
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.dice_expression.DiceExpression -[hidden]down-> companion4soloplayer.core.dice_expression.DiceExpressionError
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

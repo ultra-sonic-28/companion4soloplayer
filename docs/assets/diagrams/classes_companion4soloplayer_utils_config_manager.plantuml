@@ -86,6 +86,10 @@ class "TooltipCornerType" as companion4soloplayer.utils.config_manager.TooltipCo
   +name
 }
 
+' --- Force vertical alignment ---
+companion4soloplayer.utils.config_manager.ConfigManager -[hidden]down-> companion4soloplayer.utils.config_manager.TooltipCornerType
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

@@ -132,6 +132,13 @@ class "SettingsDialog" as companion4soloplayer.ui.dialogs.settings_dialog.Settin
   +<color:#008000><b>get_settings() -> dict</b></color>
 }
 
+' --- Force vertical alignment ---
+companion4soloplayer.ui.dialogs.about_dialog.AboutDialog -[hidden]down-> companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog
+companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog -[hidden]down-> companion4soloplayer.ui.dialogs.plugins_dialog.PluginsDialog
+companion4soloplayer.ui.dialogs.plugins_dialog.PluginsDialog -[hidden]down-> companion4soloplayer.ui.dialogs.quest_wizard.QuestWizard
+companion4soloplayer.ui.dialogs.quest_wizard.QuestWizard -[hidden]down-> companion4soloplayer.ui.dialogs.settings_dialog.SettingsDialog
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

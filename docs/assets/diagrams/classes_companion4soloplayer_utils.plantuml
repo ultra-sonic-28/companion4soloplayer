@@ -175,6 +175,20 @@ class "_PluginSubmoduleFinder" as companion4soloplayer.utils.plugin_loader._Plug
   +<color:#008000><b>find_spec(fullname: str, path: Any, target: Any) -> importlib.machinery.ModuleSpec | None</b></color>
 }
 
+' --- Force vertical alignment ---
+companion4soloplayer.utils.yaml_loader.C4SPSafeLoader -[hidden]down-> companion4soloplayer.utils.config_manager.ConfigManager
+companion4soloplayer.utils.config_manager.ConfigManager -[hidden]down-> companion4soloplayer.utils.logger.LogMode
+companion4soloplayer.utils.logger.LogMode -[hidden]down-> companion4soloplayer.utils.plugin_config.PluginConfigRegistry
+companion4soloplayer.utils.plugin_config.PluginConfigRegistry -[hidden]down-> companion4soloplayer.utils.plugin_loader.PluginLoader
+companion4soloplayer.utils.plugin_loader.PluginLoader -[hidden]down-> companion4soloplayer.utils.yaml_loader.PyClassRef
+companion4soloplayer.utils.yaml_loader.PyClassRef -[hidden]down-> companion4soloplayer.utils.resource_manager.ResourceManager
+companion4soloplayer.utils.resource_manager.ResourceManager -[hidden]down-> companion4soloplayer.utils.resource_manager.ResourceNotFoundError
+companion4soloplayer.utils.resource_manager.ResourceNotFoundError -[hidden]down-> companion4soloplayer.utils.config_manager.TooltipCornerType
+companion4soloplayer.utils.config_manager.TooltipCornerType -[hidden]down-> companion4soloplayer.utils.yaml_loader.YamlLoadError
+companion4soloplayer.utils.yaml_loader.YamlLoadError -[hidden]down-> companion4soloplayer.utils.yaml_loader.YamlTagError
+companion4soloplayer.utils.yaml_loader.YamlTagError -[hidden]down-> companion4soloplayer.utils.plugin_loader._PluginSubmoduleFinder
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

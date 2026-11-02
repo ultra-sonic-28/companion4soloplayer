@@ -94,6 +94,10 @@ class "DescriptionTooltipFilter" as companion4soloplayer.ui.widgets.tooltip.Desc
 }
 companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip --o companion4soloplayer.ui.widgets.tooltip.DescriptionTooltipFilter : _tooltip
 
+' --- Force vertical alignment ---
+companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip -[hidden]down-> companion4soloplayer.ui.widgets.tooltip.DescriptionTooltipFilter
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

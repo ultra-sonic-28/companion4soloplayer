@@ -307,6 +307,27 @@ companion4soloplayer.ui.widgets.tooltip.DescriptionTooltipFilter --* companion4s
 companion4soloplayer.ui.widgets.tooltip.DescriptionTooltipFilter --* companion4soloplayer.ui.builder.fields.FieldWidget : _description_tooltip
 companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip --o companion4soloplayer.ui.widgets.tooltip.DescriptionTooltipFilter : _tooltip
 
+' --- Force vertical alignment ---
+companion4soloplayer.ui.dialogs.about_dialog.AboutDialog -[hidden]down-> companion4soloplayer.ui.builder.creation_dialog.CharacterCreationDialog
+companion4soloplayer.ui.builder.creation_dialog.CharacterCreationDialog -[hidden]down-> companion4soloplayer.ui.builder.dialog_builder.CharacterCreationDialogBuilder
+companion4soloplayer.ui.builder.dialog_builder.CharacterCreationDialogBuilder -[hidden]down-> companion4soloplayer.ui.builder.fields.ChoiceField
+companion4soloplayer.ui.builder.fields.ChoiceField -[hidden]down-> companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip
+companion4soloplayer.ui.widgets.tooltip.DescriptionTooltip -[hidden]down-> companion4soloplayer.ui.widgets.tooltip.DescriptionTooltipFilter
+companion4soloplayer.ui.widgets.tooltip.DescriptionTooltipFilter -[hidden]down-> companion4soloplayer.ui.builder.fields.DiceField
+companion4soloplayer.ui.builder.fields.DiceField -[hidden]down-> companion4soloplayer.ui.builder.fields.FieldWidget
+companion4soloplayer.ui.builder.fields.FieldWidget -[hidden]down-> companion4soloplayer.ui.main_window.MainWindow
+companion4soloplayer.ui.main_window.MainWindow -[hidden]down-> companion4soloplayer.ui.builder.fields.NumberField
+companion4soloplayer.ui.builder.fields.NumberField -[hidden]down-> companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog
+companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog -[hidden]down-> companion4soloplayer.ui.dialogs.plugins_dialog.PluginsDialog
+companion4soloplayer.ui.dialogs.plugins_dialog.PluginsDialog -[hidden]down-> companion4soloplayer.ui.dialogs.quest_wizard.QuestWizard
+companion4soloplayer.ui.dialogs.quest_wizard.QuestWizard -[hidden]down-> companion4soloplayer.ui.builder.fields.ReadOnlyField
+companion4soloplayer.ui.builder.fields.ReadOnlyField -[hidden]down-> companion4soloplayer.ui.dialogs.settings_dialog.SettingsDialog
+companion4soloplayer.ui.dialogs.settings_dialog.SettingsDialog -[hidden]down-> companion4soloplayer.ui.splash_window.SplashScreen
+companion4soloplayer.ui.splash_window.SplashScreen -[hidden]down-> companion4soloplayer.ui.builder.dialog_builder.StepSection
+companion4soloplayer.ui.builder.dialog_builder.StepSection -[hidden]down-> companion4soloplayer.ui.builder.fields.TextAreaField
+companion4soloplayer.ui.builder.fields.TextAreaField -[hidden]down-> companion4soloplayer.ui.builder.fields.TextField
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

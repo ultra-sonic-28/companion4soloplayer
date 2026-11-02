@@ -139,6 +139,16 @@ class "PluginMetadata" as companion4soloplayer.plugins.demo_plugin.manifest.Plug
 }
 companion4soloplayer.plugins.demo_plugin.manifest.PluginMetadata --* companion4soloplayer.plugins.demo_plugin.plugin.Plugin : _metadata
 
+' --- Force vertical alignment ---
+companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule.CharacterCreationRule -[hidden]down-> companion4soloplayer.plugins.demo_plugin.creation.strategies.ClassSavesStrategy
+companion4soloplayer.plugins.demo_plugin.creation.strategies.ClassSavesStrategy -[hidden]down-> companion4soloplayer.plugins.demo_plugin.rules.combat_rule.CombatRule
+companion4soloplayer.plugins.demo_plugin.rules.combat_rule.CombatRule -[hidden]down-> companion4soloplayer.plugins.demo_plugin.creation.strategies.FourSixKeepBestStrategy
+companion4soloplayer.plugins.demo_plugin.creation.strategies.FourSixKeepBestStrategy -[hidden]down-> companion4soloplayer.plugins.demo_plugin.rules.loot_rule.LootRule
+companion4soloplayer.plugins.demo_plugin.rules.loot_rule.LootRule -[hidden]down-> companion4soloplayer.plugins.demo_plugin.rules.magic_rule.MagicRule
+companion4soloplayer.plugins.demo_plugin.rules.magic_rule.MagicRule -[hidden]down-> companion4soloplayer.plugins.demo_plugin.plugin.Plugin
+companion4soloplayer.plugins.demo_plugin.plugin.Plugin -[hidden]down-> companion4soloplayer.plugins.demo_plugin.manifest.PluginMetadata
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

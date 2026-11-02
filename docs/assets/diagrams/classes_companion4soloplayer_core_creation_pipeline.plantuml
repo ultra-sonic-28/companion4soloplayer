@@ -92,6 +92,10 @@ class "CreationReport" as companion4soloplayer.core.creation.pipeline.CreationRe
   +<color:#008000><b>__init__(self, results: tuple[StepResult, ...], rules_fired: tuple[str, ...], total_steps: int) -> None</b></color>
 }
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.creation.pipeline.CharacterCreationPipeline -[hidden]down-> companion4soloplayer.core.creation.pipeline.CreationReport
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

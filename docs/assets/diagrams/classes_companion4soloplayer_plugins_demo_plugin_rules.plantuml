@@ -99,6 +99,12 @@ class "MagicRule" as companion4soloplayer.plugins.demo_plugin.rules.magic_rule.M
   +<color:#008000><b>cast(spell: str, caster: Mapping[str, Any], roller: DiceRoller | None) -> dict</b></color>
 }
 
+' --- Force vertical alignment ---
+companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule.CharacterCreationRule -[hidden]down-> companion4soloplayer.plugins.demo_plugin.rules.combat_rule.CombatRule
+companion4soloplayer.plugins.demo_plugin.rules.combat_rule.CombatRule -[hidden]down-> companion4soloplayer.plugins.demo_plugin.rules.loot_rule.LootRule
+companion4soloplayer.plugins.demo_plugin.rules.loot_rule.LootRule -[hidden]down-> companion4soloplayer.plugins.demo_plugin.rules.magic_rule.MagicRule
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

@@ -85,6 +85,10 @@ class "CharacterTracker" as companion4soloplayer.core.character_tracker.Characte
 }
 companion4soloplayer.core.character_tracker.CharacterTracker --> companion4soloplayer.core.character_tracker.Character : characters
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.character_tracker.Character -[hidden]down-> companion4soloplayer.core.character_tracker.CharacterTracker
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

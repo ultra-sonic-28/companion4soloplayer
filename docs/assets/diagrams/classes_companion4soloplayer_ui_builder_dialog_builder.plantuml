@@ -87,6 +87,10 @@ class "StepSection" as companion4soloplayer.ui.builder.dialog_builder.StepSectio
   +<color:#008000><b>__init__(self, step_id: str, label: str, box: QGroupBox, rows: tuple[tuple[InputField, FieldWidget], ...]) -> None</b></color>
 }
 
+' --- Force vertical alignment ---
+companion4soloplayer.ui.builder.dialog_builder.CharacterCreationDialogBuilder -[hidden]down-> companion4soloplayer.ui.builder.dialog_builder.StepSection
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

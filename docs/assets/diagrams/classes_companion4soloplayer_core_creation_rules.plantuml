@@ -125,6 +125,17 @@ companion4soloplayer.core.creation.rules.Effect --> companion4soloplayer.core.cr
 companion4soloplayer.core.creation.rules.RulesEngine --> companion4soloplayer.core.creation.rules.CreationRule : _rules
 companion4soloplayer.core.creation.rules.Condition --> companion4soloplayer.core.creation.rules.Operator : operator
 
+' --- Force vertical alignment ---
+companion4soloplayer.core.creation.rules.Action -[hidden]down-> companion4soloplayer.core.creation.rules.Condition
+companion4soloplayer.core.creation.rules.Condition -[hidden]down-> companion4soloplayer.core.creation.rules.CreationRule
+companion4soloplayer.core.creation.rules.CreationRule -[hidden]down-> companion4soloplayer.core.creation.rules.Effect
+companion4soloplayer.core.creation.rules.Effect -[hidden]down-> companion4soloplayer.core.creation.rules.EvaluationReport
+companion4soloplayer.core.creation.rules.EvaluationReport -[hidden]down-> companion4soloplayer.core.creation.rules.Operator
+companion4soloplayer.core.creation.rules.Operator -[hidden]down-> companion4soloplayer.core.creation.rules.RuleDefinitionError
+companion4soloplayer.core.creation.rules.RuleDefinitionError -[hidden]down-> companion4soloplayer.core.creation.rules.RuleEvaluationError
+companion4soloplayer.core.creation.rules.RuleEvaluationError -[hidden]down-> companion4soloplayer.core.creation.rules.RulesEngine
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

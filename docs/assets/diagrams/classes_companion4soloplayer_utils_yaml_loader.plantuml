@@ -83,6 +83,12 @@ class "<color:red>YamlLoadError</color>" as companion4soloplayer.utils.yaml_load
 class "<color:red>YamlTagError</color>" as companion4soloplayer.utils.yaml_loader.YamlTagError #77AADD {
 }
 
+' --- Force vertical alignment ---
+companion4soloplayer.utils.yaml_loader.C4SPSafeLoader -[hidden]down-> companion4soloplayer.utils.yaml_loader.PyClassRef
+companion4soloplayer.utils.yaml_loader.PyClassRef -[hidden]down-> companion4soloplayer.utils.yaml_loader.YamlLoadError
+companion4soloplayer.utils.yaml_loader.YamlLoadError -[hidden]down-> companion4soloplayer.utils.yaml_loader.YamlTagError
+
+
 ' --- Visibility legend ---
 legend right
   |= <b>Visibility legend</b> |

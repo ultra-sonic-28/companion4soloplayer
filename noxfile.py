@@ -1012,7 +1012,11 @@ sprite $icon_private {
     # Regex to detect the start of a PlantUML class block
     class_start_pattern = re.compile(r'^\s*class\s+["\w].*\{')
 
-    # FIXED Regex: Captures 4 groups for both attributes and methods
+    # Regex to extract the alias or class name for hidden links
+    # Handles: class "Name" as alias #color {  OR  class "Name" #color {  OR  class Name {
+    class_alias_pattern = re.compile(r'^\s*class\s+(?:"[^"]+"\s+as\s+)?([a-zA-Z0-9_.]+|"[^"]+")\s*(?:#.*?)?\s*\{')
+
+    # Captures 4 groups for both attributes and methods
     # Group 1: indent (\s+)
     # Group 2: optional existing visibility modifier ([\+\-\#~]\s*)?
     # Group 3: the actual name (\w+)
@@ -1051,10 +1055,27 @@ endlegend
         in_class_block = False
         enduml_found = False
 
+        # List to store the classes in the order of their appearance
+        class_aliases = []
+
         for line in lines:
-            # Inject the legend block just before @enduml
+            # Dynamic extraction of aliases/class names
+            if is_class_diagram:
+                alias_match = class_alias_pattern.match(line)
+                if alias_match:
+                    # Remove any quotation marks to obtain a proper noun
+                    class_aliases.append(alias_match.group(1).strip('"'))
+
+            # Injection of hidden links and the legend just before @enduml
             if line.strip().lower() == "@enduml":
                 if is_class_diagram:
+                    # Création de la chaîne de liens cachés uniquement si > 1 classe
+                    if len(class_aliases) > 1:
+                        processed_lines.append("\n' --- Force vertical alignment ---")
+                        for i in range(len(class_aliases) - 1):
+                            processed_lines.append(f"{class_aliases[i]} -[hidden]down-> {class_aliases[i+1]}")
+                        processed_lines.append("")
+
                     processed_lines.append(legend_block)
                 enduml_found = True
 
@@ -1103,6 +1124,14 @@ endlegend
             if not style_injected:
                 # At the very beginning, if there is no @startuml
                 processed_lines.insert(0, style_block)
+
+            # Inject hidden links in fallback scenario too
+            if len(class_aliases) > 1:
+                processed_lines.append("\n' --- Force vertical alignment ---")
+                for i in range(len(class_aliases) - 1):
+                    processed_lines.append(f"{class_aliases[i]} -[hidden]down-> {class_aliases[i+1]}")
+                processed_lines.append("")
+
             processed_lines.append(legend_block)
 
         puml_file.write_text("\n".join(processed_lines) + "\n", encoding="utf-8")
