@@ -1,1 +1,5 @@
+## Class diagram
+```plantuml format="svg" source="docs/assets/diagrams/classes_companion4soloplayer_core_quest_manager.plantuml"
+```
+
 ::: core.quest_manager
