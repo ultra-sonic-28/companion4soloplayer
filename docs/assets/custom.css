@@ -41,3 +41,73 @@ footer {
     }
 }
 
+/* --- Left navigation: windmill style + read the docs --- */
+
+/* ========================================
+   Hierarchy of levels (bold/normal)
+   ======================================== */
+
+/* LEVEL 1: Main sections in BOLD */
+.md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link {
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-top: 1.2rem;
+    margin-bottom: 0.4rem;
+    color: var(--md-default-fg-color);
+}
+
+/* LEVEL 2: Sub-sections in NORMAL */
+.md-nav__item .md-nav__list > .md-nav__item > .md-nav__link {
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: var(--md-default-fg-color--light);
+}
+
+/* LEVEL 3: Sub-sub-sections in NORMAL (smaller) */
+.md-nav__item .md-nav__list .md-nav__list > .md-nav__item > .md-nav__link {
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--md-default-fg-color--lighter);
+}
+
+/* LEVEL 4+: Even smaller if necessary */
+.md-nav__item .md-nav__list .md-nav__list .md-nav__list > .md-nav__item > .md-nav__link {
+    font-size: 0.75rem;
+    color: var(--md-default-fg-color--lighter);
+}
+
+/* ========================================
+   Indentation and vertical lines
+   ======================================== */
+
+/* Left border for sub-levels */
+.md-nav__item .md-nav__list {
+    border-left: 2px solid var(--md-accent-fg-color--transparent);
+    margin-left: 0.6rem;
+    padding-left: 0.8rem;
+}
+
+/* Vertical spacing */
+.md-nav__item {
+    margin: 0.2rem 0;
+}
+
+/* ========================================
+   Active status and hover
+   ======================================== */
+
+/* Active page */
+.md-nav__link--active {
+    font-weight: 600 !important;
+    color: var(--md-accent-fg-color) !important;
+    background-color: var(--md-accent-fg-color--transparent);
+    border-radius: 4px;
+    padding: 0.3rem 0.5rem !important;
+}
+
+/* Hover */
+.md-nav__link:hover {
+    color: var(--md-accent-fg-color);
+}
