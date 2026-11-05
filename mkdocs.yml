@@ -172,3 +172,19 @@ nav:
       - 'Plugin Loader': 'companion4soloplayer/utils/plugin_loader.md'
       - 'Resource Manager': 'companion4soloplayer/utils/resource_manager.md'
       - 'YAML Loader': 'companion4soloplayer/utils/yaml_loader.md'
+    - Packages:
+      - Application: 'companion4soloplayer/packages/app/application.md'
+      - Core:
+        - 'Creation': 'companion4soloplayer/packages/core/creation.md'
+        - 'Creation Steps': 'companion4soloplayer/packages/core/creation_steps.md'
+        - 'Interface': 'companion4soloplayer/packages/core/interface.md'
+        - 'Rules': 'companion4soloplayer/packages/core/rules.md'
+      - Plugins:
+        - Demo:
+          - Creation: 'companion4soloplayer/packages/plugins/demo/creation.md'
+          - Rules: 'companion4soloplayer/packages/plugins/demo/rules.md'
+      - UI:
+        - Builder: 'companion4soloplayer/packages/ui/builder.md'
+        - Dialogs: 'companion4soloplayer/packages/ui/dialogs.md'
+        - Widgets: 'companion4soloplayer/packages/ui/widgets.md'
+      - Utils: 'companion4soloplayer/packages/utils/utils.md'
