@@ -4,7 +4,7 @@
 
 **Companion4SoloPlayer (C4SP)** is a modular, open-source desktop companion application designed for tabletop dungeon crawler board games and solo/co-op tabletop role-playing games (TTRPGs). It assists players and Game Masters alike by automating tedious bookkeeping, generating dynamic dungeon scenarios, rolling dice, tracking quest progression, resolving combat encounters, and supporting multiple game systems through a clean plugin architecture.
 
-**GitHub repository**: [to be created]
+**GitHub repository**: https://github.com/ultra-sonic-28/companion4soloplayer
 **License**: MIT
 **Language**: Python 3.13+
 **Target platform**: Windows (standalone binary)
@@ -353,6 +353,7 @@ and the `main()` wiring test in `tests/tests_ui/test_main_window.py`.
 - **Type hints**: Mandatory for all public functions
 - **mypy**: Static type checking
 - **Pydantic**: JSON data validation
+- **Return type**: Functions or methods must always return type annotation
 
 #### 1.3 Naming
 - **Variables/functions**: snake_case
@@ -360,6 +361,9 @@ and the `main()` wiring test in `tests/tests_ui/test_main_window.py`.
 - **Constants**: UPPER_SNAKE_CASE
 - **Modules**: snake_case
 - **Plugins**: gamename_plugin (e.g. demo_plugin)
+
+#### 1.4 Documenting
+- Always document classes, functions and methods in english
 
 ### 2. Plugin management
 
@@ -415,6 +419,7 @@ Tests must be organized as follows:
 Google format is mandatory for all public functions, with:
 - Short description
 - Detailed description (if necessary)
+- Always document classes, functions and methods in english
 - `Args:` section for parameters
 - `Returns:` section for the return value
 - `Raises:` section for exceptions
@@ -566,9 +571,8 @@ Each run:
 
 For any legal or technical question:
 - Open an issue on GitHub
-- Contact the maintainer: [your.email@example.com]
 
 ---
 
-**Last updated**: 2026-10-15
-**Document version**: 1.3.1
+**Last updated**: 2026-11-05
+**Document version**: 1.3.2
