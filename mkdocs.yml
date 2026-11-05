@@ -127,8 +127,29 @@ nav:
           - 'Skills': 'companion4soloplayer/core/creation/steps/skills.md'
           - 'Spells': 'companion4soloplayer/core/creation/steps/spells.md'
     - Plugins:
+      - Demo:
+        - 'Data': 'companion4soloplayer/plugins/demo_plugin/data.md'
+        - 'Manifest': 'companion4soloplayer/plugins/demo_plugin/manifest.md'
+        - 'Plugin': 'companion4soloplayer/plugins/demo_plugin/plugin.md'
+        - Creation:
+          - 'Filters': 'companion4soloplayer/plugins/demo_plugin/creation/filters.md'
+          - 'Strategies': 'companion4soloplayer/plugins/demo_plugin/creation/strategies.md'
+          - 'Workflow': 'companion4soloplayer/plugins/demo_plugin/creation/workflow.md'
+        - Rules:
+          - 'Character Creation Rules': 'companion4soloplayer/plugins/demo_plugin/rules/character_creation_rule.md'
+          - 'Combat Rules': 'companion4soloplayer/plugins/demo_plugin/rules/combat_rule.md'
+          - 'Loot Rules': 'companion4soloplayer/plugins/demo_plugin/rules/loot_rule.md'
+          - 'Magic Rules': 'companion4soloplayer/plugins/demo_plugin/rules/magic_rule.md'
       - 'Demo': 'companion4soloplayer/plugins/demo_plugin/plugin.md'
-      - 'Demo Character Creation': 'companion4soloplayer/plugins/demo_plugin/creation.md'
+      - Creation:
+        - 'Filters': 'companion4soloplayer/plugins/demo_plugin/creation/filters.md'
+        - 'Strategies': 'companion4soloplayer/plugins/demo_plugin/creation/strategies.md'
+        - 'Workflow': 'companion4soloplayer/plugins/demo_plugin/creation/workflow.md'
+      - Rules:
+        - 'Character Creation Rules': 'companion4soloplayer/plugins/demo_plugin/rules/character_creation_rule.md'
+        - 'Combat Rules': 'companion4soloplayer/plugins/demo_plugin/rules/combat_rule.md'
+        - 'Loot Rules': 'companion4soloplayer/plugins/demo_plugin/rules/loot_rule.md'
+        - 'Magic Rules': 'companion4soloplayer/plugins/demo_plugin/rules/magic_rule.md'
     - UI:
         - Windows:
           - 'MainWindow': 'companion4soloplayer/ui/main_window.md'
