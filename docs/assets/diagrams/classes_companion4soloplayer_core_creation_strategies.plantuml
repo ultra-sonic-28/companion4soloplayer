@@ -1,25 +1,38 @@
 @startuml classes_companion4soloplayer_core_creation_strategies
+
+' -----------------------------------------------
 ' --- Custom Styling: Visibility & Colors ---
 skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------
+skinparam Shadowing true
 
+' --- Legend color configuration ---
+<style>
+legend {
+  BackGroundColor #FFF8DC
+  LineColor       #B8860B
+  FontColor       #333333
+  FontSize        12
+}
+</style>
+' -----------------------------------------------
+' --- Custom icons ---
 ' 1. Public
 sprite $icon_public {
 0000000000000000
 0000000000000000
 0000000000000000
 0000000000000000
-0000007777000000
-0000777777770000
-0007770000777000
-0007700000077000
-0007700000077000
-0007770000777000
-0000777777770000
-0000007777000000
+000000FFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+000000FFFF000000
 0000000000000000
 0000000000000000
 0000000000000000
@@ -65,24 +78,25 @@ sprite $icon_private {
 0000000000000000
 0000000000000000
 }
+' -----------------------------------------------
 
 set namespaceSeparator none
-class "AttributeGenerationStrategy" as companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy #77AADD {
-  {abstract}roll(attribute: str, roller: DiceRoller) -> int
-  +<color:#008000><b>roll_for(attribute: str, roller: DiceRoller, context: CharacterCreationContext) -> int</b></color>
+class "AttributeGenerationStrategy" as companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy {
+  +<color:#FF0000>{abstract}roll(attribute: str, roller: DiceRoller) -> int</color>
+  +<color:#008000>roll_for(attribute: str, roller: DiceRoller, context: CharacterCreationContext) -> int</color>
 }
-class "ConstantStrategy" as companion4soloplayer.core.creation.strategies.ConstantStrategy #77AADD {
+class "ConstantStrategy" as companion4soloplayer.core.creation.strategies.ConstantStrategy {
   +value : int
-  +<color:#008000><b>__init__(value: int) -> None</b></color>
-  +<color:#008000><b>roll(attribute: str, roller: DiceRoller) -> int</b></color>
+  +<color:#008000>__init__(value: int) -> None</color>
+  +<color:#008000>roll(attribute: str, roller: DiceRoller) -> int</color>
 }
-class "RollStrategy" as companion4soloplayer.core.creation.strategies.RollStrategy #77AADD {
+class "RollStrategy" as companion4soloplayer.core.creation.strategies.RollStrategy {
   +dice : DiceExpression
   +keep : NoneType
   +keep_best : bool
-  +<color:#008000><b>__init__(dice: DiceExpression | str) -> None</b></color>
-  +<color:#008000><b>roll(attribute: str, roller: DiceRoller) -> int</b></color>
-  +<color:#008000><b>roll_detail(attribute: str, roller: DiceRoller) -> tuple[list[int], int]</b></color>
+  +<color:#008000>__init__(dice: DiceExpression | str) -> None</color>
+  +<color:#008000>roll(attribute: str, roller: DiceRoller) -> int</color>
+  +<color:#008000>roll_detail(attribute: str, roller: DiceRoller) -> tuple[list[int], int]</color>
 }
 companion4soloplayer.core.creation.strategies.ConstantStrategy --|> companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy
 companion4soloplayer.core.creation.strategies.RollStrategy --|> companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy
@@ -94,11 +108,17 @@ companion4soloplayer.core.creation.strategies.ConstantStrategy -[hidden]down-> c
 
 ' --- Visibility legend ---
 legend right
-  |= <b>Visibility legend</b> |
+  <size:14><b><color:#B8860B>Visibility legend</color></b></size>
+
   |= Icon |= Symbol |= Visibility |= Description |
-  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#84BE84><$icon_public></color> | + | Public | Public access |
   | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
   | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+
+  <size:14><b><color:#B8860B>Notes</color></b></size>
+  * <color:#FF0000>Abstract methods</color> are displayed in <color:#FF0000>red</color> and in <color:#FF0000><i>italics</i></color>.
+  * <color:#008000>Concrete methods</color> are displayed in <color:#008000>green</color>.
+  * Attributes follow the standard visibility color scheme.
 endlegend
 
 @enduml

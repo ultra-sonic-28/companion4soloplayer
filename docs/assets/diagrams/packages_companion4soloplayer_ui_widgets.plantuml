@@ -1,8 +1,8 @@
 @startuml packages_companion4soloplayer_ui_widgets
 set namespaceSeparator none
-package "companion4soloplayer.ui.widgets" as companion4soloplayer.ui.widgets #77AADD {
+package "companion4soloplayer.ui.widgets" as companion4soloplayer.ui.widgets {
 }
-package "companion4soloplayer.ui.widgets.tooltip" as companion4soloplayer.ui.widgets.tooltip #77AADD {
+package "companion4soloplayer.ui.widgets.tooltip" as companion4soloplayer.ui.widgets.tooltip {
 }
 companion4soloplayer.ui.widgets --> companion4soloplayer.ui.widgets.tooltip
 @enduml

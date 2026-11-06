@@ -1,25 +1,38 @@
 @startuml classes_companion4soloplayer_core_creation_inputs
+
+' -----------------------------------------------
 ' --- Custom Styling: Visibility & Colors ---
 skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------
+skinparam Shadowing true
 
+' --- Legend color configuration ---
+<style>
+legend {
+  BackGroundColor #FFF8DC
+  LineColor       #B8860B
+  FontColor       #333333
+  FontSize        12
+}
+</style>
+' -----------------------------------------------
+' --- Custom icons ---
 ' 1. Public
 sprite $icon_public {
 0000000000000000
 0000000000000000
 0000000000000000
 0000000000000000
-0000007777000000
-0000777777770000
-0007770000777000
-0007700000077000
-0007700000077000
-0007770000777000
-0000777777770000
-0000007777000000
+000000FFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+000000FFFF000000
 0000000000000000
 0000000000000000
 0000000000000000
@@ -65,11 +78,12 @@ sprite $icon_private {
 0000000000000000
 0000000000000000
 }
+' -----------------------------------------------
 
 set namespaceSeparator none
-class "<color:red>InputError</color>" as companion4soloplayer.core.creation.inputs.InputError #77AADD {
+class "<color:red>InputError</color>" as companion4soloplayer.core.creation.inputs.InputError {
 }
-class "InputField" as companion4soloplayer.core.creation.inputs.InputField #77AADD {
+class "InputField" as companion4soloplayer.core.creation.inputs.InputField {
   +description : str
   +key : str
   +kind
@@ -83,31 +97,31 @@ class "InputField" as companion4soloplayer.core.creation.inputs.InputField #77AA
   +required : bool
   +roll : Callable[[], int] | None
   +value : int | str | None
-  +<color:#008000><b>__init__(self, key: str, label: str, kind: InputKind, options: tuple[str, ...], required: bool, min_count: int, max_count: int | None, min_value: int | None, max_value: int | None, roll: Callable[[], int] | None, description: str, option_descriptions: tuple[tuple[str, str], ...], value: int | str | None) -> None</b></color>
-  +<color:#008000><b>option_description(option: str) -> str</b></color>
+  +<color:#008000>__init__(self, key: str, label: str, kind: InputKind, options: tuple[str, ...], required: bool, min_count: int, max_count: int | None, min_value: int | None, max_value: int | None, roll: Callable[[], int] | None, description: str, option_descriptions: tuple[tuple[str, str], ...], value: int | str | None) -> None</color>
+  +<color:#008000>option_description(option: str) -> str</color>
 }
-class "InputKind" as companion4soloplayer.core.creation.inputs.InputKind #77AADD {
+class "InputKind" as companion4soloplayer.core.creation.inputs.InputKind {
   +name
 }
-class "InputProvider" as companion4soloplayer.core.creation.inputs.InputProvider #77AADD {
-  +<color:#008000><b>ask_choice(key: str, prompt: str, options: Sequence[Any]) -> Any</b></color>
-  +<color:#008000><b>ask_many(key: str, prompt: str, options: Sequence[Any]) -> list[Any]</b></color>
-  +<color:#008000><b>ask_number(key: str, prompt: str) -> int</b></color>
-  +<color:#008000><b>ask_text(key: str, prompt: str) -> str</b></color>
+class "InputProvider" as companion4soloplayer.core.creation.inputs.InputProvider {
+  +<color:#008000>ask_choice(key: str, prompt: str, options: Sequence[Any]) -> Any</color>
+  +<color:#008000>ask_many(key: str, prompt: str, options: Sequence[Any]) -> list[Any]</color>
+  +<color:#008000>ask_number(key: str, prompt: str) -> int</color>
+  +<color:#008000>ask_text(key: str, prompt: str) -> str</color>
 }
-class "<color:red>InvalidAnswerError</color>" as companion4soloplayer.core.creation.inputs.InvalidAnswerError #77AADD {
+class "<color:red>InvalidAnswerError</color>" as companion4soloplayer.core.creation.inputs.InvalidAnswerError {
 }
-class "MappingInputProvider" as companion4soloplayer.core.creation.inputs.MappingInputProvider #77AADD {
+class "MappingInputProvider" as companion4soloplayer.core.creation.inputs.MappingInputProvider {
   #_answers : dict[str, Any]
   +answers : Mapping[str, Any]
-  +<color:#008000><b>__init__(answers: Mapping[str, Any] | None) -> None</b></color>
-  #<color:#008000><b>_to_int(key: str, answer: Any) -> int</b></color>
-  +<color:#008000><b>ask_choice(key: str, prompt: str, options: Sequence[Any]) -> Any</b></color>
-  +<color:#008000><b>ask_many(key: str, prompt: str, options: Sequence[Any]) -> list[Any]</b></color>
-  +<color:#008000><b>ask_number(key: str, prompt: str) -> int</b></color>
-  +<color:#008000><b>ask_text(key: str, prompt: str) -> str</b></color>
+  +<color:#008000>__init__(answers: Mapping[str, Any] | None) -> None</color>
+  #<color:#008000>_to_int(key: str, answer: Any) -> int</color>
+  +<color:#008000>ask_choice(key: str, prompt: str, options: Sequence[Any]) -> Any</color>
+  +<color:#008000>ask_many(key: str, prompt: str, options: Sequence[Any]) -> list[Any]</color>
+  +<color:#008000>ask_number(key: str, prompt: str) -> int</color>
+  +<color:#008000>ask_text(key: str, prompt: str) -> str</color>
 }
-class "<color:red>MissingInputError</color>" as companion4soloplayer.core.creation.inputs.MissingInputError #77AADD {
+class "<color:red>MissingInputError</color>" as companion4soloplayer.core.creation.inputs.MissingInputError {
 }
 companion4soloplayer.core.creation.inputs.InvalidAnswerError --|> companion4soloplayer.core.creation.inputs.InputError
 companion4soloplayer.core.creation.inputs.MissingInputError --|> companion4soloplayer.core.creation.inputs.InputError
@@ -124,11 +138,17 @@ companion4soloplayer.core.creation.inputs.MappingInputProvider -[hidden]down-> c
 
 ' --- Visibility legend ---
 legend right
-  |= <b>Visibility legend</b> |
+  <size:14><b><color:#B8860B>Visibility legend</color></b></size>
+
   |= Icon |= Symbol |= Visibility |= Description |
-  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#84BE84><$icon_public></color> | + | Public | Public access |
   | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
   | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+
+  <size:14><b><color:#B8860B>Notes</color></b></size>
+  * <color:#FF0000>Abstract methods</color> are displayed in <color:#FF0000>red</color> and in <color:#FF0000><i>italics</i></color>.
+  * <color:#008000>Concrete methods</color> are displayed in <color:#008000>green</color>.
+  * Attributes follow the standard visibility color scheme.
 endlegend
 
 @enduml

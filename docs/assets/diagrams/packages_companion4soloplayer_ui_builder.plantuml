@@ -1,12 +1,12 @@
 @startuml packages_companion4soloplayer_ui_builder
 set namespaceSeparator none
-package "companion4soloplayer.ui.builder" as companion4soloplayer.ui.builder #77AADD {
+package "companion4soloplayer.ui.builder" as companion4soloplayer.ui.builder {
 }
-package "companion4soloplayer.ui.builder.creation_dialog" as companion4soloplayer.ui.builder.creation_dialog #77AADD {
+package "companion4soloplayer.ui.builder.creation_dialog" as companion4soloplayer.ui.builder.creation_dialog {
 }
-package "companion4soloplayer.ui.builder.dialog_builder" as companion4soloplayer.ui.builder.dialog_builder #77AADD {
+package "companion4soloplayer.ui.builder.dialog_builder" as companion4soloplayer.ui.builder.dialog_builder {
 }
-package "companion4soloplayer.ui.builder.fields" as companion4soloplayer.ui.builder.fields #77AADD {
+package "companion4soloplayer.ui.builder.fields" as companion4soloplayer.ui.builder.fields {
 }
 companion4soloplayer.ui.builder --> companion4soloplayer.ui.builder.creation_dialog
 companion4soloplayer.ui.builder --> companion4soloplayer.ui.builder.dialog_builder

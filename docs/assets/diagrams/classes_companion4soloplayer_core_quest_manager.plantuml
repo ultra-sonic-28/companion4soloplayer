@@ -1,25 +1,38 @@
 @startuml classes_companion4soloplayer_core_quest_manager
+
+' -----------------------------------------------
 ' --- Custom Styling: Visibility & Colors ---
 skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------
+skinparam Shadowing true
 
+' --- Legend color configuration ---
+<style>
+legend {
+  BackGroundColor #FFF8DC
+  LineColor       #B8860B
+  FontColor       #333333
+  FontSize        12
+}
+</style>
+' -----------------------------------------------
+' --- Custom icons ---
 ' 1. Public
 sprite $icon_public {
 0000000000000000
 0000000000000000
 0000000000000000
 0000000000000000
-0000007777000000
-0000777777770000
-0007770000777000
-0007700000077000
-0007700000077000
-0007770000777000
-0000777777770000
-0000007777000000
+000000FFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+000000FFFF000000
 0000000000000000
 0000000000000000
 0000000000000000
@@ -65,29 +78,30 @@ sprite $icon_private {
 0000000000000000
 0000000000000000
 }
+' -----------------------------------------------
 
 set namespaceSeparator none
-class "Objective" as companion4soloplayer.core.quest_manager.Objective #77AADD {
+class "Objective" as companion4soloplayer.core.quest_manager.Objective {
   +completed : bool
   +description : str
 }
-class "Quest" as companion4soloplayer.core.quest_manager.Quest #77AADD {
+class "Quest" as companion4soloplayer.core.quest_manager.Quest {
   +description : str
   +name : str
   +objectives : list[Objective]
   +rewards : dict[str, int]
   +status
 }
-class "QuestManager" as companion4soloplayer.core.quest_manager.QuestManager #77AADD {
+class "QuestManager" as companion4soloplayer.core.quest_manager.QuestManager {
   +active_quest : str | None
   +quests : dict[str, Quest]
-  +<color:#008000><b>__init__() -> None</b></color>
-  +<color:#008000><b>complete_objective(quest_name: str, objective_index: int) -> bool</b></color>
-  +<color:#008000><b>create_quest(name: str, description: str, objectives: list[str]) -> Quest</b></color>
-  +<color:#008000><b>get_active_quest() -> Quest | None</b></color>
-  +<color:#008000><b>start_quest(name: str) -> bool</b></color>
+  +<color:#008000>__init__() -> None</color>
+  +<color:#008000>complete_objective(quest_name: str, objective_index: int) -> bool</color>
+  +<color:#008000>create_quest(name: str, description: str, objectives: list[str]) -> Quest</color>
+  +<color:#008000>get_active_quest() -> Quest | None</color>
+  +<color:#008000>start_quest(name: str) -> bool</color>
 }
-class "QuestStatus" as companion4soloplayer.core.quest_manager.QuestStatus #77AADD {
+class "QuestStatus" as companion4soloplayer.core.quest_manager.QuestStatus {
   +name
 }
 companion4soloplayer.core.quest_manager.QuestManager --> companion4soloplayer.core.quest_manager.Quest : quests
@@ -101,11 +115,17 @@ companion4soloplayer.core.quest_manager.QuestManager -[hidden]down-> companion4s
 
 ' --- Visibility legend ---
 legend right
-  |= <b>Visibility legend</b> |
+  <size:14><b><color:#B8860B>Visibility legend</color></b></size>
+
   |= Icon |= Symbol |= Visibility |= Description |
-  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#84BE84><$icon_public></color> | + | Public | Public access |
   | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
   | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+
+  <size:14><b><color:#B8860B>Notes</color></b></size>
+  * <color:#FF0000>Abstract methods</color> are displayed in <color:#FF0000>red</color> and in <color:#FF0000><i>italics</i></color>.
+  * <color:#008000>Concrete methods</color> are displayed in <color:#008000>green</color>.
+  * Attributes follow the standard visibility color scheme.
 endlegend
 
 @enduml

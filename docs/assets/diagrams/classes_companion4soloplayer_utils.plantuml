@@ -1,25 +1,38 @@
 @startuml classes_companion4soloplayer_utils
+
+' -----------------------------------------------
 ' --- Custom Styling: Visibility & Colors ---
 skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------
+skinparam Shadowing true
 
+' --- Legend color configuration ---
+<style>
+legend {
+  BackGroundColor #FFF8DC
+  LineColor       #B8860B
+  FontColor       #333333
+  FontSize        12
+}
+</style>
+' -----------------------------------------------
+' --- Custom icons ---
 ' 1. Public
 sprite $icon_public {
 0000000000000000
 0000000000000000
 0000000000000000
 0000000000000000
-0000007777000000
-0000777777770000
-0007770000777000
-0007700000077000
-0007700000077000
-0007770000777000
-0000777777770000
-0000007777000000
+000000FFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+000000FFFF000000
 0000000000000000
 0000000000000000
 0000000000000000
@@ -65,69 +78,70 @@ sprite $icon_private {
 0000000000000000
 0000000000000000
 }
+' -----------------------------------------------
 
 set namespaceSeparator none
-class "C4SPSafeLoader" as companion4soloplayer.utils.yaml_loader.C4SPSafeLoader #77AADD {
+class "C4SPSafeLoader" as companion4soloplayer.utils.yaml_loader.C4SPSafeLoader {
 }
-class "ConfigManager" as companion4soloplayer.utils.config_manager.ConfigManager #77AADD {
+class "ConfigManager" as companion4soloplayer.utils.config_manager.ConfigManager {
   +data : Table
   +filename : Path
-  +<color:#008000><b>__init__(filename: str | Path | None) -> None</b></color>
-  #<color:#008000><b>_deep_update(base: MutableMapping[str, Any], updates: Mapping[str, Any]) -> None</b></color>
-  #<color:#008000><b>_preserve_invalid_file() -> None</b></color>
-  +<color:#008000><b>appearance() -> Table</b></color>
-  +<color:#008000><b>load() -> None</b></color>
-  +<color:#008000><b>logging() -> Table</b></color>
-  +<color:#008000><b>save() -> None</b></color>
-  +<color:#008000><b>theme() -> str</b></color>
-  +<color:#008000><b>tooltip() -> Table</b></color>
-  +<color:#008000><b>tooltip_corner_type() -> TooltipCornerType</b></color>
-  +<color:#008000><b>window() -> Table</b></color>
+  +<color:#008000>__init__(filename: str | Path | None) -> None</color>
+  #<color:#008000>_deep_update(base: MutableMapping[str, Any], updates: Mapping[str, Any]) -> None</color>
+  #<color:#008000>_preserve_invalid_file() -> None</color>
+  +<color:#008000>appearance() -> Table</color>
+  +<color:#008000>load() -> None</color>
+  +<color:#008000>logging() -> Table</color>
+  +<color:#008000>save() -> None</color>
+  +<color:#008000>theme() -> str</color>
+  +<color:#008000>tooltip() -> Table</color>
+  +<color:#008000>tooltip_corner_type() -> TooltipCornerType</color>
+  +<color:#008000>window() -> Table</color>
 }
-class "LogMode" as companion4soloplayer.utils.logger.LogMode #77AADD {
+class "LogMode" as companion4soloplayer.utils.logger.LogMode {
   +name
 }
-class "PluginConfigRegistry" as companion4soloplayer.utils.plugin_config.PluginConfigRegistry #77AADD {
+class "PluginConfigRegistry" as companion4soloplayer.utils.plugin_config.PluginConfigRegistry {
   #_configs : dict[str, dict[str, Any]]
   #_initialized : ClassVar[bool]
   #_instance : Optional[ClassVar[PluginConfigRegistry | None]]
-  +<color:#008000><b>__init__() -> None</b></color>
-  +<color:#008000><b>__new__() -> Self</b></color>
-  +<color:#008000><b>character_creation_dialog_attributes_columns(plugin_name: str | None) -> int</b></color>
-  +<color:#008000><b>character_creation_dialog_size(plugin_name: str | None) -> tuple[int, int]</b></color>
-  +<color:#008000><b>config(plugin_name: str | None) -> dict[str, Any]</b></color>
-  +<color:#008000><b>dialog_settings(dialog_name: str, plugin_name: str | None) -> dict[str, Any]</b></color>
-  +<color:#008000><b>instance() -> Self</b></color>
-  +<color:#008000><b>plugin_names() -> tuple[str, ...]</b></color>
-  +<color:#008000><b>register(plugin_name: str, config: Mapping[str, Any] | None) -> None</b></color>
-  +<color:#008000><b>reset() -> None</b></color>
-  +<color:#008000><b>unregister(plugin_name: str) -> None</b></color>
+  +<color:#008000>__init__() -> None</color>
+  +<color:#008000>__new__() -> Self</color>
+  +<color:#008000>character_creation_dialog_attributes_columns(plugin_name: str | None) -> int</color>
+  +<color:#008000>character_creation_dialog_size(plugin_name: str | None) -> tuple[int, int]</color>
+  +<color:#008000>config(plugin_name: str | None) -> dict[str, Any]</color>
+  +<color:#008000>dialog_settings(dialog_name: str, plugin_name: str | None) -> dict[str, Any]</color>
+  +<color:#008000>instance() -> Self</color>
+  +<color:#008000>plugin_names() -> tuple[str, ...]</color>
+  +<color:#008000>register(plugin_name: str, config: Mapping[str, Any] | None) -> None</color>
+  +<color:#008000>reset() -> None</color>
+  +<color:#008000>unregister(plugin_name: str) -> None</color>
 }
-class "PluginLoader" as companion4soloplayer.utils.plugin_loader.PluginLoader #77AADD {
+class "PluginLoader" as companion4soloplayer.utils.plugin_loader.PluginLoader {
   +last_errors : dict[str, str]
   +loaded_plugins : dict[str, GamePlugin]
   +plugins_dir : Path
-  +<color:#008000><b>__init__(plugins_dir: str | None) -> None</b></color>
-  #<color:#008000><b>_find_extension(plugin_name: str, directory: Path) -> Path | None</b></color>
-  #<color:#008000><b>_iter_plugin_dirs() -> list[Path]</b></color>
-  #<color:#008000><b>_load_compiled(plugin_name: str, library_path: Path) -> GamePlugin | None</b></color>
-  #<color:#008000><b>_load_source(plugin_name: str) -> GamePlugin | None</b></color>
-  #<color:#008000><b>_publish_config(plugin_name: str, library_path: Path | None) -> None</b></color>
-  +<color:#008000><b>discover_plugins() -> list[str]</b></color>
-  +<color:#008000><b>get_plugin(plugin_name: str) -> GamePlugin | None</b></color>
-  +<color:#008000><b>load_plugin(plugin_name: str) -> GamePlugin | None</b></color>
-  +<color:#008000><b>unload_plugin(plugin_name: str) -> bool</b></color>
+  +<color:#008000>__init__(plugins_dir: str | None) -> None</color>
+  #<color:#008000>_find_extension(plugin_name: str, directory: Path) -> Path | None</color>
+  #<color:#008000>_iter_plugin_dirs() -> list[Path]</color>
+  #<color:#008000>_load_compiled(plugin_name: str, library_path: Path) -> GamePlugin | None</color>
+  #<color:#008000>_load_source(plugin_name: str) -> GamePlugin | None</color>
+  #<color:#008000>_publish_config(plugin_name: str, library_path: Path | None) -> None</color>
+  +<color:#008000>discover_plugins() -> list[str]</color>
+  +<color:#008000>get_plugin(plugin_name: str) -> GamePlugin | None</color>
+  +<color:#008000>load_plugin(plugin_name: str) -> GamePlugin | None</color>
+  +<color:#008000>unload_plugin(plugin_name: str) -> bool</color>
 }
-class "PyClassRef" as companion4soloplayer.utils.yaml_loader.PyClassRef #77AADD {
+class "PyClassRef" as companion4soloplayer.utils.yaml_loader.PyClassRef {
   +attr : str
   +is_local : bool
   +module : str
   +params : Mapping[str, Any]
   +path : str
-  +<color:#008000><b>__init__(self, path: str, params: Mapping[str, Any]) -> None</b></color>
-  +<color:#008000><b>parse(value: str) -> PyClassRef</b></color>
+  +<color:#008000>__init__(self, path: str, params: Mapping[str, Any]) -> None</color>
+  +<color:#008000>parse(value: str) -> PyClassRef</color>
 }
-class "ResourceManager" as companion4soloplayer.utils.resource_manager.ResourceManager #77AADD {
+class "ResourceManager" as companion4soloplayer.utils.resource_manager.ResourceManager {
   #_EXTENSIONS : dict[str, tuple[str, ...]]
   #_SUBDIRS : dict[str, str]
   #_initialized : ClassVar[bool]
@@ -137,52 +151,52 @@ class "ResourceManager" as companion4soloplayer.utils.resource_manager.ResourceM
   #_root : Path
   #_strict : bool
   +root : Path
-  +<color:#008000><b>__init__(root: Path | str | None) -> None</b></color>
-  +<color:#008000><b>__new__() -> Self</b></color>
-  #<color:#008000><b>_detect_root(root: Path | str | None) -> Path</b></color>
-  #<color:#008000><b>_validate(path: Path, category: str) -> None</b></color>
-  +<color:#008000><b>clear_cache() -> None</b></color>
-  +<color:#008000><b>get_data(name: str) -> Path</b></color>
-  +<color:#008000><b>get_file(name: str) -> Path</b></color>
-  +<color:#008000><b>get_font(name: str) -> Path</b></color>
-  +<color:#008000><b>get_icon(name: str) -> Path</b></color>
-  +<color:#008000><b>get_image(name: str) -> Path</b></color>
-  +<color:#008000><b>get_music(name: str) -> Path</b></color>
-  +<color:#008000><b>get_resource(name: str) -> Path</b></color>
-  +<color:#008000><b>get_sound(name: str) -> Path</b></color>
-  +<color:#008000><b>instance() -> Self</b></color>
-  +<color:#008000><b>list_resources(category: str) -> list[Path]</b></color>
-  +<color:#008000><b>load_icon(name: str) -> QIcon</b></color>
-  +<color:#008000><b>load_pixmap(name: str) -> QPixmap</b></color>
-  +<color:#008000><b>load_sound(name: str) -> QSoundEffect</b></color>
-  +<color:#008000><b>reset() -> None</b></color>
+  +<color:#008000>__init__(root: Path | str | None) -> None</color>
+  +<color:#008000>__new__() -> Self</color>
+  #<color:#008000>_detect_root(root: Path | str | None) -> Path</color>
+  #<color:#008000>_validate(path: Path, category: str) -> None</color>
+  +<color:#008000>clear_cache() -> None</color>
+  +<color:#008000>get_data(name: str) -> Path</color>
+  +<color:#008000>get_file(name: str) -> Path</color>
+  +<color:#008000>get_font(name: str) -> Path</color>
+  +<color:#008000>get_icon(name: str) -> Path</color>
+  +<color:#008000>get_image(name: str) -> Path</color>
+  +<color:#008000>get_music(name: str) -> Path</color>
+  +<color:#008000>get_resource(name: str) -> Path</color>
+  +<color:#008000>get_sound(name: str) -> Path</color>
+  +<color:#008000>instance() -> Self</color>
+  +<color:#008000>list_resources(category: str) -> list[Path]</color>
+  +<color:#008000>load_icon(name: str) -> QIcon</color>
+  +<color:#008000>load_pixmap(name: str) -> QPixmap</color>
+  +<color:#008000>load_sound(name: str) -> QSoundEffect</color>
+  +<color:#008000>reset() -> None</color>
 }
-class "<color:red>ResourceNotFoundError</color>" as companion4soloplayer.utils.resource_manager.ResourceNotFoundError #77AADD {
+class "<color:red>ResourceNotFoundError</color>" as companion4soloplayer.utils.resource_manager.ResourceNotFoundError {
 }
-class "Slugify" as companion4soloplayer.utils.slugify.Slugify #77AADD {
+class "Slugify" as companion4soloplayer.utils.slugify.Slugify {
   #_lowercase : bool
   #_max_length : int
   #_separator : str
-  +<color:#008000><b>__call__(text: str) -> str</b></color>
-  +<color:#008000><b>__init__() -> None</b></color>
-  +<color:#008000><b>__repr__() -> str</b></color>
-  +<color:#008000><b>sanitize(text: str) -> str</b></color>
-  +<color:#008000><b>unique(directory: str | os.PathLike[str], filename: str) -> str</b></color>
+  +<color:#008000>__call__(text: str) -> str</color>
+  +<color:#008000>__init__() -> None</color>
+  +<color:#008000>__repr__() -> str</color>
+  +<color:#008000>sanitize(text: str) -> str</color>
+  +<color:#008000>unique(directory: str | os.PathLike[str], filename: str) -> str</color>
 }
-class "TooltipCornerType" as companion4soloplayer.utils.config_manager.TooltipCornerType #77AADD {
+class "TooltipCornerType" as companion4soloplayer.utils.config_manager.TooltipCornerType {
   +name
 }
-class "<color:red>YamlLoadError</color>" as companion4soloplayer.utils.yaml_loader.YamlLoadError #77AADD {
+class "<color:red>YamlLoadError</color>" as companion4soloplayer.utils.yaml_loader.YamlLoadError {
 }
-class "<color:red>YamlTagError</color>" as companion4soloplayer.utils.yaml_loader.YamlTagError #77AADD {
+class "<color:red>YamlTagError</color>" as companion4soloplayer.utils.yaml_loader.YamlTagError {
 }
-class "_PluginSubmoduleFinder" as companion4soloplayer.utils.plugin_loader._PluginSubmoduleFinder #77AADD {
+class "_PluginSubmoduleFinder" as companion4soloplayer.utils.plugin_loader._PluginSubmoduleFinder {
   +package_prefixes : list[str]
   +target_module : module
-  +<color:#008000><b>__init__(package_prefixes: list[str], target_module: types.ModuleType) -> None</b></color>
-  +<color:#008000><b>create_module(spec: importlib.machinery.ModuleSpec) -> types.ModuleType | None</b></color>
-  {abstract}exec_module(module: types.ModuleType) -> None
-  +<color:#008000><b>find_spec(fullname: str, path: Any, target: Any) -> importlib.machinery.ModuleSpec | None</b></color>
+  +<color:#008000>__init__(package_prefixes: list[str], target_module: types.ModuleType) -> None</color>
+  +<color:#008000>create_module(spec: importlib.machinery.ModuleSpec) -> types.ModuleType | None</color>
+  +<color:#FF0000>{abstract}exec_module(module: types.ModuleType) -> None</color>
+  +<color:#008000>find_spec(fullname: str, path: Any, target: Any) -> importlib.machinery.ModuleSpec | None</color>
 }
 
 ' --- Force vertical alignment ---
@@ -202,11 +216,17 @@ companion4soloplayer.utils.yaml_loader.YamlTagError -[hidden]down-> companion4so
 
 ' --- Visibility legend ---
 legend right
-  |= <b>Visibility legend</b> |
+  <size:14><b><color:#B8860B>Visibility legend</color></b></size>
+
   |= Icon |= Symbol |= Visibility |= Description |
-  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#84BE84><$icon_public></color> | + | Public | Public access |
   | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
   | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+
+  <size:14><b><color:#B8860B>Notes</color></b></size>
+  * <color:#FF0000>Abstract methods</color> are displayed in <color:#FF0000>red</color> and in <color:#FF0000><i>italics</i></color>.
+  * <color:#008000>Concrete methods</color> are displayed in <color:#008000>green</color>.
+  * Attributes follow the standard visibility color scheme.
 endlegend
 
 @enduml

@@ -1,25 +1,38 @@
 @startuml classes_companion4soloplayer_utils_resource_manager
+
+' -----------------------------------------------
 ' --- Custom Styling: Visibility & Colors ---
 skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------
+skinparam Shadowing true
 
+' --- Legend color configuration ---
+<style>
+legend {
+  BackGroundColor #FFF8DC
+  LineColor       #B8860B
+  FontColor       #333333
+  FontSize        12
+}
+</style>
+' -----------------------------------------------
+' --- Custom icons ---
 ' 1. Public
 sprite $icon_public {
 0000000000000000
 0000000000000000
 0000000000000000
 0000000000000000
-0000007777000000
-0000777777770000
-0007770000777000
-0007700000077000
-0007700000077000
-0007770000777000
-0000777777770000
-0000007777000000
+000000FFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+000000FFFF000000
 0000000000000000
 0000000000000000
 0000000000000000
@@ -65,9 +78,10 @@ sprite $icon_private {
 0000000000000000
 0000000000000000
 }
+' -----------------------------------------------
 
 set namespaceSeparator none
-class "ResourceManager" as companion4soloplayer.utils.resource_manager.ResourceManager #77AADD {
+class "ResourceManager" as companion4soloplayer.utils.resource_manager.ResourceManager {
   #_EXTENSIONS : dict[str, tuple[str, ...]]
   #_SUBDIRS : dict[str, str]
   #_initialized : ClassVar[bool]
@@ -77,27 +91,27 @@ class "ResourceManager" as companion4soloplayer.utils.resource_manager.ResourceM
   #_root : Path
   #_strict : bool
   +root : Path
-  +<color:#008000><b>__init__(root: Path | str | None) -> None</b></color>
-  +<color:#008000><b>__new__() -> Self</b></color>
-  #<color:#008000><b>_detect_root(root: Path | str | None) -> Path</b></color>
-  #<color:#008000><b>_validate(path: Path, category: str) -> None</b></color>
-  +<color:#008000><b>clear_cache() -> None</b></color>
-  +<color:#008000><b>get_data(name: str) -> Path</b></color>
-  +<color:#008000><b>get_file(name: str) -> Path</b></color>
-  +<color:#008000><b>get_font(name: str) -> Path</b></color>
-  +<color:#008000><b>get_icon(name: str) -> Path</b></color>
-  +<color:#008000><b>get_image(name: str) -> Path</b></color>
-  +<color:#008000><b>get_music(name: str) -> Path</b></color>
-  +<color:#008000><b>get_resource(name: str) -> Path</b></color>
-  +<color:#008000><b>get_sound(name: str) -> Path</b></color>
-  +<color:#008000><b>instance() -> Self</b></color>
-  +<color:#008000><b>list_resources(category: str) -> list[Path]</b></color>
-  +<color:#008000><b>load_icon(name: str) -> QIcon</b></color>
-  +<color:#008000><b>load_pixmap(name: str) -> QPixmap</b></color>
-  +<color:#008000><b>load_sound(name: str) -> QSoundEffect</b></color>
-  +<color:#008000><b>reset() -> None</b></color>
+  +<color:#008000>__init__(root: Path | str | None) -> None</color>
+  +<color:#008000>__new__() -> Self</color>
+  #<color:#008000>_detect_root(root: Path | str | None) -> Path</color>
+  #<color:#008000>_validate(path: Path, category: str) -> None</color>
+  +<color:#008000>clear_cache() -> None</color>
+  +<color:#008000>get_data(name: str) -> Path</color>
+  +<color:#008000>get_file(name: str) -> Path</color>
+  +<color:#008000>get_font(name: str) -> Path</color>
+  +<color:#008000>get_icon(name: str) -> Path</color>
+  +<color:#008000>get_image(name: str) -> Path</color>
+  +<color:#008000>get_music(name: str) -> Path</color>
+  +<color:#008000>get_resource(name: str) -> Path</color>
+  +<color:#008000>get_sound(name: str) -> Path</color>
+  +<color:#008000>instance() -> Self</color>
+  +<color:#008000>list_resources(category: str) -> list[Path]</color>
+  +<color:#008000>load_icon(name: str) -> QIcon</color>
+  +<color:#008000>load_pixmap(name: str) -> QPixmap</color>
+  +<color:#008000>load_sound(name: str) -> QSoundEffect</color>
+  +<color:#008000>reset() -> None</color>
 }
-class "<color:red>ResourceNotFoundError</color>" as companion4soloplayer.utils.resource_manager.ResourceNotFoundError #77AADD {
+class "<color:red>ResourceNotFoundError</color>" as companion4soloplayer.utils.resource_manager.ResourceNotFoundError {
 }
 
 ' --- Force vertical alignment ---
@@ -106,11 +120,17 @@ companion4soloplayer.utils.resource_manager.ResourceManager -[hidden]down-> comp
 
 ' --- Visibility legend ---
 legend right
-  |= <b>Visibility legend</b> |
+  <size:14><b><color:#B8860B>Visibility legend</color></b></size>
+
   |= Icon |= Symbol |= Visibility |= Description |
-  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#84BE84><$icon_public></color> | + | Public | Public access |
   | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
   | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+
+  <size:14><b><color:#B8860B>Notes</color></b></size>
+  * <color:#FF0000>Abstract methods</color> are displayed in <color:#FF0000>red</color> and in <color:#FF0000><i>italics</i></color>.
+  * <color:#008000>Concrete methods</color> are displayed in <color:#008000>green</color>.
+  * Attributes follow the standard visibility color scheme.
 endlegend
 
 @enduml

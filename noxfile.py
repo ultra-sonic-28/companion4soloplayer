@@ -920,7 +920,7 @@ def diagrams(session: nox.Session) -> None:
             "--project", project_name,  # This is what names the output file: classes_<project_name>.puml
             "--ignore", "venv,tests,.git,__pycache__",
             "--output-directory", output_dir,
-            "--colorized",
+            #"--colorized",
             "--filter-mode", "ALL",  # No filtering, include all classes and methods (public and private)
             str(target)
         ]
@@ -931,27 +931,40 @@ def diagrams(session: nox.Session) -> None:
     session.log("Application of custom style (Python visibility + colors)...")
 
     # Style block to be injected immediately after @startuml
-    style_block = """' --- Custom Styling: Visibility & Colors ---
+    style_block = """
+' -----------------------------------------------
+' --- Custom Styling: Visibility & Colors ---
 skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------
+skinparam Shadowing true
 
+' --- Legend color configuration ---
+<style>
+legend {
+  BackGroundColor #FFF8DC
+  LineColor       #B8860B
+  FontColor       #333333
+  FontSize        12
+}
+</style>
+' -----------------------------------------------
+' --- Custom icons ---
 ' 1. Public
 sprite $icon_public {
 0000000000000000
 0000000000000000
 0000000000000000
 0000000000000000
-0000007777000000
-0000777777770000
-0007770000777000
-0007700000077000
-0007700000077000
-0007770000777000
-0000777777770000
-0000007777000000
+000000FFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+000000FFFF000000
 0000000000000000
 0000000000000000
 0000000000000000
@@ -997,6 +1010,7 @@ sprite $icon_private {
 0000000000000000
 0000000000000000
 }
+' -----------------------------------------------
 """
 
     def get_python_visibility(name: str) -> str:
@@ -1021,7 +1035,8 @@ sprite $icon_private {
     # Group 2: optional existing visibility modifier ([\+\-\#~]\s*)?
     # Group 3: the actual name (\w+)
     # Group 4: the rest of the line, e.g., " : int" or "(duration_ms: int) -> None" (\s*[:\(].*)?$
-    member_pattern = re.compile(r"^(\s+)([\+\-\#~]\s*)?(\w+)(\s*[:\(].*)?$")
+    # member_pattern = re.compile(r"^(\s+)([\+\-\#~]\s*)?(\w+)(\s*[:\(].*)?$")
+    member_pattern = re.compile(r'^(\s*)([+\-#~])?(?:\{([^}]+)\})?(\w+)(.*)?$')
 
     # Note: pyreverse generates .puml files. If you renamed them to .plantuml, keep *.plantuml
     puml_files = list(Path(output_dir).glob("*.puml")) + list(Path(output_dir).glob("*.plantuml"))
@@ -1034,11 +1049,17 @@ sprite $icon_private {
     legend_block = """
 ' --- Visibility legend ---
 legend right
-  |= <b>Visibility legend</b> |
+  <size:14><b><color:#B8860B>Visibility legend</color></b></size>
+
   |= Icon |= Symbol |= Visibility |= Description |
-  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#84BE84><$icon_public></color> | + | Public | Public access |
   | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
   | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+
+  <size:14><b><color:#B8860B>Notes</color></b></size>
+  * <color:#FF0000>Abstract methods</color> are displayed in <color:#FF0000>red</color> and in <color:#FF0000><i>italics</i></color>.
+  * <color:#008000>Concrete methods</color> are displayed in <color:#008000>green</color>.
+  * Attributes follow the standard visibility color scheme.
 endlegend
 """
 
@@ -1101,8 +1122,8 @@ endlegend
             if in_class_block and "<color:" not in line:
                 match = member_pattern.match(line)
                 if match:
-                    # Unpack the 4 groups correctly
-                    indent, visibility_opt, name, rest = match.groups()
+                    # Unpack the 5 groups correctly
+                    indent, visibility_opt, stereotype, name, rest = match.groups()
 
                     if name is None:
                         continue
@@ -1110,9 +1131,16 @@ endlegend
                     rest = rest or ""
                     visibility = get_python_visibility(name)
 
-                    # Method (contains parentheses in 'rest') → green and bold
+                    is_abstract = stereotype and 'abstract' in stereotype.lower()
+
+                    # Method (contains parentheses in 'rest') → green
                     if "(" in rest:
-                        processed_lines[-1] = f"{indent}{visibility}<color:#008000><b>{name}{rest}</b></color>"
+                        if is_abstract:
+                            # Méthode abstraite → rouge avec {abstract}
+                            processed_lines[-1] = f"{indent}{visibility}<color:#FF0000>{{abstract}}{name}{rest}</color>"
+                        else:
+                            # Méthode normale → vert
+                            processed_lines[-1] = f"{indent}{visibility}<color:#008000>{name}{rest}</color>"
                     # Attribute → gets the correct visibility modifier, color handled by skinparam
                     else:
                         processed_lines[-1] = f"{indent}{visibility}{name}{rest}"

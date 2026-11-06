@@ -1,20 +1,20 @@
 @startuml packages_companion4soloplayer_utils
 set namespaceSeparator none
-package "companion4soloplayer.utils" as companion4soloplayer.utils #77AADD {
+package "companion4soloplayer.utils" as companion4soloplayer.utils {
 }
-package "companion4soloplayer.utils.config_manager" as companion4soloplayer.utils.config_manager #77AADD {
+package "companion4soloplayer.utils.config_manager" as companion4soloplayer.utils.config_manager {
 }
-package "companion4soloplayer.utils.logger" as companion4soloplayer.utils.logger #77AADD {
+package "companion4soloplayer.utils.logger" as companion4soloplayer.utils.logger {
 }
-package "companion4soloplayer.utils.plugin_config" as companion4soloplayer.utils.plugin_config #77AADD {
+package "companion4soloplayer.utils.plugin_config" as companion4soloplayer.utils.plugin_config {
 }
-package "companion4soloplayer.utils.plugin_loader" as companion4soloplayer.utils.plugin_loader #77AADD {
+package "companion4soloplayer.utils.plugin_loader" as companion4soloplayer.utils.plugin_loader {
 }
-package "companion4soloplayer.utils.resource_manager" as companion4soloplayer.utils.resource_manager #77AADD {
+package "companion4soloplayer.utils.resource_manager" as companion4soloplayer.utils.resource_manager {
 }
-package "companion4soloplayer.utils.slugify" as companion4soloplayer.utils.slugify #77AADD {
+package "companion4soloplayer.utils.slugify" as companion4soloplayer.utils.slugify {
 }
-package "companion4soloplayer.utils.yaml_loader" as companion4soloplayer.utils.yaml_loader #77AADD {
+package "companion4soloplayer.utils.yaml_loader" as companion4soloplayer.utils.yaml_loader {
 }
 companion4soloplayer.utils.logger --> companion4soloplayer.utils.config_manager
 companion4soloplayer.utils.plugin_config --> companion4soloplayer.utils.yaml_loader

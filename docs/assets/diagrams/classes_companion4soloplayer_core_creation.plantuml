@@ -1,25 +1,38 @@
 @startuml classes_companion4soloplayer_core_creation
+
+' -----------------------------------------------
 ' --- Custom Styling: Visibility & Colors ---
 skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------
+skinparam Shadowing true
 
+' --- Legend color configuration ---
+<style>
+legend {
+  BackGroundColor #FFF8DC
+  LineColor       #B8860B
+  FontColor       #333333
+  FontSize        12
+}
+</style>
+' -----------------------------------------------
+' --- Custom icons ---
 ' 1. Public
 sprite $icon_public {
 0000000000000000
 0000000000000000
 0000000000000000
 0000000000000000
-0000007777000000
-0000777777770000
-0007770000777000
-0007700000077000
-0007700000077000
-0007770000777000
-0000777777770000
-0000007777000000
+000000FFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+000000FFFF000000
 0000000000000000
 0000000000000000
 0000000000000000
@@ -65,13 +78,14 @@ sprite $icon_private {
 0000000000000000
 0000000000000000
 }
+' -----------------------------------------------
 
 set namespaceSeparator none
-class "Action" as companion4soloplayer.core.creation.rules.Action #77AADD {
+class "Action" as companion4soloplayer.core.creation.rules.Action {
   +name
-  +<color:#008000><b>parse(value: Action | str) -> Action</b></color>
+  +<color:#008000>parse(value: Action | str) -> Action</color>
 }
-class "AttributeGenerationStep" as companion4soloplayer.core.creation.steps.attributes.AttributeGenerationStep #77AADD {
+class "AttributeGenerationStep" as companion4soloplayer.core.creation.steps.attributes.AttributeGenerationStep {
   #_attributes : NoneType, tuple
   #_block : str
   #_manual_attributes : tuple
@@ -81,27 +95,27 @@ class "AttributeGenerationStep" as companion4soloplayer.core.creation.steps.attr
   #_roller : NoneType
   #_strategy : NoneType
   #_target : str
-  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
-  #<color:#008000><b>_block_entries(context: CharacterCreationContext) -> Any</b></color>
-  #<color:#008000><b>_is_manual(attribute: str) -> bool</b></color>
-  #<color:#008000><b>_read_attribute_entry(entry: Mapping[str, Any], position: int, source: str) -> dict[str, str]</b></color>
-  #<color:#008000><b>_resolve_strategy(context: CharacterCreationContext) -> AttributeGenerationStrategy</b></color>
-  +<color:#008000><b>attribute_descriptions(context: CharacterCreationContext) -> dict[str, str]</b></color>
-  +<color:#008000><b>attribute_entries(context: CharacterCreationContext) -> list[dict[str, str]]</b></color>
-  +<color:#008000><b>attribute_labels(context: CharacterCreationContext) -> dict[str, str]</b></color>
-  +<color:#008000><b>attribute_names(context: CharacterCreationContext) -> list[str]</b></color>
-  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
-  +<color:#008000><b>display_label(context: CharacterCreationContext) -> str</b></color>
-  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
-  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
-  +<color:#008000><b>roll_attribute(attribute: str, context: CharacterCreationContext, roller: DiceRoller | None) -> int</b></color>
-  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000>__init__(step_id: str) -> None</color>
+  #<color:#008000>_block_entries(context: CharacterCreationContext) -> Any</color>
+  #<color:#008000>_is_manual(attribute: str) -> bool</color>
+  #<color:#008000>_read_attribute_entry(entry: Mapping[str, Any], position: int, source: str) -> dict[str, str]</color>
+  #<color:#008000>_resolve_strategy(context: CharacterCreationContext) -> AttributeGenerationStrategy</color>
+  +<color:#008000>attribute_descriptions(context: CharacterCreationContext) -> dict[str, str]</color>
+  +<color:#008000>attribute_entries(context: CharacterCreationContext) -> list[dict[str, str]]</color>
+  +<color:#008000>attribute_labels(context: CharacterCreationContext) -> dict[str, str]</color>
+  +<color:#008000>attribute_names(context: CharacterCreationContext) -> list[str]</color>
+  +<color:#008000>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</color>
+  +<color:#008000>display_label(context: CharacterCreationContext) -> str</color>
+  +<color:#008000>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</color>
+  +<color:#008000>is_applicable(context: CharacterCreationContext) -> bool</color>
+  +<color:#008000>roll_attribute(attribute: str, context: CharacterCreationContext, roller: DiceRoller | None) -> int</color>
+  +<color:#008000>validate(context: CharacterCreationContext) -> list[str]</color>
 }
-class "AttributeGenerationStrategy" as companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy #77AADD {
-  {abstract}roll(attribute: str, roller: DiceRoller) -> int
-  +<color:#008000><b>roll_for(attribute: str, roller: DiceRoller, context: CharacterCreationContext) -> int</b></color>
+class "AttributeGenerationStrategy" as companion4soloplayer.core.creation.strategies.AttributeGenerationStrategy {
+  +<color:#FF0000>{abstract}roll(attribute: str, roller: DiceRoller) -> int</color>
+  +<color:#008000>roll_for(attribute: str, roller: DiceRoller, context: CharacterCreationContext) -> int</color>
 }
-class "CharacterCreationContext" as companion4soloplayer.core.creation.context.CharacterCreationContext #77AADD {
+class "CharacterCreationContext" as companion4soloplayer.core.creation.context.CharacterCreationContext {
   #_operations : dict[str, list[Any]]
   #_system : Mapping[str, Any]
   +choices : dict[str, Any]
@@ -109,20 +123,20 @@ class "CharacterCreationContext" as companion4soloplayer.core.creation.context.C
   +operations : Mapping[str, Sequence[Any]]
   +system : Mapping[str, Any]
   +values : dict[str, Any]
-  +<color:#008000><b>__init__() -> None</b></color>
-  +<color:#008000><b>__repr__() -> str</b></color>
-  #<color:#008000><b>_root(namespace: str) -> dict[str, Any]</b></color>
-  +<color:#008000><b>begin_evaluation() -> None</b></color>
-  +<color:#008000><b>effective(path: str, default: Any) -> Any</b></color>
-  +<color:#008000><b>export() -> dict[str, Any]</b></color>
-  +<color:#008000><b>get(path: str) -> Any</b></color>
-  +<color:#008000><b>has(path: str) -> bool</b></color>
-  +<color:#008000><b>mark_executed(step_id: str) -> None</b></color>
-  +<color:#008000><b>peek(path: str, default: Any) -> Any</b></color>
-  +<color:#008000><b>record(path: str, effect: Any) -> None</b></color>
-  +<color:#008000><b>set(path: str, value: Any) -> None</b></color>
+  +<color:#008000>__init__() -> None</color>
+  +<color:#008000>__repr__() -> str</color>
+  #<color:#008000>_root(namespace: str) -> dict[str, Any]</color>
+  +<color:#008000>begin_evaluation() -> None</color>
+  +<color:#008000>effective(path: str, default: Any) -> Any</color>
+  +<color:#008000>export() -> dict[str, Any]</color>
+  +<color:#008000>get(path: str) -> Any</color>
+  +<color:#008000>has(path: str) -> bool</color>
+  +<color:#008000>mark_executed(step_id: str) -> None</color>
+  +<color:#008000>peek(path: str, default: Any) -> Any</color>
+  +<color:#008000>record(path: str, effect: Any) -> None</color>
+  +<color:#008000>set(path: str, value: Any) -> None</color>
 }
-class "CharacterCreationPipeline" as companion4soloplayer.core.creation.pipeline.CharacterCreationPipeline #77AADD {
+class "CharacterCreationPipeline" as companion4soloplayer.core.creation.pipeline.CharacterCreationPipeline {
   #_rules
   #_steps : tuple
   #_stop_on_error : bool
@@ -130,30 +144,30 @@ class "CharacterCreationPipeline" as companion4soloplayer.core.creation.pipeline
   +rules : RulesEngine
   +steps : tuple[CreationStep, ...]
   +system : Mapping[str, Any]
-  +<color:#008000><b>__init__(steps: Sequence[CreationStep]) -> None</b></color>
-  +<color:#008000><b>__repr__() -> str</b></color>
-  #<color:#008000><b>_evaluate(context: CharacterCreationContext) -> EvaluationReport</b></color>
-  +<color:#008000><b>create_context() -> CharacterCreationContext</b></color>
-  +<color:#008000><b>run(context: CharacterCreationContext, inputs: InputProvider) -> CreationReport</b></color>
+  +<color:#008000>__init__(steps: Sequence[CreationStep]) -> None</color>
+  +<color:#008000>__repr__() -> str</color>
+  #<color:#008000>_evaluate(context: CharacterCreationContext) -> EvaluationReport</color>
+  +<color:#008000>create_context() -> CharacterCreationContext</color>
+  +<color:#008000>run(context: CharacterCreationContext, inputs: InputProvider) -> CreationReport</color>
 }
-class "Condition" as companion4soloplayer.core.creation.rules.Condition #77AADD {
+class "Condition" as companion4soloplayer.core.creation.rules.Condition {
   +operator
   +target : str
   +value : Optional[Any]
-  +<color:#008000><b>__init__(self, target: str, operator: Operator, value: Any) -> None</b></color>
-  #<color:#008000><b>_check_container(value: Any, operator: str) -> None</b></color>
-  #<color:#008000><b>_check_definition() -> None</b></color>
-  #<color:#008000><b>_check_numbers(actual: Any, expected: Any) -> None</b></color>
-  +<color:#008000><b>describe() -> str</b></color>
-  +<color:#008000><b>evaluate(context: CharacterCreationContext) -> bool</b></color>
-  +<color:#008000><b>from_dict(data: Mapping[str, Any]) -> Condition</b></color>
+  +<color:#008000>__init__(self, target: str, operator: Operator, value: Any) -> None</color>
+  #<color:#008000>_check_container(value: Any, operator: str) -> None</color>
+  #<color:#008000>_check_definition() -> None</color>
+  #<color:#008000>_check_numbers(actual: Any, expected: Any) -> None</color>
+  +<color:#008000>describe() -> str</color>
+  +<color:#008000>evaluate(context: CharacterCreationContext) -> bool</color>
+  +<color:#008000>from_dict(data: Mapping[str, Any]) -> Condition</color>
 }
-class "ConstantStrategy" as companion4soloplayer.core.creation.strategies.ConstantStrategy #77AADD {
+class "ConstantStrategy" as companion4soloplayer.core.creation.strategies.ConstantStrategy {
   +value : int
-  +<color:#008000><b>__init__(value: int) -> None</b></color>
-  +<color:#008000><b>roll(attribute: str, roller: DiceRoller) -> int</b></color>
+  +<color:#008000>__init__(value: int) -> None</color>
+  +<color:#008000>roll(attribute: str, roller: DiceRoller) -> int</color>
 }
-class "CreationReport" as companion4soloplayer.core.creation.pipeline.CreationReport #77AADD {
+class "CreationReport" as companion4soloplayer.core.creation.pipeline.CreationReport {
   +completed : bool
   +errors : tuple[str, ...]
   +executed_steps : tuple[str, ...]
@@ -161,59 +175,59 @@ class "CreationReport" as companion4soloplayer.core.creation.pipeline.CreationRe
   +results : tuple[StepResult, ...]
   +rules_fired : tuple[str, ...]
   +total_steps : int
-  +<color:#008000><b>__init__(self, results: tuple[StepResult, ...], rules_fired: tuple[str, ...], total_steps: int) -> None</b></color>
+  +<color:#008000>__init__(self, results: tuple[StepResult, ...], rules_fired: tuple[str, ...], total_steps: int) -> None</color>
 }
-class "CreationRule" as companion4soloplayer.core.creation.rules.CreationRule #77AADD {
+class "CreationRule" as companion4soloplayer.core.creation.rules.CreationRule {
   +description : str
   +effects : tuple[Effect, ...]
   +id : str
   +when : tuple[Condition, ...]
-  +<color:#008000><b>__init__(self, id: str, description: str, when: tuple[Condition, ...], effects: tuple[Effect, ...]) -> None</b></color>
-  +<color:#008000><b>from_dict(data: Mapping[str, Any]) -> CreationRule</b></color>
-  +<color:#008000><b>matches(context: CharacterCreationContext) -> bool</b></color>
+  +<color:#008000>__init__(self, id: str, description: str, when: tuple[Condition, ...], effects: tuple[Effect, ...]) -> None</color>
+  +<color:#008000>from_dict(data: Mapping[str, Any]) -> CreationRule</color>
+  +<color:#008000>matches(context: CharacterCreationContext) -> bool</color>
 }
-class "CreationStep" as companion4soloplayer.core.creation.steps.base.CreationStep #77AADD {
+class "CreationStep" as companion4soloplayer.core.creation.steps.base.CreationStep {
   #_label
   #_step_id
   +label : str
   +step_id : str
-  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
-  +<color:#008000><b>__repr__() -> str</b></color>
-  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
-  +<color:#008000><b>display_label(context: CharacterCreationContext) -> str</b></color>
-  {abstract}execute(context: CharacterCreationContext, inputs: InputProvider) -> None
-  {abstract}is_applicable(context: CharacterCreationContext) -> bool
-  {abstract}validate(context: CharacterCreationContext) -> list[str]
+  +<color:#008000>__init__(step_id: str) -> None</color>
+  +<color:#008000>__repr__() -> str</color>
+  +<color:#008000>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</color>
+  +<color:#008000>display_label(context: CharacterCreationContext) -> str</color>
+  +<color:#FF0000>{abstract}execute(context: CharacterCreationContext, inputs: InputProvider) -> None</color>
+  +<color:#FF0000>{abstract}is_applicable(context: CharacterCreationContext) -> bool</color>
+  +<color:#FF0000>{abstract}validate(context: CharacterCreationContext) -> list[str]</color>
 }
-class "Effect" as companion4soloplayer.core.creation.rules.Effect #77AADD {
+class "Effect" as companion4soloplayer.core.creation.rules.Effect {
   +action
   +target : str
   +value : Optional[Any]
-  +<color:#008000><b>__init__(self, target: str, action: Action, value: Any) -> None</b></color>
-  #<color:#008000><b>_apply_collection_action(base: Any) -> Any</b></color>
-  +<color:#008000><b>apply_to(base: Any) -> Any</b></color>
-  +<color:#008000><b>from_dict(data: Mapping[str, Any]) -> Effect</b></color>
+  +<color:#008000>__init__(self, target: str, action: Action, value: Any) -> None</color>
+  #<color:#008000>_apply_collection_action(base: Any) -> Any</color>
+  +<color:#008000>apply_to(base: Any) -> Any</color>
+  +<color:#008000>from_dict(data: Mapping[str, Any]) -> Effect</color>
 }
-class "EvaluationReport" as companion4soloplayer.core.creation.rules.EvaluationReport #77AADD {
+class "EvaluationReport" as companion4soloplayer.core.creation.rules.EvaluationReport {
   +applied_effects : int
   +fired : tuple[str, ...]
-  +<color:#008000><b>__init__(self, fired: tuple[str, ...], applied_effects: int) -> None</b></color>
+  +<color:#008000>__init__(self, fired: tuple[str, ...], applied_effects: int) -> None</color>
 }
-class "IdentityStep" as companion4soloplayer.core.creation.steps.identity.IdentityStep #77AADD {
+class "IdentityStep" as companion4soloplayer.core.creation.steps.identity.IdentityStep {
   #_background_options : NoneType, tuple
   #_background_prompt : str
   #_background_required : bool
   #_name_prompt : str
   #_name_required : bool
-  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
-  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
-  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
-  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
-  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000>__init__(step_id: str) -> None</color>
+  +<color:#008000>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</color>
+  +<color:#008000>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</color>
+  +<color:#008000>is_applicable(context: CharacterCreationContext) -> bool</color>
+  +<color:#008000>validate(context: CharacterCreationContext) -> list[str]</color>
 }
-class "<color:red>InputError</color>" as companion4soloplayer.core.creation.inputs.InputError #77AADD {
+class "<color:red>InputError</color>" as companion4soloplayer.core.creation.inputs.InputError {
 }
-class "InputField" as companion4soloplayer.core.creation.inputs.InputField #77AADD {
+class "InputField" as companion4soloplayer.core.creation.inputs.InputField {
   +description : str
   +key : str
   +kind
@@ -227,72 +241,72 @@ class "InputField" as companion4soloplayer.core.creation.inputs.InputField #77AA
   +required : bool
   +roll : Callable[[], int] | None
   +value : int | str | None
-  +<color:#008000><b>__init__(self, key: str, label: str, kind: InputKind, options: tuple[str, ...], required: bool, min_count: int, max_count: int | None, min_value: int | None, max_value: int | None, roll: Callable[[], int] | None, description: str, option_descriptions: tuple[tuple[str, str], ...], value: int | str | None) -> None</b></color>
-  +<color:#008000><b>option_description(option: str) -> str</b></color>
+  +<color:#008000>__init__(self, key: str, label: str, kind: InputKind, options: tuple[str, ...], required: bool, min_count: int, max_count: int | None, min_value: int | None, max_value: int | None, roll: Callable[[], int] | None, description: str, option_descriptions: tuple[tuple[str, str], ...], value: int | str | None) -> None</color>
+  +<color:#008000>option_description(option: str) -> str</color>
 }
-class "InputKind" as companion4soloplayer.core.creation.inputs.InputKind #77AADD {
+class "InputKind" as companion4soloplayer.core.creation.inputs.InputKind {
   +name
 }
-class "InputProvider" as companion4soloplayer.core.creation.inputs.InputProvider #77AADD {
-  +<color:#008000><b>ask_choice(key: str, prompt: str, options: Sequence[Any]) -> Any</b></color>
-  +<color:#008000><b>ask_many(key: str, prompt: str, options: Sequence[Any]) -> list[Any]</b></color>
-  +<color:#008000><b>ask_number(key: str, prompt: str) -> int</b></color>
-  +<color:#008000><b>ask_text(key: str, prompt: str) -> str</b></color>
+class "InputProvider" as companion4soloplayer.core.creation.inputs.InputProvider {
+  +<color:#008000>ask_choice(key: str, prompt: str, options: Sequence[Any]) -> Any</color>
+  +<color:#008000>ask_many(key: str, prompt: str, options: Sequence[Any]) -> list[Any]</color>
+  +<color:#008000>ask_number(key: str, prompt: str) -> int</color>
+  +<color:#008000>ask_text(key: str, prompt: str) -> str</color>
 }
-class "<color:red>InvalidAnswerError</color>" as companion4soloplayer.core.creation.inputs.InvalidAnswerError #77AADD {
+class "<color:red>InvalidAnswerError</color>" as companion4soloplayer.core.creation.inputs.InvalidAnswerError {
 }
-class "<color:red>InvalidPathError</color>" as companion4soloplayer.core.creation.context.InvalidPathError #77AADD {
+class "<color:red>InvalidPathError</color>" as companion4soloplayer.core.creation.context.InvalidPathError {
 }
-class "MappingInputProvider" as companion4soloplayer.core.creation.inputs.MappingInputProvider #77AADD {
+class "MappingInputProvider" as companion4soloplayer.core.creation.inputs.MappingInputProvider {
   #_answers : dict[str, Any]
   +answers : Mapping[str, Any]
-  +<color:#008000><b>__init__(answers: Mapping[str, Any] | None) -> None</b></color>
-  #<color:#008000><b>_to_int(key: str, answer: Any) -> int</b></color>
-  +<color:#008000><b>ask_choice(key: str, prompt: str, options: Sequence[Any]) -> Any</b></color>
-  +<color:#008000><b>ask_many(key: str, prompt: str, options: Sequence[Any]) -> list[Any]</b></color>
-  +<color:#008000><b>ask_number(key: str, prompt: str) -> int</b></color>
-  +<color:#008000><b>ask_text(key: str, prompt: str) -> str</b></color>
+  +<color:#008000>__init__(answers: Mapping[str, Any] | None) -> None</color>
+  #<color:#008000>_to_int(key: str, answer: Any) -> int</color>
+  +<color:#008000>ask_choice(key: str, prompt: str, options: Sequence[Any]) -> Any</color>
+  +<color:#008000>ask_many(key: str, prompt: str, options: Sequence[Any]) -> list[Any]</color>
+  +<color:#008000>ask_number(key: str, prompt: str) -> int</color>
+  +<color:#008000>ask_text(key: str, prompt: str) -> str</color>
 }
-class "<color:red>MissingInputError</color>" as companion4soloplayer.core.creation.inputs.MissingInputError #77AADD {
+class "<color:red>MissingInputError</color>" as companion4soloplayer.core.creation.inputs.MissingInputError {
 }
-class "Operator" as companion4soloplayer.core.creation.rules.Operator #77AADD {
+class "Operator" as companion4soloplayer.core.creation.rules.Operator {
   +name
-  +<color:#008000><b>parse(value: Operator | str) -> Operator</b></color>
+  +<color:#008000>parse(value: Operator | str) -> Operator</color>
 }
-class "RollStrategy" as companion4soloplayer.core.creation.strategies.RollStrategy #77AADD {
+class "RollStrategy" as companion4soloplayer.core.creation.strategies.RollStrategy {
   +dice : DiceExpression
   +keep : NoneType
   +keep_best : bool
-  +<color:#008000><b>__init__(dice: DiceExpression | str) -> None</b></color>
-  +<color:#008000><b>roll(attribute: str, roller: DiceRoller) -> int</b></color>
-  +<color:#008000><b>roll_detail(attribute: str, roller: DiceRoller) -> tuple[list[int], int]</b></color>
+  +<color:#008000>__init__(dice: DiceExpression | str) -> None</color>
+  +<color:#008000>roll(attribute: str, roller: DiceRoller) -> int</color>
+  +<color:#008000>roll_detail(attribute: str, roller: DiceRoller) -> tuple[list[int], int]</color>
 }
-class "<color:red>RuleDefinitionError</color>" as companion4soloplayer.core.creation.rules.RuleDefinitionError #77AADD {
+class "<color:red>RuleDefinitionError</color>" as companion4soloplayer.core.creation.rules.RuleDefinitionError {
 }
-class "<color:red>RuleEvaluationError</color>" as companion4soloplayer.core.creation.rules.RuleEvaluationError #77AADD {
+class "<color:red>RuleEvaluationError</color>" as companion4soloplayer.core.creation.rules.RuleEvaluationError {
 }
-class "RulesEngine" as companion4soloplayer.core.creation.rules.RulesEngine #77AADD {
+class "RulesEngine" as companion4soloplayer.core.creation.rules.RulesEngine {
   #_rules : list[CreationRule]
   +rules : tuple[CreationRule, ...]
-  +<color:#008000><b>__init__(rules: Sequence[CreationRule]) -> None</b></color>
-  +<color:#008000><b>add(rule: CreationRule) -> None</b></color>
-  +<color:#008000><b>evaluate(context: CharacterCreationContext) -> EvaluationReport</b></color>
+  +<color:#008000>__init__(rules: Sequence[CreationRule]) -> None</color>
+  +<color:#008000>add(rule: CreationRule) -> None</color>
+  +<color:#008000>evaluate(context: CharacterCreationContext) -> EvaluationReport</color>
 }
-class "SelectionStep" as companion4soloplayer.core.creation.steps.selection.SelectionStep #77AADD {
+class "SelectionStep" as companion4soloplayer.core.creation.steps.selection.SelectionStep {
   #_catalog : NoneType
   #_optional : bool
   #_options_source : NoneType
   #_prompt
   #_target
   +target : str
-  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
-  +<color:#008000><b>available(context: CharacterCreationContext) -> list[str]</b></color>
-  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
-  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
-  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
-  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000>__init__(step_id: str) -> None</color>
+  +<color:#008000>available(context: CharacterCreationContext) -> list[str]</color>
+  +<color:#008000>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</color>
+  +<color:#008000>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</color>
+  +<color:#008000>is_applicable(context: CharacterCreationContext) -> bool</color>
+  +<color:#008000>validate(context: CharacterCreationContext) -> list[str]</color>
 }
-class "SkillSelectionStep" as companion4soloplayer.core.creation.steps.skills.SkillSelectionStep #77AADD {
+class "SkillSelectionStep" as companion4soloplayer.core.creation.steps.skills.SkillSelectionStep {
   #_catalog : str
   #_max_count : NoneType
   #_min_count : int
@@ -302,14 +316,14 @@ class "SkillSelectionStep" as companion4soloplayer.core.creation.steps.skills.Sk
   #_target : str
   #_working_target : str
   +mode : str
-  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
-  +<color:#008000><b>available(context: CharacterCreationContext) -> list[str]</b></color>
-  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
-  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
-  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
-  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000>__init__(step_id: str) -> None</color>
+  +<color:#008000>available(context: CharacterCreationContext) -> list[str]</color>
+  +<color:#008000>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</color>
+  +<color:#008000>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</color>
+  +<color:#008000>is_applicable(context: CharacterCreationContext) -> bool</color>
+  +<color:#008000>validate(context: CharacterCreationContext) -> list[str]</color>
 }
-class "SpellSelectionStep" as companion4soloplayer.core.creation.steps.spells.SpellSelectionStep #77AADD {
+class "SpellSelectionStep" as companion4soloplayer.core.creation.steps.spells.SpellSelectionStep {
   #_catalog : str
   #_max_count : NoneType
   #_min_count : int
@@ -319,27 +333,27 @@ class "SpellSelectionStep" as companion4soloplayer.core.creation.steps.spells.Sp
   #_target : str
   #_working_target : str
   +mode : str
-  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
-  +<color:#008000><b>available(context: CharacterCreationContext) -> list[str]</b></color>
-  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
-  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
-  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
-  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000>__init__(step_id: str) -> None</color>
+  +<color:#008000>available(context: CharacterCreationContext) -> list[str]</color>
+  +<color:#008000>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</color>
+  +<color:#008000>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</color>
+  +<color:#008000>is_applicable(context: CharacterCreationContext) -> bool</color>
+  +<color:#008000>validate(context: CharacterCreationContext) -> list[str]</color>
 }
-class "<color:red>StepConfigurationError</color>" as companion4soloplayer.core.creation.steps.base.StepConfigurationError #77AADD {
+class "<color:red>StepConfigurationError</color>" as companion4soloplayer.core.creation.steps.base.StepConfigurationError {
 }
-class "StepResult" as companion4soloplayer.core.creation.steps.base.StepResult #77AADD {
+class "StepResult" as companion4soloplayer.core.creation.steps.base.StepResult {
   +errors : tuple[str, ...]
   +executed : bool
   +ok : bool
   +status
   +step_id : str
-  +<color:#008000><b>__init__(self, step_id: str, status: StepStatus, errors: tuple[str, ...]) -> None</b></color>
+  +<color:#008000>__init__(self, step_id: str, status: StepStatus, errors: tuple[str, ...]) -> None</color>
 }
-class "StepStatus" as companion4soloplayer.core.creation.steps.base.StepStatus #77AADD {
+class "StepStatus" as companion4soloplayer.core.creation.steps.base.StepStatus {
   +name
 }
-class "<color:red>WorkflowError</color>" as companion4soloplayer.core.creation.workflow.WorkflowError #77AADD {
+class "<color:red>WorkflowError</color>" as companion4soloplayer.core.creation.workflow.WorkflowError {
 }
 companion4soloplayer.core.creation.inputs.InvalidAnswerError --|> companion4soloplayer.core.creation.inputs.InputError
 companion4soloplayer.core.creation.inputs.MissingInputError --|> companion4soloplayer.core.creation.inputs.InputError
@@ -394,11 +408,17 @@ companion4soloplayer.core.creation.steps.base.StepStatus -[hidden]down-> compani
 
 ' --- Visibility legend ---
 legend right
-  |= <b>Visibility legend</b> |
+  <size:14><b><color:#B8860B>Visibility legend</color></b></size>
+
   |= Icon |= Symbol |= Visibility |= Description |
-  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#84BE84><$icon_public></color> | + | Public | Public access |
   | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
   | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+
+  <size:14><b><color:#B8860B>Notes</color></b></size>
+  * <color:#FF0000>Abstract methods</color> are displayed in <color:#FF0000>red</color> and in <color:#FF0000><i>italics</i></color>.
+  * <color:#008000>Concrete methods</color> are displayed in <color:#008000>green</color>.
+  * Attributes follow the standard visibility color scheme.
 endlegend
 
 @enduml

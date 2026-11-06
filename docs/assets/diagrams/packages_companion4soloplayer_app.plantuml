@@ -1,7 +1,7 @@
 @startuml packages_companion4soloplayer_app
 set namespaceSeparator none
-package "companion4soloplayer.app" as companion4soloplayer.app #77AADD {
+package "companion4soloplayer.app" as companion4soloplayer.app {
 }
-package "companion4soloplayer.app.application" as companion4soloplayer.app.application #77AADD {
+package "companion4soloplayer.app.application" as companion4soloplayer.app.application {
 }
 @enduml

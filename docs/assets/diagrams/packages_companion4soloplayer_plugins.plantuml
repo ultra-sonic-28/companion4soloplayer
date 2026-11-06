@@ -1,32 +1,32 @@
 @startuml packages_companion4soloplayer_plugins
 set namespaceSeparator none
-package "companion4soloplayer.plugins" as companion4soloplayer.plugins #77AADD {
+package "companion4soloplayer.plugins" as companion4soloplayer.plugins {
 }
-package "companion4soloplayer.plugins.demo_plugin" as companion4soloplayer.plugins.demo_plugin #77AADD {
+package "companion4soloplayer.plugins.demo_plugin" as companion4soloplayer.plugins.demo_plugin {
 }
-package "companion4soloplayer.plugins.demo_plugin.creation" as companion4soloplayer.plugins.demo_plugin.creation #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.creation" as companion4soloplayer.plugins.demo_plugin.creation {
 }
-package "companion4soloplayer.plugins.demo_plugin.creation.filters" as companion4soloplayer.plugins.demo_plugin.creation.filters #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.creation.filters" as companion4soloplayer.plugins.demo_plugin.creation.filters {
 }
-package "companion4soloplayer.plugins.demo_plugin.creation.strategies" as companion4soloplayer.plugins.demo_plugin.creation.strategies #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.creation.strategies" as companion4soloplayer.plugins.demo_plugin.creation.strategies {
 }
-package "companion4soloplayer.plugins.demo_plugin.creation.workflow" as companion4soloplayer.plugins.demo_plugin.creation.workflow #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.creation.workflow" as companion4soloplayer.plugins.demo_plugin.creation.workflow {
 }
-package "companion4soloplayer.plugins.demo_plugin.data" as companion4soloplayer.plugins.demo_plugin.data #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.data" as companion4soloplayer.plugins.demo_plugin.data {
 }
-package "companion4soloplayer.plugins.demo_plugin.manifest" as companion4soloplayer.plugins.demo_plugin.manifest #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.manifest" as companion4soloplayer.plugins.demo_plugin.manifest {
 }
-package "companion4soloplayer.plugins.demo_plugin.plugin" as companion4soloplayer.plugins.demo_plugin.plugin #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.plugin" as companion4soloplayer.plugins.demo_plugin.plugin {
 }
-package "companion4soloplayer.plugins.demo_plugin.rules" as companion4soloplayer.plugins.demo_plugin.rules #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.rules" as companion4soloplayer.plugins.demo_plugin.rules {
 }
-package "companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule" as companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule" as companion4soloplayer.plugins.demo_plugin.rules.character_creation_rule {
 }
-package "companion4soloplayer.plugins.demo_plugin.rules.combat_rule" as companion4soloplayer.plugins.demo_plugin.rules.combat_rule #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.rules.combat_rule" as companion4soloplayer.plugins.demo_plugin.rules.combat_rule {
 }
-package "companion4soloplayer.plugins.demo_plugin.rules.loot_rule" as companion4soloplayer.plugins.demo_plugin.rules.loot_rule #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.rules.loot_rule" as companion4soloplayer.plugins.demo_plugin.rules.loot_rule {
 }
-package "companion4soloplayer.plugins.demo_plugin.rules.magic_rule" as companion4soloplayer.plugins.demo_plugin.rules.magic_rule #77AADD {
+package "companion4soloplayer.plugins.demo_plugin.rules.magic_rule" as companion4soloplayer.plugins.demo_plugin.rules.magic_rule {
 }
 companion4soloplayer.plugins.demo_plugin --> companion4soloplayer.plugins.demo_plugin.creation
 companion4soloplayer.plugins.demo_plugin --> companion4soloplayer.plugins.demo_plugin.manifest

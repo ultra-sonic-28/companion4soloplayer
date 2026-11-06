@@ -1,16 +1,16 @@
 @startuml packages_companion4soloplayer_ui_dialogs
 set namespaceSeparator none
-package "companion4soloplayer.ui.dialogs" as companion4soloplayer.ui.dialogs #77AADD {
+package "companion4soloplayer.ui.dialogs" as companion4soloplayer.ui.dialogs {
 }
-package "companion4soloplayer.ui.dialogs.about_dialog" as companion4soloplayer.ui.dialogs.about_dialog #77AADD {
+package "companion4soloplayer.ui.dialogs.about_dialog" as companion4soloplayer.ui.dialogs.about_dialog {
 }
-package "companion4soloplayer.ui.dialogs.plugin_metadata_dialog" as companion4soloplayer.ui.dialogs.plugin_metadata_dialog #77AADD {
+package "companion4soloplayer.ui.dialogs.plugin_metadata_dialog" as companion4soloplayer.ui.dialogs.plugin_metadata_dialog {
 }
-package "companion4soloplayer.ui.dialogs.plugins_dialog" as companion4soloplayer.ui.dialogs.plugins_dialog #77AADD {
+package "companion4soloplayer.ui.dialogs.plugins_dialog" as companion4soloplayer.ui.dialogs.plugins_dialog {
 }
-package "companion4soloplayer.ui.dialogs.quest_wizard" as companion4soloplayer.ui.dialogs.quest_wizard #77AADD {
+package "companion4soloplayer.ui.dialogs.quest_wizard" as companion4soloplayer.ui.dialogs.quest_wizard {
 }
-package "companion4soloplayer.ui.dialogs.settings_dialog" as companion4soloplayer.ui.dialogs.settings_dialog #77AADD {
+package "companion4soloplayer.ui.dialogs.settings_dialog" as companion4soloplayer.ui.dialogs.settings_dialog {
 }
 companion4soloplayer.ui.dialogs.plugins_dialog --> companion4soloplayer.ui.dialogs.plugin_metadata_dialog
 @enduml

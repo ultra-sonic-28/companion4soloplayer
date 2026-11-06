@@ -1,8 +1,8 @@
 @startuml packages_companion4soloplayer_core_rules
 set namespaceSeparator none
-package "companion4soloplayer.core.rules" as companion4soloplayer.core.rules #77AADD {
+package "companion4soloplayer.core.rules" as companion4soloplayer.core.rules {
 }
-package "companion4soloplayer.core.rules.oracle_rule" as companion4soloplayer.core.rules.oracle_rule #77AADD {
+package "companion4soloplayer.core.rules.oracle_rule" as companion4soloplayer.core.rules.oracle_rule {
 }
 companion4soloplayer.core.rules --> companion4soloplayer.core.rules.oracle_rule
 @enduml

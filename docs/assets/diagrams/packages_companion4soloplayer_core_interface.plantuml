@@ -1,8 +1,8 @@
 @startuml packages_companion4soloplayer_core_interface
 set namespaceSeparator none
-package "companion4soloplayer.core.interface" as companion4soloplayer.core.interface #77AADD {
+package "companion4soloplayer.core.interface" as companion4soloplayer.core.interface {
 }
-package "companion4soloplayer.core.interface.game_plugin" as companion4soloplayer.core.interface.game_plugin #77AADD {
+package "companion4soloplayer.core.interface.game_plugin" as companion4soloplayer.core.interface.game_plugin {
 }
 companion4soloplayer.core.interface --> companion4soloplayer.core.interface.game_plugin
 @enduml

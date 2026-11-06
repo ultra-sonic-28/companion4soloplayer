@@ -1,25 +1,38 @@
 @startuml classes_companion4soloplayer_core_creation_rules
+
+' -----------------------------------------------
 ' --- Custom Styling: Visibility & Colors ---
 skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------
+skinparam Shadowing true
 
+' --- Legend color configuration ---
+<style>
+legend {
+  BackGroundColor #FFF8DC
+  LineColor       #B8860B
+  FontColor       #333333
+  FontSize        12
+}
+</style>
+' -----------------------------------------------
+' --- Custom icons ---
 ' 1. Public
 sprite $icon_public {
 0000000000000000
 0000000000000000
 0000000000000000
 0000000000000000
-0000007777000000
-0000777777770000
-0007770000777000
-0007700000077000
-0007700000077000
-0007770000777000
-0000777777770000
-0000007777000000
+000000FFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+000000FFFF000000
 0000000000000000
 0000000000000000
 0000000000000000
@@ -65,61 +78,62 @@ sprite $icon_private {
 0000000000000000
 0000000000000000
 }
+' -----------------------------------------------
 
 set namespaceSeparator none
-class "Action" as companion4soloplayer.core.creation.rules.Action #77AADD {
+class "Action" as companion4soloplayer.core.creation.rules.Action {
   +name
-  +<color:#008000><b>parse(value: Action | str) -> Action</b></color>
+  +<color:#008000>parse(value: Action | str) -> Action</color>
 }
-class "Condition" as companion4soloplayer.core.creation.rules.Condition #77AADD {
+class "Condition" as companion4soloplayer.core.creation.rules.Condition {
   +operator
   +target : str
   +value : Optional[Any]
-  +<color:#008000><b>__init__(self, target: str, operator: Operator, value: Any) -> None</b></color>
-  #<color:#008000><b>_check_container(value: Any, operator: str) -> None</b></color>
-  #<color:#008000><b>_check_definition() -> None</b></color>
-  #<color:#008000><b>_check_numbers(actual: Any, expected: Any) -> None</b></color>
-  +<color:#008000><b>describe() -> str</b></color>
-  +<color:#008000><b>evaluate(context: CharacterCreationContext) -> bool</b></color>
-  +<color:#008000><b>from_dict(data: Mapping[str, Any]) -> Condition</b></color>
+  +<color:#008000>__init__(self, target: str, operator: Operator, value: Any) -> None</color>
+  #<color:#008000>_check_container(value: Any, operator: str) -> None</color>
+  #<color:#008000>_check_definition() -> None</color>
+  #<color:#008000>_check_numbers(actual: Any, expected: Any) -> None</color>
+  +<color:#008000>describe() -> str</color>
+  +<color:#008000>evaluate(context: CharacterCreationContext) -> bool</color>
+  +<color:#008000>from_dict(data: Mapping[str, Any]) -> Condition</color>
 }
-class "CreationRule" as companion4soloplayer.core.creation.rules.CreationRule #77AADD {
+class "CreationRule" as companion4soloplayer.core.creation.rules.CreationRule {
   +description : str
   +effects : tuple[Effect, ...]
   +id : str
   +when : tuple[Condition, ...]
-  +<color:#008000><b>__init__(self, id: str, description: str, when: tuple[Condition, ...], effects: tuple[Effect, ...]) -> None</b></color>
-  +<color:#008000><b>from_dict(data: Mapping[str, Any]) -> CreationRule</b></color>
-  +<color:#008000><b>matches(context: CharacterCreationContext) -> bool</b></color>
+  +<color:#008000>__init__(self, id: str, description: str, when: tuple[Condition, ...], effects: tuple[Effect, ...]) -> None</color>
+  +<color:#008000>from_dict(data: Mapping[str, Any]) -> CreationRule</color>
+  +<color:#008000>matches(context: CharacterCreationContext) -> bool</color>
 }
-class "Effect" as companion4soloplayer.core.creation.rules.Effect #77AADD {
+class "Effect" as companion4soloplayer.core.creation.rules.Effect {
   +action
   +target : str
   +value : Optional[Any]
-  +<color:#008000><b>__init__(self, target: str, action: Action, value: Any) -> None</b></color>
-  #<color:#008000><b>_apply_collection_action(base: Any) -> Any</b></color>
-  +<color:#008000><b>apply_to(base: Any) -> Any</b></color>
-  +<color:#008000><b>from_dict(data: Mapping[str, Any]) -> Effect</b></color>
+  +<color:#008000>__init__(self, target: str, action: Action, value: Any) -> None</color>
+  #<color:#008000>_apply_collection_action(base: Any) -> Any</color>
+  +<color:#008000>apply_to(base: Any) -> Any</color>
+  +<color:#008000>from_dict(data: Mapping[str, Any]) -> Effect</color>
 }
-class "EvaluationReport" as companion4soloplayer.core.creation.rules.EvaluationReport #77AADD {
+class "EvaluationReport" as companion4soloplayer.core.creation.rules.EvaluationReport {
   +applied_effects : int
   +fired : tuple[str, ...]
-  +<color:#008000><b>__init__(self, fired: tuple[str, ...], applied_effects: int) -> None</b></color>
+  +<color:#008000>__init__(self, fired: tuple[str, ...], applied_effects: int) -> None</color>
 }
-class "Operator" as companion4soloplayer.core.creation.rules.Operator #77AADD {
+class "Operator" as companion4soloplayer.core.creation.rules.Operator {
   +name
-  +<color:#008000><b>parse(value: Operator | str) -> Operator</b></color>
+  +<color:#008000>parse(value: Operator | str) -> Operator</color>
 }
-class "<color:red>RuleDefinitionError</color>" as companion4soloplayer.core.creation.rules.RuleDefinitionError #77AADD {
+class "<color:red>RuleDefinitionError</color>" as companion4soloplayer.core.creation.rules.RuleDefinitionError {
 }
-class "<color:red>RuleEvaluationError</color>" as companion4soloplayer.core.creation.rules.RuleEvaluationError #77AADD {
+class "<color:red>RuleEvaluationError</color>" as companion4soloplayer.core.creation.rules.RuleEvaluationError {
 }
-class "RulesEngine" as companion4soloplayer.core.creation.rules.RulesEngine #77AADD {
+class "RulesEngine" as companion4soloplayer.core.creation.rules.RulesEngine {
   #_rules : list[CreationRule]
   +rules : tuple[CreationRule, ...]
-  +<color:#008000><b>__init__(rules: Sequence[CreationRule]) -> None</b></color>
-  +<color:#008000><b>add(rule: CreationRule) -> None</b></color>
-  +<color:#008000><b>evaluate(context: CharacterCreationContext) -> EvaluationReport</b></color>
+  +<color:#008000>__init__(rules: Sequence[CreationRule]) -> None</color>
+  +<color:#008000>add(rule: CreationRule) -> None</color>
+  +<color:#008000>evaluate(context: CharacterCreationContext) -> EvaluationReport</color>
 }
 companion4soloplayer.core.creation.rules.Effect --> companion4soloplayer.core.creation.rules.Action : action
 companion4soloplayer.core.creation.rules.RulesEngine --> companion4soloplayer.core.creation.rules.CreationRule : _rules
@@ -138,11 +152,17 @@ companion4soloplayer.core.creation.rules.RuleEvaluationError -[hidden]down-> com
 
 ' --- Visibility legend ---
 legend right
-  |= <b>Visibility legend</b> |
+  <size:14><b><color:#B8860B>Visibility legend</color></b></size>
+
   |= Icon |= Symbol |= Visibility |= Description |
-  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#84BE84><$icon_public></color> | + | Public | Public access |
   | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
   | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+
+  <size:14><b><color:#B8860B>Notes</color></b></size>
+  * <color:#FF0000>Abstract methods</color> are displayed in <color:#FF0000>red</color> and in <color:#FF0000><i>italics</i></color>.
+  * <color:#008000>Concrete methods</color> are displayed in <color:#008000>green</color>.
+  * Attributes follow the standard visibility color scheme.
 endlegend
 
 @enduml

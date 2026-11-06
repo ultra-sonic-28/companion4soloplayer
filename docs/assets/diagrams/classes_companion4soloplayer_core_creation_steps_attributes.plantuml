@@ -1,25 +1,38 @@
 @startuml classes_companion4soloplayer_core_creation_steps_attributes
+
+' -----------------------------------------------
 ' --- Custom Styling: Visibility & Colors ---
 skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------
+skinparam Shadowing true
 
+' --- Legend color configuration ---
+<style>
+legend {
+  BackGroundColor #FFF8DC
+  LineColor       #B8860B
+  FontColor       #333333
+  FontSize        12
+}
+</style>
+' -----------------------------------------------
+' --- Custom icons ---
 ' 1. Public
 sprite $icon_public {
 0000000000000000
 0000000000000000
 0000000000000000
 0000000000000000
-0000007777000000
-0000777777770000
-0007770000777000
-0007700000077000
-0007700000077000
-0007770000777000
-0000777777770000
-0000007777000000
+000000FFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+000000FFFF000000
 0000000000000000
 0000000000000000
 0000000000000000
@@ -65,9 +78,10 @@ sprite $icon_private {
 0000000000000000
 0000000000000000
 }
+' -----------------------------------------------
 
 set namespaceSeparator none
-class "AttributeGenerationStep" as companion4soloplayer.core.creation.steps.attributes.AttributeGenerationStep #77AADD {
+class "AttributeGenerationStep" as companion4soloplayer.core.creation.steps.attributes.AttributeGenerationStep {
   #_attributes : NoneType, tuple
   #_block : str
   #_manual_attributes : tuple
@@ -77,30 +91,36 @@ class "AttributeGenerationStep" as companion4soloplayer.core.creation.steps.attr
   #_roller : NoneType
   #_strategy : NoneType
   #_target : str
-  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
-  #<color:#008000><b>_block_entries(context: CharacterCreationContext) -> Any</b></color>
-  #<color:#008000><b>_is_manual(attribute: str) -> bool</b></color>
-  #<color:#008000><b>_read_attribute_entry(entry: Mapping[str, Any], position: int, source: str) -> dict[str, str]</b></color>
-  #<color:#008000><b>_resolve_strategy(context: CharacterCreationContext) -> AttributeGenerationStrategy</b></color>
-  +<color:#008000><b>attribute_descriptions(context: CharacterCreationContext) -> dict[str, str]</b></color>
-  +<color:#008000><b>attribute_entries(context: CharacterCreationContext) -> list[dict[str, str]]</b></color>
-  +<color:#008000><b>attribute_labels(context: CharacterCreationContext) -> dict[str, str]</b></color>
-  +<color:#008000><b>attribute_names(context: CharacterCreationContext) -> list[str]</b></color>
-  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
-  +<color:#008000><b>display_label(context: CharacterCreationContext) -> str</b></color>
-  +<color:#008000><b>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</b></color>
-  +<color:#008000><b>is_applicable(context: CharacterCreationContext) -> bool</b></color>
-  +<color:#008000><b>roll_attribute(attribute: str, context: CharacterCreationContext, roller: DiceRoller | None) -> int</b></color>
-  +<color:#008000><b>validate(context: CharacterCreationContext) -> list[str]</b></color>
+  +<color:#008000>__init__(step_id: str) -> None</color>
+  #<color:#008000>_block_entries(context: CharacterCreationContext) -> Any</color>
+  #<color:#008000>_is_manual(attribute: str) -> bool</color>
+  #<color:#008000>_read_attribute_entry(entry: Mapping[str, Any], position: int, source: str) -> dict[str, str]</color>
+  #<color:#008000>_resolve_strategy(context: CharacterCreationContext) -> AttributeGenerationStrategy</color>
+  +<color:#008000>attribute_descriptions(context: CharacterCreationContext) -> dict[str, str]</color>
+  +<color:#008000>attribute_entries(context: CharacterCreationContext) -> list[dict[str, str]]</color>
+  +<color:#008000>attribute_labels(context: CharacterCreationContext) -> dict[str, str]</color>
+  +<color:#008000>attribute_names(context: CharacterCreationContext) -> list[str]</color>
+  +<color:#008000>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</color>
+  +<color:#008000>display_label(context: CharacterCreationContext) -> str</color>
+  +<color:#008000>execute(context: CharacterCreationContext, inputs: InputProvider) -> None</color>
+  +<color:#008000>is_applicable(context: CharacterCreationContext) -> bool</color>
+  +<color:#008000>roll_attribute(attribute: str, context: CharacterCreationContext, roller: DiceRoller | None) -> int</color>
+  +<color:#008000>validate(context: CharacterCreationContext) -> list[str]</color>
 }
 
 ' --- Visibility legend ---
 legend right
-  |= <b>Visibility legend</b> |
+  <size:14><b><color:#B8860B>Visibility legend</color></b></size>
+
   |= Icon |= Symbol |= Visibility |= Description |
-  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#84BE84><$icon_public></color> | + | Public | Public access |
   | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
   | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+
+  <size:14><b><color:#B8860B>Notes</color></b></size>
+  * <color:#FF0000>Abstract methods</color> are displayed in <color:#FF0000>red</color> and in <color:#FF0000><i>italics</i></color>.
+  * <color:#008000>Concrete methods</color> are displayed in <color:#008000>green</color>.
+  * Attributes follow the standard visibility color scheme.
 endlegend
 
 @enduml

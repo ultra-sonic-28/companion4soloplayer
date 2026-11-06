@@ -1,25 +1,38 @@
 @startuml classes_companion4soloplayer_core_creation_steps_base
+
+' -----------------------------------------------
 ' --- Custom Styling: Visibility & Colors ---
 skinparam classAttributeFontColor #0055FF
 skinparam classAttributeFontStyle normal
 skinparam classFontColor #333333
 skinparam classFontStyle normal
-' -----------------------------------------------
+skinparam Shadowing true
 
+' --- Legend color configuration ---
+<style>
+legend {
+  BackGroundColor #FFF8DC
+  LineColor       #B8860B
+  FontColor       #333333
+  FontSize        12
+}
+</style>
+' -----------------------------------------------
+' --- Custom icons ---
 ' 1. Public
 sprite $icon_public {
 0000000000000000
 0000000000000000
 0000000000000000
 0000000000000000
-0000007777000000
-0000777777770000
-0007770000777000
-0007700000077000
-0007700000077000
-0007770000777000
-0000777777770000
-0000007777000000
+000000FFFF000000
+0000FFFFFFFF0000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+000FFFFFFFFFF000
+0000FFFFFFFF0000
+000000FFFF000000
 0000000000000000
 0000000000000000
 0000000000000000
@@ -65,32 +78,33 @@ sprite $icon_private {
 0000000000000000
 0000000000000000
 }
+' -----------------------------------------------
 
 set namespaceSeparator none
-class "CreationStep" as companion4soloplayer.core.creation.steps.base.CreationStep #77AADD {
+class "CreationStep" as companion4soloplayer.core.creation.steps.base.CreationStep {
   #_label
   #_step_id
   +label : str
   +step_id : str
-  +<color:#008000><b>__init__(step_id: str) -> None</b></color>
-  +<color:#008000><b>__repr__() -> str</b></color>
-  +<color:#008000><b>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</b></color>
-  +<color:#008000><b>display_label(context: CharacterCreationContext) -> str</b></color>
-  {abstract}execute(context: CharacterCreationContext, inputs: InputProvider) -> None
-  {abstract}is_applicable(context: CharacterCreationContext) -> bool
-  {abstract}validate(context: CharacterCreationContext) -> list[str]
+  +<color:#008000>__init__(step_id: str) -> None</color>
+  +<color:#008000>__repr__() -> str</color>
+  +<color:#008000>describe_inputs(context: CharacterCreationContext) -> tuple[InputField, ...]</color>
+  +<color:#008000>display_label(context: CharacterCreationContext) -> str</color>
+  +<color:#FF0000>{abstract}execute(context: CharacterCreationContext, inputs: InputProvider) -> None</color>
+  +<color:#FF0000>{abstract}is_applicable(context: CharacterCreationContext) -> bool</color>
+  +<color:#FF0000>{abstract}validate(context: CharacterCreationContext) -> list[str]</color>
 }
-class "<color:red>StepConfigurationError</color>" as companion4soloplayer.core.creation.steps.base.StepConfigurationError #77AADD {
+class "<color:red>StepConfigurationError</color>" as companion4soloplayer.core.creation.steps.base.StepConfigurationError {
 }
-class "StepResult" as companion4soloplayer.core.creation.steps.base.StepResult #77AADD {
+class "StepResult" as companion4soloplayer.core.creation.steps.base.StepResult {
   +errors : tuple[str, ...]
   +executed : bool
   +ok : bool
   +status
   +step_id : str
-  +<color:#008000><b>__init__(self, step_id: str, status: StepStatus, errors: tuple[str, ...]) -> None</b></color>
+  +<color:#008000>__init__(self, step_id: str, status: StepStatus, errors: tuple[str, ...]) -> None</color>
 }
-class "StepStatus" as companion4soloplayer.core.creation.steps.base.StepStatus #77AADD {
+class "StepStatus" as companion4soloplayer.core.creation.steps.base.StepStatus {
   +name
 }
 companion4soloplayer.core.creation.steps.base.StepResult --> companion4soloplayer.core.creation.steps.base.StepStatus : status
@@ -103,11 +117,17 @@ companion4soloplayer.core.creation.steps.base.StepResult -[hidden]down-> compani
 
 ' --- Visibility legend ---
 legend right
-  |= <b>Visibility legend</b> |
+  <size:14><b><color:#B8860B>Visibility legend</color></b></size>
+
   |= Icon |= Symbol |= Visibility |= Description |
-  | <color:#333333><$icon_public></color> | + | Public | Public access |
+  | <color:#84BE84><$icon_public></color> | + | Public | Public access |
   | <color:#FFD700><$icon_protected></color> | # | Protected | Only class and subclass can access |
   | <color:#FF0000><$icon_private></color> | - | Private | Only class can access |
+
+  <size:14><b><color:#B8860B>Notes</color></b></size>
+  * <color:#FF0000>Abstract methods</color> are displayed in <color:#FF0000>red</color> and in <color:#FF0000><i>italics</i></color>.
+  * <color:#008000>Concrete methods</color> are displayed in <color:#008000>green</color>.
+  * Attributes follow the standard visibility color scheme.
 endlegend
 
 @enduml
