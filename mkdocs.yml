@@ -171,6 +171,7 @@ nav:
       - 'Logger': 'companion4soloplayer/utils/logger.md'
       - 'Plugin Loader': 'companion4soloplayer/utils/plugin_loader.md'
       - 'Resource Manager': 'companion4soloplayer/utils/resource_manager.md'
+      - 'Slugify': 'companion4soloplayer/utils/slugify.md'
       - 'YAML Loader': 'companion4soloplayer/utils/yaml_loader.md'
     - Packages:
       - Application: 'companion4soloplayer/packages/app/application.md'

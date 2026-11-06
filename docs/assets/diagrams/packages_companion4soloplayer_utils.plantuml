@@ -12,6 +12,8 @@ package "companion4soloplayer.utils.plugin_loader" as companion4soloplayer.utils
 }
 package "companion4soloplayer.utils.resource_manager" as companion4soloplayer.utils.resource_manager #77AADD {
 }
+package "companion4soloplayer.utils.slugify" as companion4soloplayer.utils.slugify #77AADD {
+}
 package "companion4soloplayer.utils.yaml_loader" as companion4soloplayer.utils.yaml_loader #77AADD {
 }
 companion4soloplayer.utils.logger --> companion4soloplayer.utils.config_manager

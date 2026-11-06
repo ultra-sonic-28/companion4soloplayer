@@ -159,6 +159,16 @@ class "ResourceManager" as companion4soloplayer.utils.resource_manager.ResourceM
 }
 class "<color:red>ResourceNotFoundError</color>" as companion4soloplayer.utils.resource_manager.ResourceNotFoundError #77AADD {
 }
+class "Slugify" as companion4soloplayer.utils.slugify.Slugify #77AADD {
+  #_lowercase : bool
+  #_max_length : int
+  #_separator : str
+  +<color:#008000><b>__call__(text: str) -> str</b></color>
+  +<color:#008000><b>__init__() -> None</b></color>
+  +<color:#008000><b>__repr__() -> str</b></color>
+  +<color:#008000><b>sanitize(text: str) -> str</b></color>
+  +<color:#008000><b>unique(directory: str | os.PathLike[str], filename: str) -> str</b></color>
+}
 class "TooltipCornerType" as companion4soloplayer.utils.config_manager.TooltipCornerType #77AADD {
   +name
 }
@@ -183,7 +193,8 @@ companion4soloplayer.utils.plugin_config.PluginConfigRegistry -[hidden]down-> co
 companion4soloplayer.utils.plugin_loader.PluginLoader -[hidden]down-> companion4soloplayer.utils.yaml_loader.PyClassRef
 companion4soloplayer.utils.yaml_loader.PyClassRef -[hidden]down-> companion4soloplayer.utils.resource_manager.ResourceManager
 companion4soloplayer.utils.resource_manager.ResourceManager -[hidden]down-> companion4soloplayer.utils.resource_manager.ResourceNotFoundError
-companion4soloplayer.utils.resource_manager.ResourceNotFoundError -[hidden]down-> companion4soloplayer.utils.config_manager.TooltipCornerType
+companion4soloplayer.utils.resource_manager.ResourceNotFoundError -[hidden]down-> companion4soloplayer.utils.slugify.Slugify
+companion4soloplayer.utils.slugify.Slugify -[hidden]down-> companion4soloplayer.utils.config_manager.TooltipCornerType
 companion4soloplayer.utils.config_manager.TooltipCornerType -[hidden]down-> companion4soloplayer.utils.yaml_loader.YamlLoadError
 companion4soloplayer.utils.yaml_loader.YamlLoadError -[hidden]down-> companion4soloplayer.utils.yaml_loader.YamlTagError
 companion4soloplayer.utils.yaml_loader.YamlTagError -[hidden]down-> companion4soloplayer.utils.plugin_loader._PluginSubmoduleFinder
