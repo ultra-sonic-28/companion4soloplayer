@@ -2,6 +2,8 @@
 set namespaceSeparator none
 package "companion4soloplayer.utils" as companion4soloplayer.utils {
 }
+package "companion4soloplayer.utils.character_save" as companion4soloplayer.utils.character_save {
+}
 package "companion4soloplayer.utils.config_manager" as companion4soloplayer.utils.config_manager {
 }
 package "companion4soloplayer.utils.logger" as companion4soloplayer.utils.logger {
@@ -16,6 +18,7 @@ package "companion4soloplayer.utils.slugify" as companion4soloplayer.utils.slugi
 }
 package "companion4soloplayer.utils.yaml_loader" as companion4soloplayer.utils.yaml_loader {
 }
+companion4soloplayer.utils.character_save --> companion4soloplayer.utils.slugify
 companion4soloplayer.utils.logger --> companion4soloplayer.utils.config_manager
 companion4soloplayer.utils.plugin_config --> companion4soloplayer.utils.yaml_loader
 companion4soloplayer.utils.plugin_loader --> companion4soloplayer.utils.plugin_config

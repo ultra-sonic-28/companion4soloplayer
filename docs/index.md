@@ -74,6 +74,7 @@ Desktop front-end built on **PySide6 (Qt for Python)**:
 ### 6. Shared Utilities (`utils`)
 Framework-agnostic helpers shared by every layer of the application:
 
+- **[Character Save Manager](companion4soloplayer/utils/character_save_manager.md)**: Persistence of player characters under `data/saves/<plugin>/`, with automatic directory creation and slug-based file naming.
 - **[Config Manager](companion4soloplayer/utils/config_manager.md)**: TOML user configuration (`config.toml`) creation, loading, live access, and persistence.
 - **[Logger](companion4soloplayer/utils/logger.md)**: Centralized logging setup driven by the `[logging]` configuration table.
 - **[Plugin Loader](companion4soloplayer/utils/plugin_loader.md)**: Dynamic plugin discovery, compiled extension loading (`.pyd`), and fallback source loading.

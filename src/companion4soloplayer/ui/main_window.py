@@ -3,6 +3,8 @@ Main window module.
 Contains the primary application window.
 """
 
+import logging
+
 from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QAction, QCloseEvent, QGuiApplication, QIcon
 from PySide6.QtWidgets import (
@@ -19,15 +21,20 @@ from qt_material import apply_stylesheet  # type: ignore[import-untyped]
 
 from companion4soloplayer import APPLICATION_NAME
 from companion4soloplayer.app.application import application_config
+from companion4soloplayer.core.character_tracker import Character
+from companion4soloplayer.core.creation import CharacterCreationContext
 from companion4soloplayer.core.interface.game_plugin import GamePlugin
 from companion4soloplayer.ui.builder import CharacterCreationDialog
 from companion4soloplayer.ui.dialogs.about_dialog import AboutDialog
 from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.dialogs.quest_wizard import QuestWizard
 from companion4soloplayer.ui.dialogs.settings_dialog import SettingsDialog
+from companion4soloplayer.utils.character_save import CharacterSaveManager
 from companion4soloplayer.utils.config_manager import DEFAULT_THEME, ConfigManager
 from companion4soloplayer.utils.plugin_loader import PluginLoader
 from companion4soloplayer.utils.resource_manager import ResourceManager
+
+logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow):
@@ -387,4 +394,74 @@ class MainWindow(QMainWindow):
             return
         name = str(dialog.answers.get("identity.name") or "").strip()
         label = f" '{name}'" if name else ""
-        self.status_bar.showMessage(f"Player character{label} created")
+        self._save_created_character(plugin_name, dialog.context)
+        self.status_bar.showMessage(f"Player character{label} created and saved")
+
+    def _save_created_character(
+        self, plugin_name: str, context: CharacterCreationContext | None
+    ) -> None:
+        """Persist the character just created by the dialog.
+
+        The character is saved under ``data/saves/<plugin_name>/`` using
+        the slugified name. A save failure is reported to the user but
+        never blocks a successfully created character.
+
+        Args:
+            plugin_name: Name of the plugin owning the character.
+            context: Filled creation context returned by the dialog.
+        """
+        if context is None:
+            return
+        character = self._character_from_context(context)
+        try:
+            CharacterSaveManager(plugin_name).save_character(character)
+            logger.info("Character %r saved for plugin %r", character.name, plugin_name)
+        except OSError as exc:
+            logger.warning(
+                "Could not save character %r for plugin %r: %s",
+                character.name,
+                plugin_name,
+                exc,
+            )
+            QMessageBox.warning(
+                self,
+                "Player",
+                f"The character {character.name!r} was created but could not be saved:\n{exc}",
+            )
+
+    @staticmethod
+    def _character_from_context(context: CharacterCreationContext) -> Character:
+        """Build a :class:`Character` from a filled creation context.
+
+        Reads the standard creation paths (``choices.identity.name``,
+        ``choices.class`` and ``values.attributes``). Missing or unknown
+        values fall back on safe defaults so the save never fails because
+        of an absent optional field.
+
+        Args:
+            context: Filled creation context returned by the dialog.
+
+        Returns:
+            A :class:`Character` holding the information of the created
+            player character.
+        """
+        export = context.export() or {}
+        choices = export.get("choices", {}) if isinstance(export, dict) else {}
+        values = export.get("values", {}) if isinstance(export, dict) else {}
+        identity = choices.get("identity", {}) if isinstance(choices.get("identity"), dict) else {}
+        name = str(identity.get("name") or "Unnamed")
+        character_class = str(choices.get("class") or "Unknown")
+        stats = values.get("attributes", {}) if isinstance(values.get("attributes"), dict) else {}
+        clean_stats = {
+            str(key): int(value)
+            for key, value in stats.items()
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+        }
+        max_hp = max(1, int(clean_stats.get("body", 6)))
+        return Character(
+            name=name,
+            character_class=character_class,
+            max_hp=max_hp,
+            current_hp=max_hp,
+            stats=clean_stats,
+        )

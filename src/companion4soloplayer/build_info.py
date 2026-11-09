@@ -4,5 +4,5 @@ This module is rewritten on every executable generation. Source-only
 runs therefore always see the last generated value.
 """
 
-BUILD_NUMBER = 44
-BUILD_DATETIME = "2026-10-24 20:59:11"
+BUILD_NUMBER = 45
+BUILD_DATETIME = "2026-11-09 23:48:09"

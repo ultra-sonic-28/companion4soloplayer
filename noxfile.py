@@ -306,7 +306,13 @@ def tests_unit(session: nox.Session) -> None:
 
     session.install(*_get_test_deps())
     session.install(".")
-    session.run("pytest", "tests/tests_core", "tests/tests_plugins", "tests/tests_utils")
+    session.run(
+        "pytest",
+        "tests/tests_core",
+        "tests/tests_plugins",
+        "tests/tests_utils",
+        "tests/tests_integration",
+    )
 
 # ---------------------------------------------------------------------------
 # test-ui session

@@ -83,6 +83,20 @@ sprite $icon_private {
 set namespaceSeparator none
 class "C4SPSafeLoader" as companion4soloplayer.utils.yaml_loader.C4SPSafeLoader {
 }
+class "CharacterSaveManager" as companion4soloplayer.utils.character_save.CharacterSaveManager {
+  #_slugger
+  +directory : Path
+  +logger : NoneType, RootLogger
+  +plugin_name : str
+  +save_dir
+  +saves_root
+  +<color:#008000>__init__(plugin_name: str, saves_root: Path | None) -> None</color>
+  +<color:#008000>character_exists(slug: str) -> bool</color>
+  +<color:#008000>delete_character(slug: str) -> bool</color>
+  +<color:#008000>list_characters() -> list[str]</color>
+  +<color:#008000>load_character(slug: str) -> Character | None</color>
+  +<color:#008000>save_character(character: Character) -> Path</color>
+}
 class "ConfigManager" as companion4soloplayer.utils.config_manager.ConfigManager {
   +data : Table
   +filename : Path
@@ -173,6 +187,15 @@ class "ResourceManager" as companion4soloplayer.utils.resource_manager.ResourceM
 }
 class "<color:red>ResourceNotFoundError</color>" as companion4soloplayer.utils.resource_manager.ResourceNotFoundError {
 }
+class "SavedCharacter" as companion4soloplayer.utils.character_save.SavedCharacter {
+  +character
+  +plugin_name
+  +saved_at
+  +version
+  +<color:#008000>__init__() -> None</color>
+  +<color:#008000>from_dict(data: dict[str, Any]) -> SavedCharacter</color>
+  +<color:#008000>to_dict() -> dict[str, Any]</color>
+}
 class "Slugify" as companion4soloplayer.utils.slugify.Slugify {
   #_lowercase : bool
   #_max_length : int
@@ -198,16 +221,19 @@ class "_PluginSubmoduleFinder" as companion4soloplayer.utils.plugin_loader._Plug
   +<color:#FF0000>{abstract}exec_module(module: types.ModuleType) -> None</color>
   +<color:#008000>find_spec(fullname: str, path: Any, target: Any) -> importlib.machinery.ModuleSpec | None</color>
 }
+companion4soloplayer.utils.slugify.Slugify --* companion4soloplayer.utils.character_save.CharacterSaveManager : _slugger
 
 ' --- Force vertical alignment ---
-companion4soloplayer.utils.yaml_loader.C4SPSafeLoader -[hidden]down-> companion4soloplayer.utils.config_manager.ConfigManager
+companion4soloplayer.utils.yaml_loader.C4SPSafeLoader -[hidden]down-> companion4soloplayer.utils.character_save.CharacterSaveManager
+companion4soloplayer.utils.character_save.CharacterSaveManager -[hidden]down-> companion4soloplayer.utils.config_manager.ConfigManager
 companion4soloplayer.utils.config_manager.ConfigManager -[hidden]down-> companion4soloplayer.utils.logger.LogMode
 companion4soloplayer.utils.logger.LogMode -[hidden]down-> companion4soloplayer.utils.plugin_config.PluginConfigRegistry
 companion4soloplayer.utils.plugin_config.PluginConfigRegistry -[hidden]down-> companion4soloplayer.utils.plugin_loader.PluginLoader
 companion4soloplayer.utils.plugin_loader.PluginLoader -[hidden]down-> companion4soloplayer.utils.yaml_loader.PyClassRef
 companion4soloplayer.utils.yaml_loader.PyClassRef -[hidden]down-> companion4soloplayer.utils.resource_manager.ResourceManager
 companion4soloplayer.utils.resource_manager.ResourceManager -[hidden]down-> companion4soloplayer.utils.resource_manager.ResourceNotFoundError
-companion4soloplayer.utils.resource_manager.ResourceNotFoundError -[hidden]down-> companion4soloplayer.utils.slugify.Slugify
+companion4soloplayer.utils.resource_manager.ResourceNotFoundError -[hidden]down-> companion4soloplayer.utils.character_save.SavedCharacter
+companion4soloplayer.utils.character_save.SavedCharacter -[hidden]down-> companion4soloplayer.utils.slugify.Slugify
 companion4soloplayer.utils.slugify.Slugify -[hidden]down-> companion4soloplayer.utils.config_manager.TooltipCornerType
 companion4soloplayer.utils.config_manager.TooltipCornerType -[hidden]down-> companion4soloplayer.utils.yaml_loader.YamlLoadError
 companion4soloplayer.utils.yaml_loader.YamlLoadError -[hidden]down-> companion4soloplayer.utils.yaml_loader.YamlTagError
