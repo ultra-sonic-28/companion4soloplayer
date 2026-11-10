@@ -18,6 +18,11 @@ def test_character_created_via_tracker_is_persisted_and_reloaded(tmp_path: Path)
     manager = CharacterSaveManager("demo_plugin", saves_root=tmp_path)
     tracker = CharacterTracker()
     character = tracker.create_character("Aragorn", "Ranger", {"body": 14, "agility": 12})
+    character.race = "Dwarf"
+    character.background = "Ranger of the North"
+    character.skills = ["Athletics", "Perception"]
+    character.spells = []
+    character.saving_throws = {"magic": 12, "poison": 14}
 
     save_path = manager.save_character(character)
 
@@ -30,7 +35,27 @@ def test_character_created_via_tracker_is_persisted_and_reloaded(tmp_path: Path)
     assert reloaded is not None
     assert reloaded.name == character.name
     assert reloaded.character_class == character.character_class
+    assert reloaded.race == character.race
+    assert reloaded.background == character.background
+    assert reloaded.skills == character.skills
+    assert reloaded.spells == character.spells
+    assert reloaded.saving_throws == character.saving_throws
     assert reloaded.stats == character.stats
+
+
+def test_spellcasting_character_persists_spells(tmp_path: Path) -> None:
+    """A character with selected spells persists them in the save file."""
+    manager = CharacterSaveManager("demo_plugin", saves_root=tmp_path)
+    tracker = CharacterTracker()
+    character = tracker.create_character("Gandalf", "Wizard", {"mind": 18})
+    character.race = "Human"
+    character.spells = ["Fireball", "Magic Missile"]
+
+    manager.save_character(character)
+    reloaded = manager.load_character("gandalf")
+
+    assert reloaded is not None
+    assert reloaded.spells == ["Fireball", "Magic Missile"]
 
 
 def test_characters_are_isolated_per_plugin(tmp_path: Path) -> None:

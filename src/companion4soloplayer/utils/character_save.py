@@ -44,7 +44,7 @@ from companion4soloplayer.utils.slugify import Slugify
 __all__ = ["CharacterSaveManager", "SavedCharacter", "default_saves_root"]
 
 SAVES_SUBDIR = Path("data") / "saves"
-SAVE_FORMAT_VERSION = "1"
+SAVE_FORMAT_VERSION = "2"
 SAVE_FILE_EXTENSION = ".yaml"
 
 
@@ -123,7 +123,9 @@ class SavedCharacter:
             KeyError: If a required key is missing from *data*.
         """
         character = Character.model_validate(data["character"])
-        saved_at = datetime.fromisoformat(data["saved_at"])
+        saved_at = data["saved_at"]
+        if isinstance(saved_at, str):
+            saved_at = datetime.fromisoformat(saved_at)
         return cls(
             plugin_name=data["plugin_name"],
             saved_at=saved_at,

@@ -433,10 +433,16 @@ class MainWindow(QMainWindow):
     def _character_from_context(context: CharacterCreationContext) -> Character:
         """Build a :class:`Character` from a filled creation context.
 
-        Reads the standard creation paths (``choices.identity.name``,
-        ``choices.class`` and ``values.attributes``). Missing or unknown
-        values fall back on safe defaults so the save never fails because
-        of an absent optional field.
+        Reads the standard creation paths:
+
+        - ``choices.identity.name`` and ``choices.identity.background``
+        - ``choices.race`` and ``choices.class``
+        - ``choices.skills`` and ``choices.spells`` (selected lists)
+        - ``values.attributes`` (base stats)
+        - ``values.save`` (saving throws by name)
+
+        Missing or unknown values fall back on safe defaults so the save
+        never fails because of an absent optional field.
 
         Args:
             context: Filled creation context returned by the dialog.
@@ -450,18 +456,41 @@ class MainWindow(QMainWindow):
         values = export.get("values", {}) if isinstance(export, dict) else {}
         identity = choices.get("identity", {}) if isinstance(choices.get("identity"), dict) else {}
         name = str(identity.get("name") or "Unnamed")
+        background = str(identity.get("background") or "")
         character_class = str(choices.get("class") or "Unknown")
+        race = str(choices.get("race") or "")
+        skills = (
+            list(choices.get("skills", []))
+            if isinstance(choices.get("skills"), (list, tuple))
+            else []
+        )
+        spells = (
+            list(choices.get("spells", []))
+            if isinstance(choices.get("spells"), (list, tuple))
+            else []
+        )
         stats = values.get("attributes", {}) if isinstance(values.get("attributes"), dict) else {}
         clean_stats = {
             str(key): int(value)
             for key, value in stats.items()
             if isinstance(value, (int, float)) and not isinstance(value, bool)
         }
+        saving_throws = values.get("save", {}) if isinstance(values.get("save"), dict) else {}
+        clean_saves = {
+            str(key): int(value)
+            for key, value in saving_throws.items()
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+        }
         max_hp = max(1, int(clean_stats.get("body", 6)))
         return Character(
             name=name,
             character_class=character_class,
+            race=race,
+            background=background,
             max_hp=max_hp,
             current_hp=max_hp,
             stats=clean_stats,
+            saving_throws=clean_saves,
+            skills=skills,
+            spells=spells,
         )

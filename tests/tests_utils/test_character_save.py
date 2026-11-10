@@ -5,6 +5,7 @@ Covers directory auto-creation, save/load round-trips, slug-based file
 naming, listing, deletion, and corruption handling.
 """
 
+import textwrap
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -47,9 +48,14 @@ def test_save_and_load_round_trip_preserves_all_fields(tmp_path: Path) -> None:
     manager = CharacterSaveManager("demo_plugin", saves_root=tmp_path)
     tracker = CharacterTracker()
     character = tracker.create_character("Dwarf Warrior", "Warrior", {"body": 16, "agility": 10})
+    character.race = "Dwarf"
+    character.background = "Born under the mountain"
     character.current_hp = 22
     character.inventory = ["sword", "shield"]
     character.equipment = ["chainmail"]
+    character.saving_throws = {"magic": 12, "poison": 14}
+    character.skills = ["Athletics", "Perception"]
+    character.spells = []
 
     manager.save_character(character)
     reloaded = manager.load_character("dwarf-warrior")
@@ -57,10 +63,16 @@ def test_save_and_load_round_trip_preserves_all_fields(tmp_path: Path) -> None:
     assert reloaded is not None
     assert reloaded.name == "Dwarf Warrior"
     assert reloaded.character_class == "Warrior"
+    assert reloaded.race == "Dwarf"
+    assert reloaded.background == "Born under the mountain"
     assert reloaded.max_hp == 16
     assert reloaded.current_hp == 22
     assert reloaded.stats == {"body": 16, "agility": 10}
+    assert reloaded.saving_throws == {"magic": 12, "poison": 14}
+    assert reloaded.skills == ["Athletics", "Perception"]
+    assert reloaded.spells == []
     assert reloaded.inventory == ["sword", "shield"]
+    assert reloaded.equipment == ["chainmail"]
 
 
 def test_load_unknown_character_returns_none(tmp_path: Path) -> None:
@@ -122,10 +134,58 @@ def test_slugify_is_used_for_file_naming(tmp_path: Path) -> None:
     assert (tmp_path / "demo_plugin" / f"{slug}.yaml").is_file()
 
 
+
+
+def test_load_old_version_one_save_loads_with_defaults(tmp_path: Path) -> None:
+    """A save file written with format version 1 still loads with defaults.
+
+    New fields (race, background, skills, spells, saving_throws) are
+    absent from old files and fall back on their pydantic defaults.
+    """
+    manager = CharacterSaveManager("demo_plugin", saves_root=tmp_path)
+    file_path = tmp_path / "demo_plugin" / "old-hero.yaml"
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    old_save = textwrap.dedent("""\
+        plugin_name: demo_plugin
+        saved_at: 2026-01-01T00:00:00+00:00
+        version: "1"
+        character:
+          name: Old Hero
+          character_class: Warrior
+          max_hp: 20
+          current_hp: 15
+          stats:
+            body: 16
+          inventory: []
+          equipment: []
+        """)
+    file_path.write_text(old_save, encoding="utf-8")
+
+    character = manager.load_character("old-hero")
+
+    assert character is not None
+    assert character.name == "Old Hero"
+    assert character.character_class == "Warrior"
+    assert character.max_hp == 20
+    assert character.current_hp == 15
+    assert character.stats == {"body": 16}
+    # New fields fall back on their defaults.
+    assert character.race == ""
+    assert character.background == ""
+    assert character.saving_throws == {}
+    assert character.skills == []
+    assert character.spells == []
+
+
 def test_saved_character_model_round_trip() -> None:
     """SavedCharacter serializes and deserializes losslessly."""
     tracker = CharacterTracker()
     character = tracker.create_character("Test", "Warrior", {"body": 10})
+    character.race = "Human"
+    character.background = "A simple test"
+    character.saving_throws = {"magic": 11}
+    character.skills = ["Athletics"]
+    character.spells = ["Fireball"]
     saved = SavedCharacter(
         plugin_name="demo_plugin",
         saved_at=datetime.now(UTC),
@@ -138,6 +198,11 @@ def test_saved_character_model_round_trip() -> None:
     assert restored.version == SAVE_FORMAT_VERSION
     assert restored.character.name == "Test"
     assert restored.character.stats == {"body": 10}
+    assert restored.character.race == "Human"
+    assert restored.character.background == "A simple test"
+    assert restored.character.saving_throws == {"magic": 11}
+    assert restored.character.skills == ["Athletics"]
+    assert restored.character.spells == ["Fireball"]
 
 
 def test_saved_file_is_structured_yaml_with_metadata(tmp_path: Path) -> None:
@@ -145,6 +210,11 @@ def test_saved_file_is_structured_yaml_with_metadata(tmp_path: Path) -> None:
     manager = CharacterSaveManager("demo_plugin", saves_root=tmp_path)
     tracker = CharacterTracker()
     character = tracker.create_character("Gandalf", "Wizard", {"mind": 18})
+    character.race = "Human"
+    character.background = "Wise wanderer"
+    character.saving_throws = {"magic": 15}
+    character.skills = ["Arcana"]
+    character.spells = ["Fireball", "Magic Missile"]
     manager.save_character(character)
 
     content = (tmp_path / "demo_plugin" / "gandalf.yaml").read_text(encoding="utf-8")
@@ -155,3 +225,8 @@ def test_saved_file_is_structured_yaml_with_metadata(tmp_path: Path) -> None:
     assert isinstance(datetime.fromisoformat(data["saved_at"]), datetime)
     assert data["character"]["name"] == "Gandalf"
     assert data["character"]["character_class"] == "Wizard"
+    assert data["character"]["race"] == "Human"
+    assert data["character"]["background"] == "Wise wanderer"
+    assert data["character"]["saving_throws"] == {"magic": 15}
+    assert data["character"]["skills"] == ["Arcana"]
+    assert data["character"]["spells"] == ["Fireball", "Magic Missile"]
