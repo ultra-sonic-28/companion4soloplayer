@@ -56,6 +56,37 @@ Save files written with format version ``1`` (before the
 fields were added) still load correctly: the missing fields fall back on
 their pydantic defaults (empty string, empty list, empty mapping).
 
+## Overwrite confirmation
+
+When a character with the same name already has a save file,
+`CharacterSaveManager.save_character()` raises an
+`OverwriteConfirmationNeeded` exception instead of silently replacing
+the file. The exception carries:
+
+- `file_path`: path of the existing save file;
+- `old_character`: the character currently stored in the file;
+- `new_character`: the character the user wants to save instead;
+- `old_saved_at`: ISO-8601 timestamp of the existing save file.
+
+The caller (typically the main window) is responsible for catching this
+exception and presenting an overwrite confirmation dialog to the user.
+If the user accepts, the caller retries the save with `overwrite=True`.
+
+```python
+from companion4soloplayer.utils.character_save import (
+    CharacterSaveManager,
+    OverwriteConfirmationError,
+)
+
+manager = CharacterSaveManager("demo_plugin")
+try:
+    manager.save_character(character)
+except OverwriteConfirmationError as exc:
+    # Show a dialog comparing exc.old_character vs exc.new_character
+    # If the user accepts:
+    manager.save_character(character, overwrite=True)
+```
+
 ## Usage
 
 ```python
@@ -110,3 +141,15 @@ following creation data is persisted:
 A save failure is reported to the user but never blocks a successfully
 created character: creation is committed first, persistence is
 best-effort.
+
+## Overwrite confirmation dialog
+
+The
+[:class:`~companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog.OverwriteConfirmationDialog`]
+is a Qt dialog shown when the user attempts to save a character over an
+existing file. It presents a side-by-side comparison of the old and new
+values for **date**, **name**, **race** and **class**, letting the user
+decide whether to replace the old save.
+
+See the [Overwrite Confirmation Dialog](../ui/dialogs/overwrite_confirmation_dialog.md)
+page for details.

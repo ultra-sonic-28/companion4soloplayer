@@ -156,6 +156,7 @@ nav:
           - 'SplashScreen': 'companion4soloplayer/ui/splash_window.md'
         - Dialogs:
             - 'AboutDialog': 'companion4soloplayer/ui/dialogs/about_dialog.md'
+            - 'OverwriteConfirmationDialog': 'companion4soloplayer/ui/dialogs/overwrite_confirmation_dialog.md'
             - 'PluginMetadataDialog': 'companion4soloplayer/ui/dialogs/plugins_metadata_dialog.md'
             - 'PluginsDialog': 'companion4soloplayer/ui/dialogs/plugins_dialog.md'
             - 'QuestWizard': 'companion4soloplayer/ui/dialogs/quest_wizard.md'

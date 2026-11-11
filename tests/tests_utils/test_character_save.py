@@ -16,6 +16,7 @@ from companion4soloplayer.core.character_tracker import CharacterTracker
 from companion4soloplayer.utils.character_save import (
     SAVE_FORMAT_VERSION,
     CharacterSaveManager,
+    OverwriteConfirmationError,
     SavedCharacter,
     default_saves_root,
 )
@@ -230,3 +231,77 @@ def test_saved_file_is_structured_yaml_with_metadata(tmp_path: Path) -> None:
     assert data["character"]["saving_throws"] == {"magic": 15}
     assert data["character"]["skills"] == ["Arcana"]
     assert data["character"]["spells"] == ["Fireball", "Magic Missile"]
+
+
+def test_save_character_raises_overwrite_confirmation_when_file_exists(
+    tmp_path: Path,
+) -> None:
+    """Saving over an existing file raises OverwriteConfirmationError.
+
+    The exception carries the old character, the new character, the file
+    path, and the old saved_at timestamp so the caller can show a
+    comparison dialog.
+    """
+    manager = CharacterSaveManager("demo_plugin", saves_root=tmp_path)
+
+    old_tracker = CharacterTracker()
+    old_character = old_tracker.create_character("Aragorn", "Ranger", {"body": 14})
+    old_character.race = "Dwarf"
+    old_character.character_class = "Ranger"
+    manager.save_character(old_character)
+
+    new_tracker = CharacterTracker()
+    new_character = new_tracker.create_character("Aragorn", "Warrior", {"body": 18})
+    new_character.race = "Human"
+
+    with pytest.raises(OverwriteConfirmationError) as exc_info:
+        manager.save_character(new_character)
+
+    exc = exc_info.value
+    assert exc.file_path == tmp_path / "demo_plugin" / "aragorn.yaml"
+    assert exc.old_character.name == "Aragorn"
+    assert exc.old_character.race == "Dwarf"
+    assert exc.old_character.character_class == "Ranger"
+    assert exc.new_character.name == "Aragorn"
+    assert exc.new_character.race == "Human"
+    assert exc.new_character.character_class == "Warrior"
+    assert exc.old_saved_at != ""
+
+
+def test_save_character_with_overwrite_true_replaces_existing_file(
+    tmp_path: Path,
+) -> None:
+    """Passing overwrite=True silently replaces an existing save file."""
+    manager = CharacterSaveManager("demo_plugin", saves_root=tmp_path)
+
+    old_tracker = CharacterTracker()
+    old_character = old_tracker.create_character("Aragorn", "Ranger", {"body": 14})
+    manager.save_character(old_character)
+
+    new_tracker = CharacterTracker()
+    new_character = new_tracker.create_character("Aragorn", "Warrior", {"body": 18})
+    new_character.current_hp = 10
+
+    path = manager.save_character(new_character, overwrite=True)
+
+    assert path.is_file()
+    reloaded = manager.load_character("aragorn")
+    assert reloaded is not None
+    assert reloaded.character_class == "Warrior"
+    assert reloaded.current_hp == 10
+
+
+def test_overwrite_confirmation_error_exception_message(tmp_path: Path) -> None:
+    """The exception message mentions the file path."""
+    tracker = CharacterTracker()
+    old_char = tracker.create_character("Old", "Mage", {"mind": 12})
+    new_char = CharacterTracker().create_character("New", "Warrior", {"body": 10})
+    expected_path = tmp_path / "demo_plugin" / "old.yaml"
+    exc = OverwriteConfirmationError(
+        file_path=expected_path,
+        old_character=old_char,
+        new_character=new_char,
+        old_saved_at="2026-01-01T00:00:00+00:00",
+    )
+    assert str(expected_path) in str(exc)
+    assert "confirmation" in str(exc).lower()

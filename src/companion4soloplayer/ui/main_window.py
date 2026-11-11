@@ -26,10 +26,16 @@ from companion4soloplayer.core.creation import CharacterCreationContext
 from companion4soloplayer.core.interface.game_plugin import GamePlugin
 from companion4soloplayer.ui.builder import CharacterCreationDialog
 from companion4soloplayer.ui.dialogs.about_dialog import AboutDialog
+from companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog import (
+    OverwriteConfirmationDialog,
+)
 from companion4soloplayer.ui.dialogs.plugins_dialog import PluginsDialog
 from companion4soloplayer.ui.dialogs.quest_wizard import QuestWizard
 from companion4soloplayer.ui.dialogs.settings_dialog import SettingsDialog
-from companion4soloplayer.utils.character_save import CharacterSaveManager
+from companion4soloplayer.utils.character_save import (
+    CharacterSaveManager,
+    OverwriteConfirmationError,
+)
 from companion4soloplayer.utils.config_manager import DEFAULT_THEME, ConfigManager
 from companion4soloplayer.utils.plugin_loader import PluginLoader
 from companion4soloplayer.utils.resource_manager import ResourceManager
@@ -370,6 +376,12 @@ class MainWindow(QMainWindow):
         validated character is reported in the status bar. The plugin
         name is forwarded so the dialog picks the dialog settings of
         the plugin configuration (``datas/config.yaml``).
+
+        If a save file already exists for the character, an overwrite
+        confirmation dialog is shown. When the user declines the
+        overwrite, the creation dialog stays open with all entered
+        values preserved so the user can modify the character name (or
+        any other field) and re-validate.
         """
         creation = self._creation_plugin()
         if creation is None:
@@ -389,33 +401,88 @@ class MainWindow(QMainWindow):
                 f"The character creation workflow could not be loaded:\n{exc}",
             )
             return
-        dialog = CharacterCreationDialog(pipeline, self, plugin_name=plugin_name)
+
+        def save_character(context: CharacterCreationContext) -> bool:
+            """Save the character from the creation context.
+
+            Returns ``True`` when saved, ``False`` when the user declined
+            the overwrite (dialog stays open).
+            """
+            return self._save_created_character(plugin_name, context)
+
+        dialog = CharacterCreationDialog(
+            pipeline,
+            self,
+            plugin_name=plugin_name,
+            on_character_save=save_character,
+        )
         if not dialog.exec():
             return
         name = str(dialog.answers.get("identity.name") or "").strip()
         label = f" '{name}'" if name else ""
-        self._save_created_character(plugin_name, dialog.context)
         self.status_bar.showMessage(f"Player character{label} created and saved")
 
     def _save_created_character(
         self, plugin_name: str, context: CharacterCreationContext | None
-    ) -> None:
+    ) -> bool:
         """Persist the character just created by the dialog.
 
         The character is saved under ``data/saves/<plugin_name>/`` using
-        the slugified name. A save failure is reported to the user but
-        never blocks a successfully created character.
+        the slugified name. If a save file already exists, an overwrite
+        confirmation dialog is shown so the user can compare the old and
+        new values before replacing the file. A save failure is reported
+        to the user but never blocks a successfully created character.
 
         Args:
             plugin_name: Name of the plugin owning the character.
             context: Filled creation context returned by the dialog.
+
+        Returns:
+            ``True`` when the character was saved (or overwritten with
+            user confirmation), ``False`` when the save was cancelled
+            by the user or failed.
         """
         if context is None:
-            return
+            return False
         character = self._character_from_context(context)
+        manager = CharacterSaveManager(plugin_name)
         try:
-            CharacterSaveManager(plugin_name).save_character(character)
+            manager.save_character(character)
             logger.info("Character %r saved for plugin %r", character.name, plugin_name)
+            return True
+        except OverwriteConfirmationError as exc:
+            dialog = OverwriteConfirmationDialog(
+                old_character=exc.old_character,
+                new_character=exc.new_character,
+                old_saved_at=exc.old_saved_at,
+                file_path=str(exc.file_path),
+                parent=self,
+            )
+            if dialog.exec() == OverwriteConfirmationDialog.DialogCode.Accepted:
+                try:
+                    manager.save_character(character, overwrite=True)
+                    logger.info(
+                        "Character %r overwritten for plugin %r",
+                        character.name,
+                        plugin_name,
+                    )
+                    return True
+                except OSError as save_exc:
+                    logger.warning(
+                        "Could not overwrite character %r for plugin %r: %s",
+                        character.name,
+                        plugin_name,
+                        save_exc,
+                    )
+                    QMessageBox.warning(
+                        self,
+                        "Player",
+                        f"The character {character.name!r} could not be saved:\n{save_exc}",
+                    )
+                    return False
+            # User declined the overwrite: return False so the caller
+            # can re-open the creation dialog.
+            return False
         except OSError as exc:
             logger.warning(
                 "Could not save character %r for plugin %r: %s",
@@ -428,6 +495,7 @@ class MainWindow(QMainWindow):
                 "Player",
                 f"The character {character.name!r} was created but could not be saved:\n{exc}",
             )
+            return False
 
     @staticmethod
     def _character_from_context(context: CharacterCreationContext) -> Character:

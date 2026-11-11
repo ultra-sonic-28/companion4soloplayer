@@ -31,6 +31,7 @@ game system exposing a creation pipeline gets the same dialog.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import Any
 
 from PySide6.QtWidgets import (
@@ -110,6 +111,7 @@ class CharacterCreationDialog(QDialog):
         *,
         title: str = DEFAULT_TITLE,
         plugin_name: str | None = None,
+        on_character_save: Callable[[CharacterCreationContext], bool] | None = None,
     ) -> None:
         """Initialize the dialog and build its sections.
 
@@ -121,9 +123,16 @@ class CharacterCreationDialog(QDialog):
                 to read the dialog settings of its ``datas/config.yaml``
                 configuration. When omitted, the configuration of the
                 first loaded plugin applies.
+            on_character_save: Optional callback invoked when the user
+                validates the form. Receives the filled
+                :class:`CharacterCreationContext` and must return
+                ``True`` when the character was saved (dialog should
+                close) or ``False`` when the save was declined (dialog
+                stays open so the user can adjust values).
         """
         super().__init__(parent)
         self._pipeline = pipeline
+        self._on_character_save = on_character_save
         # Number of columns of the attribute blocks, driven by the
         # plugin configuration (datas/config.yaml) with the application
         # default as fallback.
@@ -373,7 +382,15 @@ class CharacterCreationDialog(QDialog):
         self._sections.insert(position, section)
 
     def _on_validate(self) -> None:
-        """Run the pipeline with the collected answers."""
+        """Run the pipeline with the collected answers.
+
+        If a save callback was provided, it is invoked with the filled
+        context. The dialog closes only when the callback returns
+        ``True`` (character saved). When the callback returns ``False``
+        (e.g. the user declined to overwrite an existing save), the
+        dialog stays open so the user can adjust the values and
+        re-validate.
+        """
         self.error_label.clear()
         self.error_label.setVisible(False)
         context = self._pipeline.create_context()
@@ -390,7 +407,14 @@ class CharacterCreationDialog(QDialog):
         if report.ok:
             self._report = report
             self._context = context
-            self.accept()
+            if self._on_character_save is not None:
+                if self._on_character_save(context):
+                    self.accept()
+                # When the callback returns False, the dialog stays open:
+                # the user can modify values (e.g. the character name)
+                # and click Validate again.
+            else:
+                self.accept()
             return
         messages = list(report.errors)
         if not messages:  # pragma: no cover - a failure always carries a message

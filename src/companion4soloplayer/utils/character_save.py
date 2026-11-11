@@ -41,11 +41,43 @@ import yaml
 from companion4soloplayer.core.character_tracker import Character
 from companion4soloplayer.utils.slugify import Slugify
 
-__all__ = ["CharacterSaveManager", "SavedCharacter", "default_saves_root"]
+__all__ = [
+    "CharacterSaveManager",
+    "OverwriteConfirmationError",
+    "SavedCharacter",
+    "default_saves_root",
+]
 
 SAVES_SUBDIR = Path("data") / "saves"
 SAVE_FORMAT_VERSION = "2"
 SAVE_FILE_EXTENSION = ".yaml"
+
+
+class OverwriteConfirmationError(Exception):
+    """Raised when a save file already exists and user confirmation is required.
+
+    Attributes:
+        file_path: Path of the existing save file.
+        old_character: The character currently saved in the file.
+        new_character: The character the user wants to save instead.
+        old_saved_at: ISO-8601 timestamp of the existing save file.
+    """
+
+    def __init__(
+        self,
+        *,
+        file_path: Path,
+        old_character: Character,
+        new_character: Character,
+        old_saved_at: str,
+    ) -> None:
+        self.file_path = file_path
+        self.old_character = old_character
+        self.new_character = new_character
+        self.old_saved_at = old_saved_at
+        super().__init__(
+            f"Save file {file_path} already exists; user confirmation needed to overwrite"
+        )
 
 
 def default_saves_root() -> Path:
@@ -159,26 +191,58 @@ class CharacterSaveManager:
     # Public API                                                         #
     # ------------------------------------------------------------------ #
 
-    def save_character(self, character: Character) -> Path:
+    def save_character(
+        self, character: Character, *, overwrite: bool = False
+    ) -> Path:
         """Persist *character* to ``data/saves/<plugin>/<slug>.yaml``.
 
         The plugin sub-directory (and every missing parent folder) is
         created automatically. The file is named after the slugified
         character name with a ``.yaml`` extension.
 
+        If a save file already exists and *overwrite* is ``False``, an
+        :class:`OverwriteConfirmationError` exception is raised so the
+        caller can ask the user for confirmation before replacing the
+        old values. When *overwrite* is ``True``, the existing file is
+        silently replaced.
+
         Args:
             character: The player character to save.
+            overwrite: When ``True``, overwrite an existing file without
+                asking for confirmation. Defaults to ``False``.
 
         Returns:
             Path of the file that was written.
 
         Raises:
+            OverwriteConfirmationError: If a save file already exists
+                and *overwrite* is ``False``.
             OSError: If the file cannot be written.
         """
         self.save_dir.mkdir(parents=True, exist_ok=True)
 
         slug = self._slugger(character.name)
         file_path = self.save_dir / f"{slug}{SAVE_FILE_EXTENSION}"
+
+        if file_path.is_file() and not overwrite:
+            old_saved_at: str = ""
+            try:
+                raw = yaml.safe_load(file_path.read_text(encoding="utf-8"))
+                if isinstance(raw, dict):
+                    old_saved_at = str(raw.get("saved_at", ""))
+            except (OSError, yaml.YAMLError):
+                pass
+            old_character = self.load_character(slug)
+            if old_character is None:
+                raise OSError(
+                    f"Cannot read existing save file {file_path} for overwrite check"
+                )
+            raise OverwriteConfirmationError(
+                file_path=file_path,
+                old_character=old_character,
+                new_character=character,
+                old_saved_at=old_saved_at,
+            )
 
         payload = SavedCharacter(
             plugin_name=self.plugin_name,
