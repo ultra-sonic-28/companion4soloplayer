@@ -171,6 +171,7 @@ nav:
       - 'Character Save Manager': 'companion4soloplayer/utils/character_save_manager.md'
       - 'Config Manager': 'companion4soloplayer/utils/config_manager.md'
       - 'Logger': 'companion4soloplayer/utils/logger.md'
+      - 'Plugin Config': 'companion4soloplayer/utils/plugin_config.md'
       - 'Plugin Loader': 'companion4soloplayer/utils/plugin_loader.md'
       - 'Resource Manager': 'companion4soloplayer/utils/resource_manager.md'
       - 'Slugify': 'companion4soloplayer/utils/slugify.md'

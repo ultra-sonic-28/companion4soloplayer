@@ -87,6 +87,7 @@ class "CharacterCreationDialog" as companion4soloplayer.ui.builder.creation_dial
   #_context : CharacterCreationContext | None
   #_form_layout
   #_in_refresh : bool
+  #_on_character_save : NoneType
   #_pipeline : CharacterCreationPipeline
   #_report : CreationReport | None
   #_sections : list[StepSection]

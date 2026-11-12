@@ -4,6 +4,8 @@ package "companion4soloplayer.ui.dialogs" as companion4soloplayer.ui.dialogs {
 }
 package "companion4soloplayer.ui.dialogs.about_dialog" as companion4soloplayer.ui.dialogs.about_dialog {
 }
+package "companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog" as companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog {
+}
 package "companion4soloplayer.ui.dialogs.plugin_metadata_dialog" as companion4soloplayer.ui.dialogs.plugin_metadata_dialog {
 }
 package "companion4soloplayer.ui.dialogs.plugins_dialog" as companion4soloplayer.ui.dialogs.plugins_dialog {

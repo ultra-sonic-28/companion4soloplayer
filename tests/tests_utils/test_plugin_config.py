@@ -18,10 +18,14 @@ from companion4soloplayer.utils.plugin_config import (
     DEFAULT_ATTRIBUTES_COLUMNS,
     DEFAULT_CREATION_DIALOG_HEIGHT,
     DEFAULT_CREATION_DIALOG_WIDTH,
+    DEFAULT_PLUGIN_VERSION,
+    PLUGIN_CONFIG_NAMES,
     PluginConfigRegistry,
+    VERSION_SECTION,
     dialog_settings,
     find_plugin_config,
     load_plugin_config,
+    plugin_version,
 )
 
 #: Configuration document using the flat spelling: the dialog name maps
@@ -317,3 +321,82 @@ def test_character_creation_dialog_attributes_columns_ignores_invalid_values() -
             registry.character_creation_dialog_attributes_columns("demo")
             == DEFAULT_ATTRIBUTES_COLUMNS
         )
+
+
+# ----------------------------------------------------------------------
+# Plugin version
+# ----------------------------------------------------------------------
+
+
+class TestPluginVersionModule:
+    """Tests for the ``plugin_version()`` module-level function."""
+
+    def test_plugin_version_returns_declared_version(self) -> None:
+        """A valid semver string is returned unchanged."""
+        config = {VERSION_SECTION: "1.0.0"}
+        assert plugin_version(config) == "1.0.0"
+
+    def test_plugin_version_accepts_major_minor_patch(self) -> None:
+        """Any MAJOR.MINOR.PATCH with non-negative components is accepted."""
+        for version in ("0.0.0", "1.2.3", "10.20.30", "100.200.300"):
+            assert plugin_version({VERSION_SECTION: version}) == version
+
+    def test_plugin_version_strips_whitespace(self) -> None:
+        """Leading/trailing whitespace around the version is trimmed."""
+        config = {VERSION_SECTION: "  2.0.0  "}
+        assert plugin_version(config) == "2.0.0"
+
+    def test_plugin_version_missing_entry_returns_default(self) -> None:
+        """No ``version`` section falls back on ``0.0.0``."""
+        assert plugin_version({}) == DEFAULT_PLUGIN_VERSION
+
+    def test_plugin_version_non_string_returns_default(self) -> None:
+        """A non-string version value falls back on ``0.0.0``."""
+        assert plugin_version({VERSION_SECTION: 1.0}) == DEFAULT_PLUGIN_VERSION
+        assert plugin_version({VERSION_SECTION: None}) == DEFAULT_PLUGIN_VERSION
+        assert plugin_version({VERSION_SECTION: ["1.0.0"]}) == DEFAULT_PLUGIN_VERSION
+
+    def test_plugin_version_invalid_format_returns_default(self) -> None:
+        """Non-semver strings fall back on ``0.0.0``."""
+        for invalid in ("1.0", "1.0.0.0", "v1.0.0", "1.0.0-beta", "1.0.0+build",
+                        "abc", "", "1.0.0.0", "01.0.0", "1.00.0", "1.0.00"):
+            assert plugin_version({VERSION_SECTION: invalid}) == DEFAULT_PLUGIN_VERSION
+
+    def test_plugin_version_leading_zeros_rejected(self) -> None:
+        """Leading zeros in components are not valid semver."""
+        assert plugin_version({VERSION_SECTION: "01.0.0"}) == DEFAULT_PLUGIN_VERSION
+        assert plugin_version({VERSION_SECTION: "1.01.0"}) == DEFAULT_PLUGIN_VERSION
+        assert plugin_version({VERSION_SECTION: "1.0.01"}) == DEFAULT_PLUGIN_VERSION
+
+
+class TestPluginVersionRegistry:
+    """Tests for ``PluginConfigRegistry.plugin_version()``."""
+
+    def test_plugin_version_returns_registered_value(self) -> None:
+        """The registry returns the version it was given."""
+        registry = PluginConfigRegistry.instance()
+        registry.register("demo", {VERSION_SECTION: "1.0.0"})
+        assert registry.plugin_version("demo") == "1.0.0"
+
+    def test_plugin_version_missing_plugin_returns_default(self) -> None:
+        """An unknown plugin falls back on ``0.0.0``."""
+        registry = PluginConfigRegistry.instance()
+        assert registry.plugin_version("unknown") == DEFAULT_PLUGIN_VERSION
+
+    def test_plugin_version_no_config_returns_default(self) -> None:
+        """An empty configuration falls back on ``0.0.0``."""
+        registry = PluginConfigRegistry.instance()
+        registry.register("demo", {})
+        assert registry.plugin_version("demo") == DEFAULT_PLUGIN_VERSION
+
+    def test_plugin_version_no_name_uses_first_plugin(self) -> None:
+        """``None`` uses the first registered plugin."""
+        registry = PluginConfigRegistry.instance()
+        registry.register("demo", {VERSION_SECTION: "2.0.0"})
+        assert registry.plugin_version() == "2.0.0"
+
+    def test_plugin_version_invalid_falls_back(self) -> None:
+        """Invalid version strings fall back on ``0.0.0``."""
+        registry = PluginConfigRegistry.instance()
+        registry.register("demo", {VERSION_SECTION: "not-a-version"})
+        assert registry.plugin_version("demo") == DEFAULT_PLUGIN_VERSION

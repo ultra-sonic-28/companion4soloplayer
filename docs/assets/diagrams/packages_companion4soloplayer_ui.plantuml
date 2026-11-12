@@ -14,6 +14,8 @@ package "companion4soloplayer.ui.dialogs" as companion4soloplayer.ui.dialogs {
 }
 package "companion4soloplayer.ui.dialogs.about_dialog" as companion4soloplayer.ui.dialogs.about_dialog {
 }
+package "companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog" as companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog {
+}
 package "companion4soloplayer.ui.dialogs.plugin_metadata_dialog" as companion4soloplayer.ui.dialogs.plugin_metadata_dialog {
 }
 package "companion4soloplayer.ui.dialogs.plugins_dialog" as companion4soloplayer.ui.dialogs.plugins_dialog {
@@ -40,6 +42,7 @@ companion4soloplayer.ui.builder.fields --> companion4soloplayer.ui.widgets.toolt
 companion4soloplayer.ui.dialogs.plugins_dialog --> companion4soloplayer.ui.dialogs.plugin_metadata_dialog
 companion4soloplayer.ui.main_window --> companion4soloplayer.ui.builder
 companion4soloplayer.ui.main_window --> companion4soloplayer.ui.dialogs.about_dialog
+companion4soloplayer.ui.main_window --> companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog
 companion4soloplayer.ui.main_window --> companion4soloplayer.ui.dialogs.plugins_dialog
 companion4soloplayer.ui.main_window --> companion4soloplayer.ui.dialogs.quest_wizard
 companion4soloplayer.ui.main_window --> companion4soloplayer.ui.dialogs.settings_dialog

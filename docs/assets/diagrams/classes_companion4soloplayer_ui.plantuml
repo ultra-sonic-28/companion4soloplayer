@@ -93,6 +93,7 @@ class "CharacterCreationDialog" as companion4soloplayer.ui.builder.creation_dial
   #_context : CharacterCreationContext | None
   #_form_layout
   #_in_refresh : bool
+  #_on_character_save : NoneType
   #_pipeline : CharacterCreationPipeline
   #_report : CreationReport | None
   #_sections : list[StepSection]
@@ -194,10 +195,12 @@ class "MainWindow" as companion4soloplayer.ui.main_window.MainWindow {
   #<color:#008000>_add_dungeon_tab() -> None</color>
   #<color:#008000>_add_quest_tab() -> None</color>
   #<color:#008000>_apply_theme(theme: str) -> None</color>
+  #<color:#008000>_character_from_context(context: CharacterCreationContext) -> Character</color>
   #<color:#008000>_configured_theme() -> str</color>
   #<color:#008000>_creation_plugin() -> tuple[str, GamePlugin] | None</color>
   #<color:#008000>_refresh_player_action() -> None</color>
   #<color:#008000>_restore_window_settings() -> None</color>
+  #<color:#008000>_save_created_character(plugin_name: str, context: CharacterCreationContext | None) -> bool</color>
   #<color:#008000>_save_window_settings() -> None</color>
   #<color:#008000>_setup_menu_bar() -> None</color>
   #<color:#008000>_setup_status_bar() -> None</color>
@@ -215,6 +218,15 @@ class "NumberField" as companion4soloplayer.ui.builder.fields.NumberField {
   +label
   +<color:#008000>__init__(field: InputField, parent: QWidget | None) -> None</color>
   +<color:#008000>value() -> int | None</color>
+}
+class "OverwriteConfirmationDialog" as companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog.OverwriteConfirmationDialog {
+  #_file_path
+  #_new
+  #_old
+  #_old_saved_at
+  +<color:#008000>__init__() -> None</color>
+  #<color:#008000>_format_date(value: object) -> str</color>
+  #<color:#008000>_setup_ui() -> None</color>
 }
 class "PluginMetadataDialog" as companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog {
   #_loaded : bool
@@ -331,7 +343,8 @@ companion4soloplayer.ui.widgets.tooltip.DescriptionTooltipFilter -[hidden]down->
 companion4soloplayer.ui.builder.fields.DiceField -[hidden]down-> companion4soloplayer.ui.builder.fields.FieldWidget
 companion4soloplayer.ui.builder.fields.FieldWidget -[hidden]down-> companion4soloplayer.ui.main_window.MainWindow
 companion4soloplayer.ui.main_window.MainWindow -[hidden]down-> companion4soloplayer.ui.builder.fields.NumberField
-companion4soloplayer.ui.builder.fields.NumberField -[hidden]down-> companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog
+companion4soloplayer.ui.builder.fields.NumberField -[hidden]down-> companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog.OverwriteConfirmationDialog
+companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog.OverwriteConfirmationDialog -[hidden]down-> companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog
 companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog -[hidden]down-> companion4soloplayer.ui.dialogs.plugins_dialog.PluginsDialog
 companion4soloplayer.ui.dialogs.plugins_dialog.PluginsDialog -[hidden]down-> companion4soloplayer.ui.dialogs.quest_wizard.QuestWizard
 companion4soloplayer.ui.dialogs.quest_wizard.QuestWizard -[hidden]down-> companion4soloplayer.ui.builder.fields.ReadOnlyField

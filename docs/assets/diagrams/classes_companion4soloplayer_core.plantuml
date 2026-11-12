@@ -116,12 +116,17 @@ class "AttributeGenerationStrategy" as companion4soloplayer.core.creation.strate
   +<color:#008000>roll_for(attribute: str, roller: DiceRoller, context: CharacterCreationContext) -> int</color>
 }
 class "Character" as companion4soloplayer.core.character_tracker.Character {
+  +background : str
   +character_class : str
   +current_hp : int
   +equipment : list[str]
   +inventory : list[str]
   +max_hp : int
   +name : str
+  +race : str
+  +saving_throws : dict[str, int]
+  +skills : list[str]
+  +spells : list[str]
   +stats : dict[str, int]
 }
 class "CharacterCreationContext" as companion4soloplayer.core.creation.context.CharacterCreationContext {

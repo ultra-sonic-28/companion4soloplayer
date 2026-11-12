@@ -93,10 +93,12 @@ class "MainWindow" as companion4soloplayer.ui.main_window.MainWindow {
   #<color:#008000>_add_dungeon_tab() -> None</color>
   #<color:#008000>_add_quest_tab() -> None</color>
   #<color:#008000>_apply_theme(theme: str) -> None</color>
+  #<color:#008000>_character_from_context(context: CharacterCreationContext) -> Character</color>
   #<color:#008000>_configured_theme() -> str</color>
   #<color:#008000>_creation_plugin() -> tuple[str, GamePlugin] | None</color>
   #<color:#008000>_refresh_player_action() -> None</color>
   #<color:#008000>_restore_window_settings() -> None</color>
+  #<color:#008000>_save_created_character(plugin_name: str, context: CharacterCreationContext | None) -> bool</color>
   #<color:#008000>_save_window_settings() -> None</color>
   #<color:#008000>_setup_menu_bar() -> None</color>
   #<color:#008000>_setup_status_bar() -> None</color>

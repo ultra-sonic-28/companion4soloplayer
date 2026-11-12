@@ -18,6 +18,7 @@ reachable from anywhere in the application, whatever its context::
 
 Document shape::
 
+    version: '1.0.0'
     dialog:
       - character_creation_dialog:
         width: 860
@@ -31,6 +32,7 @@ missing entry falls back on the application default.
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any, ClassVar, Self, cast
@@ -50,6 +52,9 @@ PLUGIN_CONFIG_NAMES = ("datas/config.yaml", "config.yaml")
 #: Section of ``config.yaml`` describing dialog tweaks.
 DIALOG_SECTION = "dialog"
 
+#: Section of ``config.yaml`` declaring the plugin version.
+VERSION_SECTION = "version"
+
 #: Name of the character creation dialog (``dialog`` section).
 CHARACTER_CREATION_DIALOG = "character_creation_dialog"
 
@@ -62,6 +67,16 @@ DEFAULT_CREATION_DIALOG_HEIGHT = 800
 #: creation dialog spreads over, used when no plugin configuration
 #: declares one.
 DEFAULT_ATTRIBUTES_COLUMNS = 2
+
+#: Default plugin version when none is declared in ``config.yaml``.
+DEFAULT_PLUGIN_VERSION = "0.0.0"
+
+#: Semantic versioning pattern (MAJOR.MINOR.PATCH, each component a
+#: non-negative integer). Pre-release and build metadata are not
+#: accepted; plugins should use stable releases.
+_SEMVER_RE = re.compile(
+    r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)$"
+)
 
 
 def find_plugin_config(directories: Iterable[Path]) -> Path | None:
@@ -156,6 +171,34 @@ def dialog_settings(config: Mapping[str, Any], dialog_name: str) -> dict[str, An
         # are its siblings in the same mapping.
         return {key: value for key, value in entry.items() if key != dialog_name}
     return {}
+
+
+def plugin_version(config: Mapping[str, Any]) -> str:
+    """Return the plugin version declared in a configuration.
+
+    Reads the ``version`` entry of ``config.yaml``. When the entry is
+    missing, empty or not a valid semantic version string
+    (``MAJOR.MINOR.PATCH``), the application default ``0.0.0`` is
+    returned.
+
+    Args:
+        config: Parsed plugin configuration (as returned by
+            :func:`load_plugin_config`).
+
+    Returns:
+        A valid semantic version string, or ``0.0.0`` when none can be
+        determined.
+    """
+    raw = config.get(VERSION_SECTION)
+    if not isinstance(raw, str):
+        return DEFAULT_PLUGIN_VERSION
+    if not _SEMVER_RE.match(raw.strip()):
+        logger.warning(
+            "Ignoring invalid plugin version %r: expected MAJOR.MINOR.PATCH",
+            raw,
+        )
+        return DEFAULT_PLUGIN_VERSION
+    return raw.strip()
 
 
 def _positive_int(value: Any, default: int) -> int:
@@ -321,3 +364,21 @@ class PluginConfigRegistry:
         """
         settings = self.dialog_settings(CHARACTER_CREATION_DIALOG, plugin_name)
         return _positive_int(settings.get("attributes_columns"), DEFAULT_ATTRIBUTES_COLUMNS)
+
+    def plugin_version(self, plugin_name: str | None = None) -> str:
+        """Return the semantic version of a plugin.
+
+        Reads the ``version`` entry of the plugin configuration. When the
+        entry is missing, empty or not a valid semantic version string
+        (``MAJOR.MINOR.PATCH``), the application default ``0.0.0`` is
+        returned.
+
+        Args:
+            plugin_name: Plugin whose configuration is consulted,
+                ``None`` for the first registered plugin.
+
+        Returns:
+            A valid semantic version string, or ``0.0.0`` when none can
+            be determined.
+        """
+        return plugin_version(self.config(plugin_name))

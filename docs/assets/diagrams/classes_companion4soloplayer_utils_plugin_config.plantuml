@@ -93,6 +93,7 @@ class "PluginConfigRegistry" as companion4soloplayer.utils.plugin_config.PluginC
   +<color:#008000>dialog_settings(dialog_name: str, plugin_name: str | None) -> dict[str, Any]</color>
   +<color:#008000>instance() -> Self</color>
   +<color:#008000>plugin_names() -> tuple[str, ...]</color>
+  +<color:#008000>plugin_version(plugin_name: str | None) -> str</color>
   +<color:#008000>register(plugin_name: str, config: Mapping[str, Any] | None) -> None</color>
   +<color:#008000>reset() -> None</color>
   +<color:#008000>unregister(plugin_name: str) -> None</color>

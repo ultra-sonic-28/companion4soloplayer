@@ -122,6 +122,7 @@ def test_load_plugin_publishes_its_configuration(loader: PluginLoader) -> None:
         assert plugin is not None
         config = PluginConfigRegistry.instance().config("demo")
         assert config == {
+            "version": "1.0.0",
             "dialog": [
                 {
                     "character_creation_dialog": None,

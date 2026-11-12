@@ -82,12 +82,17 @@ sprite $icon_private {
 
 set namespaceSeparator none
 class "Character" as companion4soloplayer.core.character_tracker.Character {
+  +background : str
   +character_class : str
   +current_hp : int
   +equipment : list[str]
   +inventory : list[str]
   +max_hp : int
   +name : str
+  +race : str
+  +saving_throws : dict[str, int]
+  +skills : list[str]
+  +spells : list[str]
   +stats : dict[str, int]
 }
 class "CharacterTracker" as companion4soloplayer.core.character_tracker.CharacterTracker {

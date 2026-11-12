@@ -87,6 +87,15 @@ class "AboutDialog" as companion4soloplayer.ui.dialogs.about_dialog.AboutDialog 
   +<color:#008000>__init__(parent: QWidget | None) -> None</color>
   #<color:#008000>_setup_ui() -> None</color>
 }
+class "OverwriteConfirmationDialog" as companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog.OverwriteConfirmationDialog {
+  #_file_path
+  #_new
+  #_old
+  #_old_saved_at
+  +<color:#008000>__init__() -> None</color>
+  #<color:#008000>_format_date(value: object) -> str</color>
+  #<color:#008000>_setup_ui() -> None</color>
+}
 class "PluginMetadataDialog" as companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog {
   #_loaded : bool
   #_manifest : Mapping[str, Any]
@@ -147,7 +156,8 @@ class "SettingsDialog" as companion4soloplayer.ui.dialogs.settings_dialog.Settin
 }
 
 ' --- Force vertical alignment ---
-companion4soloplayer.ui.dialogs.about_dialog.AboutDialog -[hidden]down-> companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog
+companion4soloplayer.ui.dialogs.about_dialog.AboutDialog -[hidden]down-> companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog.OverwriteConfirmationDialog
+companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog.OverwriteConfirmationDialog -[hidden]down-> companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog
 companion4soloplayer.ui.dialogs.plugin_metadata_dialog.PluginMetadataDialog -[hidden]down-> companion4soloplayer.ui.dialogs.plugins_dialog.PluginsDialog
 companion4soloplayer.ui.dialogs.plugins_dialog.PluginsDialog -[hidden]down-> companion4soloplayer.ui.dialogs.quest_wizard.QuestWizard
 companion4soloplayer.ui.dialogs.quest_wizard.QuestWizard -[hidden]down-> companion4soloplayer.ui.dialogs.settings_dialog.SettingsDialog

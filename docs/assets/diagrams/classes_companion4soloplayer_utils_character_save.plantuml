@@ -95,6 +95,13 @@ class "CharacterSaveManager" as companion4soloplayer.utils.character_save.Charac
   +<color:#008000>load_character(slug: str) -> Character | None</color>
   +<color:#008000>save_character(character: Character) -> Path</color>
 }
+class "<color:red>OverwriteConfirmationError</color>" as companion4soloplayer.utils.character_save.OverwriteConfirmationError {
+  +file_path
+  +new_character
+  +old_character
+  +old_saved_at
+  +<color:#008000>__init__() -> None</color>
+}
 class "SavedCharacter" as companion4soloplayer.utils.character_save.SavedCharacter {
   +character
   +plugin_name
@@ -106,7 +113,8 @@ class "SavedCharacter" as companion4soloplayer.utils.character_save.SavedCharact
 }
 
 ' --- Force vertical alignment ---
-companion4soloplayer.utils.character_save.CharacterSaveManager -[hidden]down-> companion4soloplayer.utils.character_save.SavedCharacter
+companion4soloplayer.utils.character_save.CharacterSaveManager -[hidden]down-> companion4soloplayer.utils.character_save.OverwriteConfirmationError
+companion4soloplayer.utils.character_save.OverwriteConfirmationError -[hidden]down-> companion4soloplayer.utils.character_save.SavedCharacter
 
 
 ' --- Visibility legend ---

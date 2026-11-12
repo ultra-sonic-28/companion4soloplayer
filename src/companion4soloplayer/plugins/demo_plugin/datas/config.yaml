@@ -8,6 +8,8 @@
 # Every section is optional: a missing file, a missing section or a
 # missing entry falls back on the application default.
 
+version: '1.0.0'
+
 dialog:
   - character_creation_dialog:
     width: 860    # minimum width of the player creation dialog, in pixels

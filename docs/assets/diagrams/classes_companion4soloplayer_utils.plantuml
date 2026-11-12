@@ -115,6 +115,13 @@ class "ConfigManager" as companion4soloplayer.utils.config_manager.ConfigManager
 class "LogMode" as companion4soloplayer.utils.logger.LogMode {
   +name
 }
+class "<color:red>OverwriteConfirmationError</color>" as companion4soloplayer.utils.character_save.OverwriteConfirmationError {
+  +file_path
+  +new_character
+  +old_character
+  +old_saved_at
+  +<color:#008000>__init__() -> None</color>
+}
 class "PluginConfigRegistry" as companion4soloplayer.utils.plugin_config.PluginConfigRegistry {
   #_configs : dict[str, dict[str, Any]]
   #_initialized : ClassVar[bool]
@@ -127,6 +134,7 @@ class "PluginConfigRegistry" as companion4soloplayer.utils.plugin_config.PluginC
   +<color:#008000>dialog_settings(dialog_name: str, plugin_name: str | None) -> dict[str, Any]</color>
   +<color:#008000>instance() -> Self</color>
   +<color:#008000>plugin_names() -> tuple[str, ...]</color>
+  +<color:#008000>plugin_version(plugin_name: str | None) -> str</color>
   +<color:#008000>register(plugin_name: str, config: Mapping[str, Any] | None) -> None</color>
   +<color:#008000>reset() -> None</color>
   +<color:#008000>unregister(plugin_name: str) -> None</color>
@@ -227,7 +235,8 @@ companion4soloplayer.utils.slugify.Slugify --* companion4soloplayer.utils.charac
 companion4soloplayer.utils.yaml_loader.C4SPSafeLoader -[hidden]down-> companion4soloplayer.utils.character_save.CharacterSaveManager
 companion4soloplayer.utils.character_save.CharacterSaveManager -[hidden]down-> companion4soloplayer.utils.config_manager.ConfigManager
 companion4soloplayer.utils.config_manager.ConfigManager -[hidden]down-> companion4soloplayer.utils.logger.LogMode
-companion4soloplayer.utils.logger.LogMode -[hidden]down-> companion4soloplayer.utils.plugin_config.PluginConfigRegistry
+companion4soloplayer.utils.logger.LogMode -[hidden]down-> companion4soloplayer.utils.character_save.OverwriteConfirmationError
+companion4soloplayer.utils.character_save.OverwriteConfirmationError -[hidden]down-> companion4soloplayer.utils.plugin_config.PluginConfigRegistry
 companion4soloplayer.utils.plugin_config.PluginConfigRegistry -[hidden]down-> companion4soloplayer.utils.plugin_loader.PluginLoader
 companion4soloplayer.utils.plugin_loader.PluginLoader -[hidden]down-> companion4soloplayer.utils.yaml_loader.PyClassRef
 companion4soloplayer.utils.yaml_loader.PyClassRef -[hidden]down-> companion4soloplayer.utils.resource_manager.ResourceManager
