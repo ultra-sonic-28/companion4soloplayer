@@ -455,6 +455,8 @@ class MainWindow(QMainWindow):
                 old_character=exc.old_character,
                 new_character=exc.new_character,
                 old_saved_at=exc.old_saved_at,
+                old_version=exc.old_version,
+                new_version=exc.new_version,
                 file_path=str(exc.file_path),
                 parent=self,
             )

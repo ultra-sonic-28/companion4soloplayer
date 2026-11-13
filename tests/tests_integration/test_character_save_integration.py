@@ -130,7 +130,7 @@ def test_save_over_existing_file_raises_overwrite_confirmation_needed(
 
 
 def test_overwrite_true_succeeds_after_confirmation_exception(tmp_path: Path) -> None:
-    """After catching OverwriteConfirmationNeeded, overwrite=True succeeds.
+    """After catching OverwriteConfirmationError, overwrite=True succeeds.
 
     This simulates the user clicking "Overwrite" in the dialog.
     """
@@ -174,3 +174,43 @@ def test_save_new_character_does_not_raise(tmp_path: Path) -> None:
     assert reloaded is not None
     assert reloaded.name == "Legolas"
     assert reloaded.race == "Elf"
+
+
+def test_overwrite_error_carries_plugin_versions_end_to_end(tmp_path: Path) -> None:
+    """Saving over an existing file yields an overwrite error carrying both
+    plugin versions: the old one read from the saved file and the new one
+    from the plugin configuration registry."""
+    from companion4soloplayer.utils.plugin_config import (
+        PluginConfigRegistry,
+        VERSION_SECTION,
+    )
+
+    manager = CharacterSaveManager("demo_plugin", saves_root=tmp_path)
+
+    PluginConfigRegistry.reset()
+    try:
+        # Save the old character while the registry is empty: the file
+        # records the default version.
+        old_tracker = CharacterTracker()
+        old_char = old_tracker.create_character("Aragorn", "Ranger", {"body": 14})
+        old_char.race = "Dwarf"
+        manager.save_character(old_char)
+
+        # Register a newer plugin version, then try to save again.
+        PluginConfigRegistry.instance().register(
+            "demo_plugin", {VERSION_SECTION: "3.2.1"}
+        )
+
+        new_tracker = CharacterTracker()
+        new_char = new_tracker.create_character("Aragorn", "Warrior", {"body": 18})
+
+        with pytest.raises(OverwriteConfirmationError) as exc_info:
+            manager.save_character(new_char)
+
+        exc = exc_info.value
+        # Old version is read from the saved file.
+        assert exc.old_version == "0.0.0"
+        # New version comes from the plugin configuration registry.
+        assert exc.new_version == "3.2.1"
+    finally:
+        PluginConfigRegistry.reset()

@@ -98,8 +98,10 @@ class "CharacterSaveManager" as companion4soloplayer.utils.character_save.Charac
 class "<color:red>OverwriteConfirmationError</color>" as companion4soloplayer.utils.character_save.OverwriteConfirmationError {
   +file_path
   +new_character
+  +new_version
   +old_character
   +old_saved_at
+  +old_version
   +<color:#008000>__init__() -> None</color>
 }
 class "SavedCharacter" as companion4soloplayer.utils.character_save.SavedCharacter {

@@ -2,9 +2,11 @@
 Overwrite confirmation dialog for character saves.
 
 Shows the user a side-by-side comparison of the old save values versus
-the new values (date, name, race, class) and asks whether the existing
-save file should be overwritten.
+the new values (date, plugin version, name, race, class) and asks
+whether the existing save file should be overwritten.
 """
+
+from __future__ import annotations
 
 from datetime import UTC, datetime
 
@@ -26,13 +28,15 @@ class OverwriteConfirmationDialog(QDialog):
 
     The left column shows the values currently stored in the save file
     (old values) and the right column shows the values the user wants to
-    save instead (new values). The compared fields are: date, name, race
-    and class.
+    save instead (new values). The compared fields are: date, plugin
+    version, name, race and class.
 
     Args:
         old_character: The character currently saved in the file.
         new_character: The character the user wants to save instead.
         old_saved_at: ISO-8601 timestamp of the existing save file.
+        old_version: Plugin version stored in the existing save file.
+        new_version: Plugin version of the currently running application.
         file_path: Path of the existing save file (shown for context).
         parent: Parent widget.
     """
@@ -43,6 +47,8 @@ class OverwriteConfirmationDialog(QDialog):
         old_character: Character,
         new_character: Character,
         old_saved_at: str,
+        old_version: str,
+        new_version: str,
         file_path: str,
         parent: QWidget | None = None,
     ) -> None:
@@ -53,6 +59,8 @@ class OverwriteConfirmationDialog(QDialog):
         self._old = old_character
         self._new = new_character
         self._old_saved_at = old_saved_at
+        self._old_version = old_version
+        self._new_version = new_version
         self._file_path = file_path
 
         self._setup_ui()
@@ -86,6 +94,11 @@ class OverwriteConfirmationDialog(QDialog):
                 "Date",
                 self._format_date(self._old_saved_at),
                 self._format_date(datetime.now(UTC)),
+            ),
+            (
+                "Plugin version",
+                self._old_version or "(unknown)",
+                self._new_version or "(unknown)",
             ),
             ("Name", self._old.name, self._new.name),
             ("Race", self._old.race or "(none)", self._new.race or "(none)"),

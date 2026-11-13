@@ -66,13 +66,17 @@ format version (`"2"`) continue to load without issue.
 
 When a character with the same name already has a save file,
 `CharacterSaveManager.save_character()` raises an
-`OverwriteConfirmationNeeded` exception instead of silently replacing
+`OverwriteConfirmationError` exception instead of silently replacing
 the file. The exception carries:
 
 - `file_path`: path of the existing save file;
 - `old_character`: the character currently stored in the file;
 - `new_character`: the character the user wants to save instead;
-- `old_saved_at`: ISO-8601 timestamp of the existing save file.
+- `old_saved_at`: ISO-8601 timestamp of the existing save file;
+- `old_version`: plugin version stored in the existing save file (read
+  from the file's `version` field);
+- `new_version`: plugin version of the running application (read from the
+  plugin configuration registry).
 
 The caller (typically the main window) is responsible for catching this
 exception and presenting an overwrite confirmation dialog to the user.

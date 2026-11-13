@@ -84,8 +84,10 @@ set namespaceSeparator none
 class "OverwriteConfirmationDialog" as companion4soloplayer.ui.dialogs.overwrite_confirmation_dialog.OverwriteConfirmationDialog {
   #_file_path
   #_new
+  #_new_version
   #_old
   #_old_saved_at
+  #_old_version
   +<color:#008000>__init__() -> None</color>
   #<color:#008000>_format_date(value: object) -> str</color>
   #<color:#008000>_setup_ui() -> None</color>

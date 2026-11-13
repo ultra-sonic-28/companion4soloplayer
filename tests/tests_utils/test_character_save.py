@@ -266,6 +266,53 @@ def test_save_character_raises_overwrite_confirmation_when_file_exists(
     assert exc.old_saved_at != ""
 
 
+def test_save_character_carries_plugin_versions_in_overwrite_error(
+    tmp_path: Path,
+) -> None:
+    """The overwrite error carries the old version from the file and the new
+    version from the plugin configuration registry.
+
+    The old version is read from the existing save file's ``version``
+    field while the new version comes from the registered plugin
+    configuration.
+    """
+    from companion4soloplayer.utils.plugin_config import (
+        DEFAULT_PLUGIN_VERSION,
+        PluginConfigRegistry,
+        VERSION_SECTION,
+    )
+
+    manager = CharacterSaveManager("demo_plugin", saves_root=tmp_path)
+
+    PluginConfigRegistry.reset()
+    try:
+        # Save the old character while the registry is empty: the file
+        # records the default version.
+        old_tracker = CharacterTracker()
+        old_character = old_tracker.create_character("Aragorn", "Ranger", {"body": 14})
+        old_character.race = "Dwarf"
+        manager.save_character(old_character)
+
+        # Register a newer plugin version, then try to save again.
+        PluginConfigRegistry.instance().register(
+            "demo_plugin", {VERSION_SECTION: "2.3.4"}
+        )
+
+        new_tracker = CharacterTracker()
+        new_character = new_tracker.create_character("Aragorn", "Warrior", {"body": 18})
+
+        with pytest.raises(OverwriteConfirmationError) as exc_info:
+            manager.save_character(new_character)
+
+        exc = exc_info.value
+        # Old version is read from the saved file (default version).
+        assert exc.old_version == DEFAULT_PLUGIN_VERSION
+        # New version comes from the plugin configuration registry.
+        assert exc.new_version == "2.3.4"
+    finally:
+        PluginConfigRegistry.reset()
+
+
 def test_save_character_with_overwrite_true_replaces_existing_file(
     tmp_path: Path,
 ) -> None:
@@ -300,6 +347,28 @@ def test_overwrite_confirmation_error_exception_message(tmp_path: Path) -> None:
         old_character=old_char,
         new_character=new_char,
         old_saved_at="2026-01-01T00:00:00+00:00",
+        old_version="1.0.0",
+        new_version="2.0.0",
     )
     assert str(expected_path) in str(exc)
     assert "confirmation" in str(exc).lower()
+    assert exc.old_version == "1.0.0"
+    assert exc.new_version == "2.0.0"
+
+
+def test_overwrite_confirmation_error_carries_plugin_versions(tmp_path: Path) -> None:
+    """The exception carries the old and new plugin versions."""
+    tracker = CharacterTracker()
+    old_char = tracker.create_character("Old", "Mage", {"mind": 12})
+    new_char = CharacterTracker().create_character("New", "Warrior", {"body": 10})
+    expected_path = tmp_path / "demo_plugin" / "old.yaml"
+    exc = OverwriteConfirmationError(
+        file_path=expected_path,
+        old_character=old_char,
+        new_character=new_char,
+        old_saved_at="2026-01-01T00:00:00+00:00",
+        old_version="",
+        new_version="",
+    )
+    assert exc.old_version == ""
+    assert exc.new_version == ""

@@ -61,6 +61,8 @@ class OverwriteConfirmationError(Exception):
         old_character: The character currently saved in the file.
         new_character: The character the user wants to save instead.
         old_saved_at: ISO-8601 timestamp of the existing save file.
+        old_version: Plugin version stored in the existing save file.
+        new_version: Plugin version of the currently running application.
     """
 
     def __init__(
@@ -70,11 +72,15 @@ class OverwriteConfirmationError(Exception):
         old_character: Character,
         new_character: Character,
         old_saved_at: str,
+        old_version: str,
+        new_version: str,
     ) -> None:
         self.file_path = file_path
         self.old_character = old_character
         self.new_character = new_character
         self.old_saved_at = old_saved_at
+        self.old_version = old_version
+        self.new_version = new_version
         super().__init__(
             f"Save file {file_path} already exists; user confirmation needed to overwrite"
         )
@@ -227,10 +233,12 @@ class CharacterSaveManager:
 
         if file_path.is_file() and not overwrite:
             old_saved_at: str = ""
+            old_version: str = ""
             try:
                 raw = yaml.safe_load(file_path.read_text(encoding="utf-8"))
                 if isinstance(raw, dict):
                     old_saved_at = str(raw.get("saved_at", ""))
+                    old_version = str(raw.get("version", ""))
             except (OSError, yaml.YAMLError):
                 pass
             old_character = self.load_character(slug)
@@ -238,11 +246,16 @@ class CharacterSaveManager:
                 raise OSError(
                     f"Cannot read existing save file {file_path} for overwrite check"
                 )
+            new_version = PluginConfigRegistry.instance().plugin_version(
+                self.plugin_name
+            )
             raise OverwriteConfirmationError(
                 file_path=file_path,
                 old_character=old_character,
                 new_character=character,
                 old_saved_at=old_saved_at,
+                old_version=old_version,
+                new_version=new_version,
             )
 
         payload = SavedCharacter(
