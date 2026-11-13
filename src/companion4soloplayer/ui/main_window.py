@@ -133,6 +133,10 @@ class MainWindow(QMainWindow):
         manage_menu.aboutToShow.connect(self._refresh_player_action)
         self._refresh_player_action()
 
+        band_action = QAction("&Bands", self)
+        #band_action.triggered.connect(self._show_band)
+        manage_menu.addAction(band_action)
+
         plugin_action = QAction("&Plugins", self)
         plugin_action.triggered.connect(self._show_plugin)
         manage_menu.addAction(plugin_action)
