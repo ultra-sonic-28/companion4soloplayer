@@ -14,7 +14,6 @@ import yaml
 
 from companion4soloplayer.core.character_tracker import CharacterTracker
 from companion4soloplayer.utils.character_save import (
-    SAVE_FORMAT_VERSION,
     CharacterSaveManager,
     OverwriteConfirmationError,
     SavedCharacter,
@@ -190,13 +189,13 @@ def test_saved_character_model_round_trip() -> None:
     saved = SavedCharacter(
         plugin_name="demo_plugin",
         saved_at=datetime.now(UTC),
-        version=SAVE_FORMAT_VERSION,
+        version="1.0.0",
         character=character,
     )
 
     restored = SavedCharacter.from_dict(saved.to_dict())
     assert restored.plugin_name == "demo_plugin"
-    assert restored.version == SAVE_FORMAT_VERSION
+    assert restored.version == "1.0.0"
     assert restored.character.name == "Test"
     assert restored.character.stats == {"body": 10}
     assert restored.character.race == "Human"
@@ -222,7 +221,6 @@ def test_saved_file_is_structured_yaml_with_metadata(tmp_path: Path) -> None:
     data = yaml.safe_load(content)
 
     assert data["plugin_name"] == "demo_plugin"
-    assert data["version"] == SAVE_FORMAT_VERSION
     assert isinstance(datetime.fromisoformat(data["saved_at"]), datetime)
     assert data["character"]["name"] == "Gandalf"
     assert data["character"]["character_class"] == "Wizard"

@@ -39,6 +39,7 @@ from typing import Any
 import yaml
 
 from companion4soloplayer.core.character_tracker import Character
+from companion4soloplayer.utils.plugin_config import PluginConfigRegistry
 from companion4soloplayer.utils.slugify import Slugify
 
 __all__ = [
@@ -49,7 +50,6 @@ __all__ = [
 ]
 
 SAVES_SUBDIR = Path("data") / "saves"
-SAVE_FORMAT_VERSION = "2"
 SAVE_FILE_EXTENSION = ".yaml"
 
 
@@ -109,13 +109,14 @@ class SavedCharacter:
 
     Structured payload written to (and read from) a save file. Wraps a
     :class:`~companion4soloplayer.core.character_tracker.Character` instance
-    and adds bookkeeping information (plugin name, save timestamp, format
+    and adds bookkeeping information (plugin name, save timestamp, plugin
     version) so each file is self-describing.
 
     Attributes:
         plugin_name: Name of the plugin the character belongs to.
         saved_at: UTC instant when the character was saved (ISO-8601).
-        version: Save format version.
+        version: Plugin version (semver) read from the plugin's
+            ``config.yaml``.
         character: The player character data.
     """
 
@@ -247,7 +248,7 @@ class CharacterSaveManager:
         payload = SavedCharacter(
             plugin_name=self.plugin_name,
             saved_at=datetime.now(UTC),
-            version=SAVE_FORMAT_VERSION,
+            version=PluginConfigRegistry.instance().plugin_version(self.plugin_name),
             character=character,
         )
         text = yaml.safe_dump(

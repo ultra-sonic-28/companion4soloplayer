@@ -27,7 +27,7 @@ Each save file is a self-describing YAML document:
 ```yaml
 plugin_name: demo_plugin
 saved_at: 2026-11-09T14:32:00+00:00
-version: "2"
+version: "1.0.0"
 character:
   name: Aragorn
   character_class: Warrior
@@ -55,6 +55,12 @@ Save files written with format version ``1`` (before the
 ``race``, ``background``, ``skills``, ``spells`` and ``saving_throws``
 fields were added) still load correctly: the missing fields fall back on
 their pydantic defaults (empty string, empty list, empty mapping).
+
+The top-level `version` field in the save file holds the plugin version
+(semver) as declared in the plugin's `config.yaml`. It is read from the
+plugin configuration registry when saving and is stored verbatim when
+loading. Legacy save files whose `version` field holds the former save
+format version (`"2"`) continue to load without issue.
 
 ## Overwrite confirmation
 
