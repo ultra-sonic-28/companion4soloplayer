@@ -67,5 +67,4 @@ else:
 
 ## API reference
 
-::: utils.character_save.OverwriteConfirmationError
 ::: ui.dialogs.overwrite_confirmation_dialog.OverwriteConfirmationDialog
